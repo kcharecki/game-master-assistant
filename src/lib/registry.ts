@@ -6,6 +6,7 @@ import timer from '../modules/timer';
 import roller from '../modules/roller';
 import npcs from '../modules/npcs';
 import lore from '../modules/lore';
+import calendar from '../modules/calendar';
 import reveal from '../modules/reveal';
 import map from '../modules/map';
 import audio from '../modules/audio';
@@ -29,6 +30,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   roller,
   npcs,
   lore,
+  calendar,
   reveal,
   map,
   audio,
