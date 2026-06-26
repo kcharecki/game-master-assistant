@@ -31,7 +31,10 @@ export type BroadcastPayload =
 export type DisplayMode = 'cinematic' | 'plain';
 
 // GM -> Broadcast control messages. `broadcast` swaps the on-air content;
-// `display` changes only how that content is framed (player-facing chrome).
+// `display` changes only how that content is framed (player-facing chrome);
+// `mood` washes the page with a color/lighting preset (id only — the broadcast
+// page resolves the preset locally, so no GM-private data crosses the channel).
 export type BusMessage =
   | { type: 'broadcast'; payload: BroadcastPayload; at: number }
-  | { type: 'display'; mode: DisplayMode; at: number };
+  | { type: 'display'; mode: DisplayMode; at: number }
+  | { type: 'mood'; moodId: string; at: number };

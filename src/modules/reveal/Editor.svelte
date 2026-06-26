@@ -2,13 +2,20 @@
   import type { BroadcastPayload, DisplayMode } from '../../lib/types';
   import { assetPut, assetUrl } from '../../lib/db';
   import { DEFAULT_DISPLAY_MODE } from '../../broadcast/display';
-  import { putOnAir, clearBroadcast, setDisplayMode } from './bus-actions';
+  import { MOODS, DEFAULT_MOOD } from '../../broadcast/mood';
+  import { putOnAir, clearBroadcast, setDisplayMode, setMood } from './bus-actions';
 
   let display = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
+  let moodId = $state(DEFAULT_MOOD.id);
 
   function pickDisplay(m: DisplayMode) {
     display = m;
     setDisplayMode(m);
+  }
+
+  function pickMood(id: string) {
+    moodId = id;
+    setMood(id);
   }
 
   let mode = $state<'text' | 'image'>('text');
@@ -99,6 +106,17 @@
       <button class:on={display === 'plain'} onclick={() => pickDisplay('plain')}>Plain</button>
     </div>
   </div>
+
+  <div class="display">
+    <span class="muted">Mood:</span>
+    <div class="moods">
+      {#each MOODS as m (m.id)}
+        <button class="moodbtn" class:on={moodId === m.id} onclick={() => pickMood(m.id)}>
+          {m.label}
+        </button>
+      {/each}
+    </div>
+  </div>
   <p class="muted hint">Screen-share the broadcast window; players see only what you send here.</p>
 </div>
 
@@ -160,6 +178,26 @@
   }
   .hint {
     font-size: 12px;
+  }
+  .moods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .moodbtn {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line2);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+  }
+  .moodbtn.on {
+    background: rgba(47, 138, 102, 0.18);
+    color: var(--txt);
+    border-color: var(--green-dim);
   }
   .drop {
     display: flex;

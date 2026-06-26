@@ -4,9 +4,12 @@
   import { kvGet } from '../lib/db';
   import type { BroadcastPayload, DisplayMode } from '../lib/types';
   import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
+  import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
+  let mood = $state<Mood>(DEFAULT_MOOD);
+  const mstyle = $derived(moodStyle(mood));
   // Transient ping marker (normalized 0..1) that overlays current content.
   let ping = $state<{ x: number; y: number } | null>(null);
   let pingTimer: ReturnType<typeof setTimeout> | undefined;
@@ -42,9 +45,13 @@
     void kvGet<unknown>(DISPLAY_MODE_KEY).then((saved) => {
       mode = normalizeMode(saved);
     });
+    void kvGet<unknown>(MOOD_KEY).then((saved) => {
+      mood = normalizeMood(saved);
+    });
     const bus = createBus();
     const off = bus.on((m) => {
       if (m.type === 'display') mode = m.mode;
+      else if (m.type === 'mood') mood = moodById(m.moodId);
       else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
       else if (m.payload.kind === 'audio') handleAudio(m.payload);
       else payload = m.payload;
@@ -57,7 +64,7 @@
   });
 </script>
 
-<div class="broadcast" class:plain={mode === 'plain'}>
+<div class="broadcast" class:plain={mode === 'plain'} style="filter:{mstyle.filter}">
   {#if payload.kind === 'text'}
     <div class="card">
       {#if payload.title}<h1>{payload.title}</h1>{/if}
@@ -90,6 +97,9 @@
   {:else}
     <div class="idle">Awaiting the Keeper…</div>
   {/if}
+
+  <!-- Mood/lighting wash, layered over content but under transient markers. -->
+  <div class="mood" style="background:{mstyle.overlay}"></div>
 
   {#if ping}
     <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
@@ -156,6 +166,14 @@
     margin-top: 14px;
     color: var(--muted);
     font-style: italic;
+  }
+
+  .mood {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: background 0.8s ease;
+    z-index: 1;
   }
 
   .ping {

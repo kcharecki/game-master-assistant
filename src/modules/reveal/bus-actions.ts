@@ -2,6 +2,7 @@ import { createBus } from '../../lib/bus';
 import { kvSet } from '../../lib/db';
 import type { BroadcastPayload, DisplayMode } from '../../lib/types';
 import { DISPLAY_MODE_KEY } from '../../broadcast/display';
+import { MOOD_KEY, moodById } from '../../broadcast/mood';
 
 /**
  * Put a payload on air: send over the channel + mirror to IndexedDB for rehydrate.
@@ -24,4 +25,13 @@ export function setDisplayMode(mode: DisplayMode): void {
   bus.sendDisplay(mode);
   bus.close();
   void kvSet(DISPLAY_MODE_KEY, mode);
+}
+
+/** Push a mood/lighting preset to the broadcast page; mirror to kv for rehydrate. */
+export function setMood(moodId: string): void {
+  const mood = moodById(moodId);
+  const bus = createBus();
+  bus.sendMood(mood.id);
+  bus.close();
+  void kvSet(MOOD_KEY, mood);
 }

@@ -12,9 +12,15 @@ export function makeDisplayMessage(mode: DisplayMode): Extract<BusMessage, { typ
   return { type: 'display', mode, at: Date.now() };
 }
 
+/** Pure helper: wrap a mood-preset change into a timestamped bus message. */
+export function makeMoodMessage(moodId: string): Extract<BusMessage, { type: 'mood' }> {
+  return { type: 'mood', moodId, at: Date.now() };
+}
+
 export interface Bus {
   send(payload: BroadcastPayload): BusMessage;
   sendDisplay(mode: DisplayMode): BusMessage;
+  sendMood(moodId: string): BusMessage;
   on(cb: (msg: BusMessage) => void): () => void;
   close(): void;
 }
@@ -33,6 +39,11 @@ export function createBus(name: string = CHANNEL): Bus {
     },
     sendDisplay(mode) {
       const msg = makeDisplayMessage(mode);
+      ch.postMessage(msg);
+      return msg;
+    },
+    sendMood(moodId) {
+      const msg = makeMoodMessage(moodId);
       ch.postMessage(msg);
       return msg;
     },
