@@ -8,6 +8,7 @@ export type ModuleId =
   | 'timer'
   | 'roller'
   | 'npcs'
+  | 'lore'
   | 'handouts'
   | 'notebook'
   | 'map'

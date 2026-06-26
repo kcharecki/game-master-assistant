@@ -5,6 +5,7 @@ import conditions from '../modules/conditions';
 import timer from '../modules/timer';
 import roller from '../modules/roller';
 import npcs from '../modules/npcs';
+import lore from '../modules/lore';
 import reveal from '../modules/reveal';
 import map from '../modules/map';
 import audio from '../modules/audio';
@@ -27,6 +28,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   timer,
   roller,
   npcs,
+  lore,
   reveal,
   map,
   audio,
