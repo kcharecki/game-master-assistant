@@ -2,17 +2,25 @@
   import { onMount } from 'svelte';
   import { createBus } from '../lib/bus';
   import { kvGet } from '../lib/db';
-  import type { BroadcastPayload } from '../lib/types';
+  import type { BroadcastPayload, DisplayMode } from '../lib/types';
+  import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
+  let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
 
   onMount(() => {
-    // Rehydrate last shared state, then listen for live GM pushes.
+    // Rehydrate last shared state + display mode, then listen for live GM pushes.
     void kvGet<BroadcastPayload>('broadcastState').then((saved) => {
       if (saved) payload = saved;
     });
+    void kvGet<unknown>(DISPLAY_MODE_KEY).then((saved) => {
+      mode = normalizeMode(saved);
+    });
     const bus = createBus();
-    const off = bus.on((m) => (payload = m.payload));
+    const off = bus.on((m) => {
+      if (m.type === 'broadcast') payload = m.payload;
+      else mode = m.mode;
+    });
     return () => {
       off();
       bus.close();
@@ -20,7 +28,7 @@
   });
 </script>
 
-<div class="broadcast">
+<div class="broadcast" class:plain={mode === 'plain'}>
   {#if payload.kind === 'text'}
     <div class="card">
       {#if payload.title}<h1>{payload.title}</h1>{/if}
@@ -79,5 +87,20 @@
     margin-top: 14px;
     color: var(--muted);
     font-style: italic;
+  }
+
+  /* Plain mode: flat, high-contrast framing for legibility over atmosphere. */
+  .broadcast.plain {
+    background: #05090a;
+  }
+  .broadcast.plain .card h1 {
+    font-family: system-ui, sans-serif;
+    color: var(--txt);
+  }
+  .broadcast.plain figure img {
+    border-radius: 4px;
+  }
+  .broadcast.plain figcaption {
+    font-style: normal;
   }
 </style>

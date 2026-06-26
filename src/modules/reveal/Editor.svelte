@@ -1,7 +1,15 @@
 <script lang="ts">
-  import type { BroadcastPayload } from '../../lib/types';
+  import type { BroadcastPayload, DisplayMode } from '../../lib/types';
   import { assetPut, assetUrl } from '../../lib/db';
-  import { putOnAir, clearBroadcast } from './bus-actions';
+  import { DEFAULT_DISPLAY_MODE } from '../../broadcast/display';
+  import { putOnAir, clearBroadcast, setDisplayMode } from './bus-actions';
+
+  let display = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
+
+  function pickDisplay(m: DisplayMode) {
+    display = m;
+    setDisplayMode(m);
+  }
 
   let mode = $state<'text' | 'image'>('text');
   let title = $state('A Strange Symbol');
@@ -81,6 +89,16 @@
     <button class="btn solid" onclick={send}>Send to Broadcast</button>
     <button class="btn" onclick={clearBroadcast}>Clear</button>
   </div>
+
+  <div class="display">
+    <span class="muted">Display:</span>
+    <div class="seg">
+      <button class:on={display === 'cinematic'} onclick={() => pickDisplay('cinematic')}>
+        Cinematic
+      </button>
+      <button class:on={display === 'plain'} onclick={() => pickDisplay('plain')}>Plain</button>
+    </div>
+  </div>
   <p class="muted hint">Screen-share the broadcast window; players see only what you send here.</p>
 </div>
 
@@ -133,6 +151,12 @@
     display: flex;
     gap: 10px;
     margin-top: 4px;
+  }
+  .display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
   }
   .hint {
     font-size: 12px;

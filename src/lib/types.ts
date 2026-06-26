@@ -22,8 +22,10 @@ export type BroadcastPayload =
   | { kind: 'text'; title?: string; body: string }
   | { kind: 'map'; src: string; reveal: number[][] };
 
-export interface BusMessage {
-  type: 'broadcast';
-  payload: BroadcastPayload;
-  at: number;
-}
+export type DisplayMode = 'cinematic' | 'plain';
+
+// GM -> Broadcast control messages. `broadcast` swaps the on-air content;
+// `display` changes only how that content is framed (player-facing chrome).
+export type BusMessage =
+  | { type: 'broadcast'; payload: BroadcastPayload; at: number }
+  | { type: 'display'; mode: DisplayMode; at: number };
