@@ -21,6 +21,7 @@ import beats from '../modules/beats';
 import tables from '../modules/tables';
 import improv from '../modules/improv';
 import palette from '../modules/palette';
+import archive from '../modules/archive';
 
 function stub(
   id: ModuleId,
@@ -57,6 +58,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   skillcheck,
   statblock,
   palette,
+  archive,
 };
 
 export const moduleList: ModuleManifest[] = Object.values(modules);

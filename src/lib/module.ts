@@ -24,6 +24,7 @@ export type ModuleId =
   | 'tables'
   | 'improv'
   | 'palette'
+  | 'archive'
   | 'reveal';
 
 /**
