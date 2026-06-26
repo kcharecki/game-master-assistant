@@ -22,6 +22,7 @@ export type ModuleId =
   | 'quests'
   | 'beats'
   | 'tables'
+  | 'improv'
   | 'reveal';
 
 /**

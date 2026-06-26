@@ -19,6 +19,7 @@ import notebook from '../modules/notebook';
 import quests from '../modules/quests';
 import beats from '../modules/beats';
 import tables from '../modules/tables';
+import improv from '../modules/improv';
 
 function stub(
   id: ModuleId,
@@ -49,6 +50,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   quests,
   beats,
   tables,
+  improv,
   clues,
   sanity,
   skillcheck,

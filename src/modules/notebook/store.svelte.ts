@@ -1,5 +1,6 @@
 import { kvSet, kvGet } from '../../lib/db';
 import { parseTags, filterNotes, allTags, type Note } from './logic';
+import { generateRecap } from './recap';
 
 export type { Note } from './logic';
 
@@ -17,6 +18,7 @@ class NotebookStore {
   notes = $state<Note[]>([...SEED]);
   query = $state('');
   activeTag = $state<string | undefined>(undefined);
+  recap = $state<string | null>(null);
 
   /** Notes matching the current search + tag filter, newest first. */
   get visible(): Note[] {
@@ -53,6 +55,10 @@ class NotebookStore {
 
   setTag(tag: string | undefined): void {
     this.activeTag = this.activeTag === tag ? undefined : tag;
+  }
+
+  makeRecap(): void {
+    this.recap = generateRecap($state.snapshot(this.notes));
   }
 
   persist(): void {

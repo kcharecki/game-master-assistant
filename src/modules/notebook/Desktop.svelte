@@ -33,6 +33,7 @@
 
   <div class="filters">
     <input class="in search" placeholder="Search…" bind:value={notebook.query} />
+    <button class="btn" onclick={() => notebook.makeRecap()}>Recap</button>
     {#if notebook.tags.length}
       <div class="tags">
         {#each notebook.tags as t (t)}
@@ -45,6 +46,13 @@
       </div>
     {/if}
   </div>
+
+  {#if notebook.recap}
+    <div class="recap">
+      <button class="rclose" title="Dismiss" onclick={() => (notebook.recap = null)}>×</button>
+      <pre>{notebook.recap}</pre>
+    </div>
+  {/if}
 
   <ul class="list">
     {#each notebook.visible as n (n.id)}
@@ -113,6 +121,32 @@
   .chip.on {
     color: var(--green);
     border-color: var(--green-dim);
+  }
+  .recap {
+    position: relative;
+    border: 1px solid var(--green-dim);
+    border-radius: 8px;
+    background: rgba(47, 138, 102, 0.1);
+    padding: 8px 26px 8px 10px;
+  }
+  .recap pre {
+    margin: 0;
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--txt);
+    white-space: pre-wrap;
+  }
+  .rclose {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
   }
   .list {
     list-style: none;
