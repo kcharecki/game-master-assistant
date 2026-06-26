@@ -49,7 +49,7 @@
 
   {#if notebook.recap}
     <div class="recap">
-      <button class="rclose" title="Dismiss" onclick={() => (notebook.recap = null)}>×</button>
+      <button class="rclose" title="Dismiss" aria-label="Dismiss recap" onclick={() => (notebook.recap = null)}>×</button>
       <pre>{notebook.recap}</pre>
     </div>
   {/if}
@@ -59,7 +59,7 @@
       <li class="note">
         <div class="meta">
           <span class="time">{fmt(n.at)}</span>
-          <button class="del" title="Delete" onclick={() => notebook.remove(n.id)}>×</button>
+          <button class="del" title="Delete" aria-label="Delete note" onclick={() => notebook.remove(n.id)}>×</button>
         </div>
         <p class="body">{n.body}</p>
       </li>

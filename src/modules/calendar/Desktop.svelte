@@ -37,7 +37,7 @@
           <li>
             <span class="ed">{formatDate(e.date)}</span>
             <span class="et">{e.title}</span>
-            <button class="x" title="Remove" onclick={() => calendar.removeEvent(e.id)}>×</button>
+            <button class="x" title="Remove" aria-label="Remove event" onclick={() => calendar.removeEvent(e.id)}>×</button>
           </li>
         {/each}
       </ul>

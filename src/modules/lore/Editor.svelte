@@ -15,7 +15,7 @@
   <aside class="side">
     <header class="shead">
       <h2>Lore</h2>
-      <button class="btn solid sm" onclick={() => lore.add()}>＋</button>
+      <button class="btn solid sm" aria-label="Add page" onclick={() => lore.add()}>＋</button>
     </header>
     <ul class="plist">
       {#each lore.pages as p (p.id)}

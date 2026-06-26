@@ -32,7 +32,7 @@
         <div class="card" class:done={q.status === 'resolved'}>
           <div class="top">
             <input class="title" bind:value={q.title} onchange={() => quests.update(q.id, { title: q.title })} />
-            <button class="del" title="Delete" onclick={() => quests.remove(q.id)}>×</button>
+            <button class="del" title="Delete" aria-label="Delete quest" onclick={() => quests.remove(q.id)}>×</button>
           </div>
           {#if q.clues.length}
             <ul class="clues">

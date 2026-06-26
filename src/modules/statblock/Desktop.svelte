@@ -20,7 +20,7 @@
   {#each shown as s (s.id)}
     <div class="row">
       <span class="cn"><div class="nm">{s.name}</div><div class="rl">CR {s.cr} · {s.hp} HP · AC {s.ac}</div></span>
-      <button class="btn sm" onclick={() => statblock.addToEncounter(s.id)}>＋</button>
+      <button class="btn sm" aria-label="Add to encounter" onclick={() => statblock.addToEncounter(s.id)}>＋</button>
     </div>
   {/each}
 </div>

@@ -156,8 +156,8 @@
     <button class="btn sm" onclick={() => map.addToken(snapToCell(-map.transform.panX), 0, 'New')}>
       + Token
     </button>
-    <button class="btn sm" onclick={() => map.zoomBy(1.1)}>＋</button>
-    <button class="btn sm" onclick={() => map.zoomBy(0.9)}>－</button>
+    <button class="btn sm" aria-label="Zoom in" onclick={() => map.zoomBy(1.1)}>＋</button>
+    <button class="btn sm" aria-label="Zoom out" onclick={() => map.zoomBy(0.9)}>－</button>
     <button
       class="btn sm"
       class:on={fogTool === 'reveal'}
@@ -190,7 +190,7 @@
         class:on={sel.conditions.includes('prone')}
         onclick={() => map.toggleCondition(sel.id, 'prone')}>prone</button
       >
-      <button class="btn sm danger" onclick={() => map.removeToken(sel.id)}>✕</button>
+      <button class="btn sm danger" aria-label="Remove token" onclick={() => map.removeToken(sel.id)}>✕</button>
     </div>
   {/if}
 </div>

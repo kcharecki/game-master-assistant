@@ -38,6 +38,7 @@
     <div
       class="palette"
       role="dialog"
+      aria-modal="true"
       aria-label="Command palette"
       tabindex="-1"
       onclick={(e) => e.stopPropagation()}

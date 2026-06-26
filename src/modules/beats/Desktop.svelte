@@ -17,14 +17,15 @@
         <span class="num">{i + 1}</span>
         <input class="title" bind:value={b.title} onchange={() => beats.rename(b.id, b.title)} />
         <div class="moves">
-          <button class="mv" disabled={i === 0} onclick={() => beats.move(b.id, -1)} title="Up">▲</button>
+          <button class="mv" disabled={i === 0} onclick={() => beats.move(b.id, -1)} title="Up" aria-label="Move up">▲</button>
           <button
             class="mv"
             disabled={i === beats.cards.length - 1}
             onclick={() => beats.move(b.id, 1)}
-            title="Down">▼</button
+            title="Down"
+            aria-label="Move down">▼</button
           >
-          <button class="del" onclick={() => beats.remove(b.id)} title="Remove">×</button>
+          <button class="del" onclick={() => beats.remove(b.id)} title="Remove" aria-label="Remove beat">×</button>
         </div>
       </li>
     {:else}

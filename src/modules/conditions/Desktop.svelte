@@ -42,7 +42,7 @@
   <input class="in" placeholder="Effect" bind:value={name} aria-label="Effect name" />
   <input class="in t" placeholder="Target" bind:value={target} aria-label="Target" />
   <input class="in n" type="number" min="1" bind:value={rounds} aria-label="Rounds" />
-  <button class="btn sm" type="submit">＋</button>
+  <button class="btn sm" type="submit" aria-label="Add effect">＋</button>
 </form>
 
 <style>

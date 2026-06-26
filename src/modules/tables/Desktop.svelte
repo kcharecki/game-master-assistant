@@ -45,7 +45,7 @@
           <b>{t.name}</b>
           <span class="actions">
             <button class="lnk" disabled={!t.entries.length} onclick={() => tables.roll(t.id)}>Roll</button>
-            <button class="del" onclick={() => tables.removeTable(t.id)}>×</button>
+            <button class="del" aria-label="Delete table" onclick={() => tables.removeTable(t.id)}>×</button>
           </span>
         </div>
         <div class="small">{t.entries.length} entries</div>
@@ -72,7 +72,7 @@
     <ul class="list">
       {#each tables.rulings as rl (rl.id)}
         <li class="card">
-          <div class="top"><b>{rl.question}</b><button class="del" onclick={() => tables.removeRuling(rl.id)}>×</button></div>
+          <div class="top"><b>{rl.question}</b><button class="del" aria-label="Delete ruling" onclick={() => tables.removeRuling(rl.id)}>×</button></div>
           <div class="small ans">{rl.ruling}</div>
         </li>
       {:else}
