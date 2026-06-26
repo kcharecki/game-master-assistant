@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GM Assistant — Workspace</title>
+<style>
+  :root{
+    --paper:#f6f3ec;
+    --paper-2:#fbf9f4;
+    --ink:#1c1a17;
+    --ink-soft:#4a463f;
+    --ink-faint:#8c867b;
+    --rule:#d9d3c6;
+    --rule-soft:#e7e2d6;
+    --accent:#7a2a2a;        /* oxblood */
+    --accent-soft:#9a4a45;
+    --accent-tint:rgba(122,42,42,.08);
+    --good:#3f5e3f;
+    --warn:#9a6a1f;
+    --shadow:0 1px 0 rgba(0,0,0,.02);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:"Inter","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  }
+  /* Call of Cthulhu palette swap */
+  body[data-system="coc"]{
+    --paper:#eef0f1;
+    --paper-2:#f7f8f9;
+    --ink:#16191c;
+    --ink-soft:#3f464c;
+    --ink-faint:#828b91;
+    --rule:#cfd5d9;
+    --rule-soft:#e0e4e7;
+    --accent:#27496b;        /* ink-blue */
+    --accent-soft:#3c628a;
+    --accent-tint:rgba(39,73,107,.09);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans);
+    background:var(--paper);
+    color:var(--ink);
+    font-size:14px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow:hidden;
+  }
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;letter-spacing:.2px}
+  .serif{font-family:var(--serif)}
+  .app{
+    height:100vh;width:100vw;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+  }
+
+  /* ---------- Top chrome ---------- */
+  .chrome{
+    display:flex;align-items:center;gap:22px;
+    padding:12px 22px;
+    border-bottom:1px solid var(--rule);
+    background:var(--paper-2);
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+  .brand .mark{
+    font-family:var(--serif);font-size:22px;color:var(--accent);line-height:1;
+  }
+  .brand .name{font-family:var(--serif);font-size:18px;letter-spacing:.3px}
+  .brand .sub{font-size:11px;color:var(--ink-faint);letter-spacing:.14em;text-transform:uppercase}
+
+  .switcher{
+    display:flex;align-items:center;gap:0;
+    border:1px solid var(--rule);border-radius:999px;overflow:hidden;
+    background:var(--paper);
+  }
+  .switcher button{
+    font-family:var(--sans);font-size:12px;letter-spacing:.04em;
+    border:0;background:transparent;color:var(--ink-faint);
+    padding:7px 16px;cursor:pointer;white-space:nowrap;
+  }
+  .switcher button.active{background:var(--accent);color:#fff}
+  .switcher .div{color:var(--ink-faint);font-size:12px;padding:0 2px;user-select:none}
+
+  .campaign{display:flex;align-items:center;gap:9px;margin-left:4px}
+  .campaign .seal{
+    width:30px;height:30px;border-radius:50%;
+    border:1px solid var(--rule);display:grid;place-items:center;
+    font-size:15px;background:var(--paper);
+  }
+  .campaign .meta{line-height:1.2}
+  .campaign .meta b{font-family:var(--serif);font-size:13.5px;font-weight:600}
+  .campaign .meta span{display:block;font-size:11px;color:var(--ink-faint)}
+
+  .chrome .spacer{flex:1}
+  .clock{display:flex;align-items:center;gap:14px}
+  .clock .timer{font-family:var(--serif);font-size:15px}
+  .clock .timer small{font-size:11px;color:var(--ink-faint);font-family:var(--sans)}
+  .pacing{width:120px;height:5px;border-radius:3px;background:var(--rule-soft);overflow:hidden}
+  .pacing i{display:block;height:100%;width:62%;background:var(--accent)}
+  .chip-live{
+    display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);
+    padding:4px 10px;border-radius:999px;
+  }
+  .chip-live .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
+    animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* ---------- Workspace grid ---------- */
+  .desk{
+    padding:16px;
+    display:grid;gap:14px;
+    grid-template-columns:1.15fr 1.5fr 1.15fr;
+    grid-template-rows:1fr 1fr;
+    min-height:0;overflow:hidden;
+  }
+  @media (max-width:1200px){
+    .desk{grid-template-columns:1fr 1fr;grid-template-rows:auto;overflow:auto}
+  }
+  @media (max-width:760px){
+    .desk{grid-template-columns:1fr}
+  }
+
+  .card{
+    background:var(--paper-2);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    display:flex;flex-direction:column;min-height:0;
+    box-shadow:var(--shadow);
+  }
+  .card > .hd{
+    display:flex;align-items:center;gap:8px;
+    padding:11px 14px 9px;
+    border-bottom:1px solid var(--rule-soft);
+  }
+  .card > .hd .ic{font-size:14px;opacity:.8}
+  .card > .hd h3{font-size:15px;flex:1}
+  .card > .hd .tag{
+    font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .card > .bd{padding:12px 14px;overflow:auto;min-height:0;flex:1}
+  .card.span-tall{grid-row:span 2}
+
+  /* scrollbars */
+  .bd::-webkit-scrollbar{width:8px}
+  .bd::-webkit-scrollbar-thumb{background:var(--rule);border-radius:8px}
+
+  /* ---------- Initiative ---------- */
+  .turn{
+    display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;
+    padding:8px 6px;border-bottom:1px solid var(--rule-soft);
+  }
+  .turn:last-child{border-bottom:0}
+  .turn.active{background:var(--accent-tint);border-radius:5px;border-bottom-color:transparent}
+  .turn .init{font-family:var(--serif);font-size:17px;text-align:center;color:var(--ink-soft)}
+  .turn.active .init{color:var(--accent)}
+  .turn .who{min-width:0}
+  .turn .who b{font-weight:600;font-size:13.5px}
+  .turn .who .conds{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+  .cond{
+    font-size:10px;letter-spacing:.03em;padding:2px 7px;border-radius:999px;
+    background:var(--paper);border:1px solid var(--rule);color:var(--ink-soft);
+  }
+  .cond.bad{color:var(--accent);border-color:var(--accent-soft)}
+  .turn .who small{color:var(--ink-faint);font-size:11px}
+  .stats{display:flex;gap:14px;align-items:center}
+  .stat{text-align:center;line-height:1.05}
+  .stat b{font-family:var(--serif);font-size:15px;display:block}
+  .stat span{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .hpbar{width:74px;height:5px;background:var(--rule-soft);border-radius:3px;overflow:hidden;margin-top:3px}
+  .hpbar i{display:block;height:100%;background:var(--good)}
+  .hpbar i.mid{background:var(--warn)}
+  .hpbar i.low{background:var(--accent)}
+  .hidden-hp{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-style:italic}
+  .pip{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}
+
+  /* ---------- Reveal / broadcast ---------- */
+  .reveal-stage{
+    flex:1;display:flex;flex-direction:column;border-radius:5px;overflow:hidden;
+    border:1px solid var(--rule);background:#16140f;color:#efe9da;min-height:170px;
+  }
+  body[data-system="coc"] .reveal-stage{background:#10151b;color:#dfe6ec}
+  .reveal-art{
+    flex:1;position:relative;display:grid;place-items:center;
+    background:
+      radial-gradient(circle at 50% 38%, rgba(255,255,255,.07), transparent 60%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 9px);
+    overflow:hidden;
+  }
+  .reveal-art .scene{font-size:54px;filter:saturate(.85)}
+  .reveal-art .vign{position:absolute;inset:0;box-shadow:inset 0 0 80px 20px rgba(0,0,0,.55);pointer-events:none}
+  .reveal-cap{
+    padding:9px 12px;border-top:1px solid rgba(255,255,255,.12);
+    font-family:var(--serif);font-size:13px;letter-spacing:.2px;
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+  }
+  .reveal-cap em{color:rgba(255,255,255,.55);font-size:11px;font-family:var(--sans)}
+  .reveal-controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+  .qbtn{
+    font-family:var(--sans);font-size:11.5px;cursor:pointer;
+    background:var(--paper);border:1px solid var(--rule);color:var(--ink-soft);
+    padding:6px 11px;border-radius:5px;display:inline-flex;gap:6px;align-items:center;
+  }
+  .qbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .qbtn:hover{border-color:var(--accent-soft)}
+
+  /* ---------- Dice ---------- */
+  .dice-readout{
+    text-align:center;padding:8px 0 12px;border-bottom:1px solid var(--rule-soft);margin-bottom:11px;
+  }
+  .dice-readout .big{font-family:var(--serif);font-size:46px;line-height:1;color:var(--accent)}
+  .dice-readout .formula{font-size:12px;color:var(--ink-faint);margin-top:4px}
+  .dice-readout .adv{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--good);margin-top:2px}
+  .macros{display:flex;flex-direction:column;gap:7px}
+  .macro{
+    display:flex;align-items:center;gap:10px;justify-content:space-between;
+    padding:8px 11px;border:1px solid var(--rule);border-radius:5px;background:var(--paper);
+    cursor:pointer;
+  }
+  .macro:hover{border-color:var(--accent-soft)}
+  .macro b{font-weight:600;font-size:13px}
+  .macro small{color:var(--ink-faint);font-size:11px;display:block}
+  .macro .roll{font-family:var(--serif);font-size:13px;color:var(--accent)}
+  .macro.hidden-roll{border-style:dashed;color:var(--ink-soft)}
+  .macro.hidden-roll .roll{color:var(--ink-faint)}
+  .dice-toggles{display:flex;gap:6px;margin-top:11px}
+  .seg{flex:1;display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden}
+  .seg button{flex:1;border:0;background:var(--paper);font-size:11px;padding:6px;cursor:pointer;color:var(--ink-faint)}
+  .seg button.on{background:var(--accent);color:#fff}
+
+  /* ---------- NPC roster ---------- */
+  .npc{
+    display:grid;grid-template-columns:42px 1fr auto;gap:11px;align-items:center;
+    padding:9px 0;border-bottom:1px solid var(--rule-soft);
+  }
+  .npc:last-child{border-bottom:0}
+  .av{
+    width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+    font-size:20px;border:1px solid var(--rule);background:var(--paper);
+  }
+  .npc .info b{font-size:13.5px;font-weight:600}
+  .npc .info .role{font-size:11px;color:var(--ink-faint)}
+  .npc .info .voice{font-size:11px;color:var(--ink-soft);font-style:italic;margin-top:2px}
+  .npc .where{text-align:right;font-size:11px;color:var(--ink-faint);white-space:nowrap}
+  .npc .where .play{
+    margin-top:4px;display:inline-flex;align-items:center;gap:4px;
+    border:1px solid var(--rule);border-radius:999px;padding:2px 8px;cursor:pointer;color:var(--ink-soft);
+  }
+  .npc .where .play:hover{border-color:var(--accent-soft);color:var(--accent)}
+
+  /* ---------- Notes ---------- */
+  .note{padding:9px 0;border-bottom:1px solid var(--rule-soft)}
+  .note:last-child{border-bottom:0}
+  .note .ts{font-size:10px;letter-spacing:.1em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+  .note p{font-size:13px;margin:2px 0 5px;color:var(--ink)}
+  .note .tags{display:flex;gap:5px;flex-wrap:wrap}
+  .ntag{font-size:10px;color:var(--accent);background:var(--accent-tint);padding:1px 7px;border-radius:999px}
+  .note-input{
+    display:flex;gap:8px;margin-bottom:11px;align-items:center;
+    border:1px solid var(--rule);border-radius:5px;padding:7px 10px;background:var(--paper);
+  }
+  .note-input span{color:var(--ink-faint);font-size:13px}
+  .note-input .ph{flex:1;color:var(--ink-faint);font-size:12.5px}
+
+  /* ---------- Audio ---------- */
+  .now-playing{
+    display:flex;align-items:center;gap:11px;padding:10px;border:1px solid var(--rule);
+    border-radius:5px;background:var(--paper);margin-bottom:12px;
+  }
+  .vinyl{
+    width:34px;height:34px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at center,var(--paper) 0 4px, var(--ink) 5px 6px, var(--ink-soft) 7px);
+    border:1px solid var(--rule);animation:spin 6s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .now-playing .np{flex:1;min-width:0}
+  .now-playing .np b{font-size:13px;font-weight:600;display:block}
+  .now-playing .np small{font-size:11px;color:var(--ink-faint)}
+  .now-playing .eq{display:flex;gap:2px;align-items:flex-end;height:18px}
+  .now-playing .eq i{width:3px;background:var(--accent);animation:eq 1s ease-in-out infinite}
+  .now-playing .eq i:nth-child(2){animation-delay:.2s}
+  .now-playing .eq i:nth-child(3){animation-delay:.45s}
+  .now-playing .eq i:nth-child(4){animation-delay:.1s}
+  @keyframes eq{0%,100%{height:5px}50%{height:18px}}
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  .pad{
+    aspect-ratio:1.5/1;border:1px solid var(--rule);border-radius:5px;background:var(--paper);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;
+    font-size:17px;
+  }
+  .pad small{font-size:9.5px;letter-spacing:.04em;color:var(--ink-faint)}
+  .pad:hover{border-color:var(--accent-soft)}
+  .pad:hover small{color:var(--accent)}
+  .scene-tabs{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap}
+  .stab{font-size:11px;padding:4px 11px;border:1px solid var(--rule);border-radius:999px;cursor:pointer;color:var(--ink-faint);background:var(--paper)}
+  .stab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* ---------- Clue / quest tracker ---------- */
+  .thread{
+    padding:9px 0;border-bottom:1px solid var(--rule-soft);display:flex;gap:10px;align-items:flex-start;
+  }
+  .thread:last-child{border-bottom:0}
+  .thread .mark2{
+    width:16px;height:16px;border-radius:50%;border:1.5px solid var(--rule);flex:none;margin-top:2px;
+    display:grid;place-items:center;font-size:10px;color:var(--paper-2);
+  }
+  .thread.done .mark2{background:var(--accent);border-color:var(--accent);color:#fff}
+  .thread.hot .mark2{border-color:var(--accent);background:var(--accent-tint)}
+  .thread .t b{font-size:13px;font-weight:600}
+  .thread.done .t b{text-decoration:line-through;color:var(--ink-faint)}
+  .thread .t p{font-size:11.5px;color:var(--ink-soft);margin-top:1px}
+  .thread .t .link{font-size:10.5px;color:var(--accent);margin-top:3px;display:inline-block}
+
+  /* ---------- System-specific swap panel ---------- */
+  .sysview .dnd,.sysview .coc{display:none}
+  body[data-system="dnd"] .sysview .dnd{display:block}
+  body[data-system="coc"] .sysview .coc{display:block}
+  .cr-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--rule-soft)}
+  .cr-row:last-child{border-bottom:0}
+  .cr-row b{font-family:var(--serif);font-size:15px}
+  .cr-row small{font-size:11px;color:var(--ink-faint)}
+  .diff-meter{margin-top:12px}
+  .diff-meter .lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-faint);margin-bottom:5px}
+  .diff-track{height:8px;border-radius:5px;background:var(--rule-soft);overflow:hidden;position:relative}
+  .diff-track i{display:block;height:100%;width:72%;background:linear-gradient(90deg,var(--good),var(--warn) 60%,var(--accent))}
+  .diff-track .needle{position:absolute;top:-3px;left:72%;width:2px;height:14px;background:var(--ink)}
+  .verdict{margin-top:9px;font-family:var(--serif);font-size:14px}
+  .verdict span{color:var(--accent)}
+
+  .san-row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--rule-soft)}
+  .san-row:last-child{border-bottom:0}
+  .san-row .nm{flex:1}
+  .san-row .nm b{font-size:13px}
+  .san-row .nm small{font-size:11px;color:var(--ink-faint);display:block}
+  .san-track{width:96px;height:6px;border-radius:4px;background:var(--rule-soft);overflow:hidden}
+  .san-track i{display:block;height:100%;background:var(--accent)}
+  .san-val{font-family:var(--serif);font-size:14px;width:54px;text-align:right;color:var(--ink-soft)}
+  .san-val small{font-size:10px;color:var(--ink-faint)}
+
+  /* ---------- Status bar ---------- */
+  .statusbar{
+    display:flex;align-items:center;gap:18px;
+    padding:7px 22px;border-top:1px solid var(--rule);background:var(--paper-2);
+    font-size:11.5px;color:var(--ink-faint);
+  }
+  .statusbar .k{color:var(--ink-soft)}
+  .statusbar kbd{
+    font-family:var(--sans);font-size:10px;border:1px solid var(--rule);border-radius:3px;
+    padding:1px 5px;background:var(--paper);color:var(--ink-soft);
+  }
+  .statusbar .spacer{flex:1}
+  .statusbar .palette{
+    display:flex;align-items:center;gap:7px;border:1px solid var(--rule);border-radius:999px;
+    padding:4px 13px;background:var(--paper);cursor:pointer;
+  }
+</style>
+</head>
+<body data-system="dnd">
+<div class="app">
+
+  <!-- ===== TOP CHROME ===== -->
+  <header class="chrome">
+    <div class="brand">
+      <span class="mark">❦</span>
+      <div>
+        <div class="name">The Game Master’s Table</div>
+        <div class="sub">GM-only workspace</div>
+      </div>
+    </div>
+
+    <div class="switcher" role="tablist" aria-label="System">
+      <button id="btn-dnd" class="active" onclick="setSystem('dnd')">D&amp;D 5e</button>
+      <span class="div">⇄</span>
+      <button id="btn-coc" onclick="setSystem('coc')">Call of Cthulhu</button>
+    </div>
+
+    <div class="campaign">
+      <div class="seal" id="seal">⚜</div>
+      <div class="meta">
+        <b id="camp-name">Embers of the Hollow Crown</b>
+        <span id="camp-sub">Session 14 · The Sunless Vault</span>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="clock">
+      <div class="timer">1:48<small> / 4h</small></div>
+      <div class="pacing" title="Pacing — Act II of III"><i></i></div>
+      <span class="chip-live"><span class="dot"></span> Broadcasting</span>
+    </div>
+  </header>
+
+  <!-- ===== WORKSPACE ===== -->
+  <main class="desk">
+
+    <!-- Initiative (tall, left) -->
+    <section class="card span-tall">
+      <div class="hd"><span class="ic">⚔</span><h3>Turn Order</h3><span class="tag">Round 3</span></div>
+      <div class="bd">
+        <div class="turn active">
+          <div class="init">21</div>
+          <div class="who">
+            <b id="i1n">Sir Aldric Vane</b> <small id="i1r">· Paladin, party</small>
+            <div class="conds"><span class="cond">Blessed</span></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b id="i1a">18</b><span id="i1al">AC</span>
+              <div class="hpbar"><i style="width:88%"></i></div></div>
+          </div>
+        </div>
+
+        <div class="turn">
+          <div class="init">18</div>
+          <div class="who">
+            <b id="i2n">The Pale Tithe-Collector</b> <small id="i2r">· antagonist</small>
+            <div class="conds"><span class="cond bad">Concentrating</span></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b id="i2a">16</b><span id="i2al">AC</span>
+              <div class="hidden-hp" id="i2hp">HP hidden · bloodied <span class="pip"></span></div></div>
+          </div>
+        </div>
+
+        <div class="turn">
+          <div class="init">15</div>
+          <div class="who">
+            <b id="i3n">Brother Quill</b> <small id="i3r">· cleric, party</small>
+            <div class="conds"><span class="cond bad">Frightened</span><span class="cond">Prone</span></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b id="i3a">14</b><span id="i3al">AC</span>
+              <div class="hpbar"><i class="mid" style="width:46%"></i></div></div>
+          </div>
+        </div>
+
+        <div class="turn">
+          <div class="init">12</div>
+          <div class="who">
+            <b id="i4n">Mire-Hound</b> <small id="i4r">· minion ×2</small>
+            <div class="conds"><span class="cond">Pack</span></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b id="i4a">13</b><span id="i4al">AC</span>
+              <div class="hpbar"><i class="low" style="width:20%"></i></div></div>
+          </div>
+        </div>
+
+        <div class="turn">
+          <div class="init">9</div>
+          <div class="who">
+            <b id="i5n">Lady Mara Senn</b> <small id="i5r">· rogue, party</small>
+            <div class="conds"><span class="cond">Hidden</span></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b id="i5a">15</b><span id="i5al">AC</span>
+              <div class="hpbar"><i style="width:72%"></i></div></div>
+          </div>
+        </div>
+
+        <div class="turn">
+          <div class="init">6</div>
+          <div class="who">
+            <b id="i6n">Wyrm-Touched Acolyte</b> <small id="i6r">· antagonist</small>
+            <div class="conds"><span class="cond bad">Poisoned · 2 rds</span></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b id="i6a">12</b><span id="i6al">AC</span>
+              <div class="hidden-hp">HP hidden</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reveal / broadcast (center top) -->
+    <section class="card">
+      <div class="hd"><span class="ic">🜂</span><h3>Reveal Window</h3><span class="tag">Shared to players</span></div>
+      <div class="bd">
+        <div class="reveal-stage">
+          <div class="reveal-art">
+            <div class="scene" id="reveal-scene">🗝️</div>
+            <div class="vign"></div>
+          </div>
+          <div class="reveal-cap">
+            <span id="reveal-cap">An iron key, still warm to the touch.</span>
+            <em>visible now</em>
+          </div>
+        </div>
+        <div class="reveal-controls">
+          <button class="qbtn on">🖼 Image</button>
+          <button class="qbtn">✉ Letter</button>
+          <button class="qbtn">🗺 Map crop</button>
+          <button class="qbtn">▦ Handout</button>
+          <button class="qbtn">⨯ Blackout</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dice (right top) -->
+    <section class="card">
+      <div class="hd"><span class="ic">🎲</span><h3>Dice &amp; Macros</h3><span class="tag" id="dice-mode">Open roll</span></div>
+      <div class="bd">
+        <div class="dice-readout">
+          <div class="big" id="dice-big">23</div>
+          <div class="formula" id="dice-formula">d20 (19, 11) + 4 — advantage</div>
+          <div class="adv">▲ Advantage taken higher</div>
+        </div>
+        <div class="macros">
+          <div class="macro">
+            <div><b id="m1">Longsword + Smite</b><small id="m1s">1d20+7 · 1d8+3d8+4</small></div>
+            <span class="roll">roll</span>
+          </div>
+          <div class="macro">
+            <div><b id="m2">Wisdom Save</b><small id="m2s">1d20+5</small></div>
+            <span class="roll">roll</span>
+          </div>
+          <div class="macro hidden-roll">
+            <div><b>🜍 Hidden GM check</b><small id="m3s">behind the screen · players see nothing</small></div>
+            <span class="roll">roll ⌐</span>
+          </div>
+        </div>
+        <div class="dice-toggles">
+          <div class="seg"><button>Normal</button><button class="on">Adv</button><button>Dis</button></div>
+          <div class="seg"><button class="on">Open</button><button>Hidden</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NPC roster (left bottom area handled by tall card above; place center-bottom) -->
+    <section class="card">
+      <div class="hd"><span class="ic">☙</span><h3>NPC Roster</h3><span class="tag">In this scene</span></div>
+      <div class="bd">
+        <div class="npc">
+          <div class="av">🎭</div>
+          <div class="info">
+            <b id="n1">Mother Eshe</b><div class="role" id="n1r">Keeper of the vault · neutral</div>
+            <div class="voice" id="n1v">“low, deliberate — drops every final consonant”</div>
+          </div>
+          <div class="where"><span id="n1l">Antechamber</span><div class="play">▷ voice note</div></div>
+        </div>
+        <div class="npc">
+          <div class="av">🕯️</div>
+          <div class="info">
+            <b id="n2">The Pale Tithe-Collector</b><div class="role" id="n2r">Antagonist · hostile</div>
+            <div class="voice" id="n2v">“whispering, too many S sounds; never blinks”</div>
+          </div>
+          <div class="where"><span id="n2l">The Vault</span><div class="play">▷ voice note</div></div>
+        </div>
+        <div class="npc">
+          <div class="av">🧭</div>
+          <div class="info">
+            <b id="n3">Corwin Ashby</b><div class="role" id="n3r">Nervous informant · ally</div>
+            <div class="voice" id="n3v">“fast, breathless, apologises constantly”</div>
+          </div>
+          <div class="where"><span id="n3l">Last seen: docks</span><div class="play">▷ voice note</div></div>
+        </div>
+        <div class="npc">
+          <div class="av">👁️</div>
+          <div class="info">
+            <b id="n4">The Lady in the Mirror</b><div class="role" id="n4r">Unknown · ??? </div>
+            <div class="voice" id="n4v">“echoes a half-second late; mirrors the player’s words”</div>
+          </div>
+          <div class="where"><span id="n4l">Everywhere</span><div class="play">▷ voice note</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Session notes (center bottom) -->
+    <section class="card">
+      <div class="hd"><span class="ic">✑</span><h3>Session Notes</h3><span class="tag">Auto-timestamped</span></div>
+      <div class="bd">
+        <div class="note-input"><span>✎</span><div class="ph">Add a note…  use #tags to file it</div><span>↵</span></div>
+        <div class="note">
+          <div class="ts">01:42 · SESSION 14</div>
+          <p id="note1">Party bargained an extra night at the inn from Mother Eshe — owes them a favour now.</p>
+          <div class="tags"><span class="ntag">#npc</span><span class="ntag">#favour</span></div>
+        </div>
+        <div class="note">
+          <div class="ts">01:15 · SESSION 14</div>
+          <p id="note2">Mara picked the vault’s outer lock (Stealth 22). The inner door is sealed with the wax sigil — handout shown.</p>
+          <div class="tags"><span class="ntag">#clue</span><span class="ntag">#vault</span></div>
+        </div>
+        <div class="note">
+          <div class="ts">00:48 · SESSION 14</div>
+          <p id="note3">Corwin lied about the docks — track this. He flinched when the Tithe-Collector was named.</p>
+          <div class="tags"><span class="ntag">#thread</span><span class="ntag">#suspicious</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audio (right middle/bottom) -->
+    <section class="card">
+      <div class="hd"><span class="ic">♪</span><h3>Ambience &amp; Soundboard</h3><span class="tag">Routed to share</span></div>
+      <div class="bd">
+        <div class="scene-tabs" id="scene-tabs">
+          <span class="stab on" id="sc1">Vault</span>
+          <span class="stab" id="sc2">Tavern</span>
+          <span class="stab" id="sc3">Pursuit</span>
+          <span class="stab" id="sc4">Dread</span>
+        </div>
+        <div class="now-playing">
+          <div class="vinyl"></div>
+          <div class="np"><b id="track">Stone &amp; Slow Water</b><small>ambient loop · crossfade 4s</small></div>
+          <div class="eq"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="board">
+          <div class="pad" id="p1">🚪<small>Door creak</small></div>
+          <div class="pad" id="p2">⛓️<small>Chains</small></div>
+          <div class="pad" id="p3">🌩️<small>Thunder</small></div>
+          <div class="pad" id="p4">🔔<small>Distant bell</small></div>
+          <div class="pad" id="p5">😱<small>Scream</small></div>
+          <div class="pad" id="p6">🐦‍⬛<small>Ravens</small></div>
+          <div class="pad" id="p7">💧<small>Drip</small></div>
+          <div class="pad" id="p8">🎻<small>Sting</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Clue / quest tracker (right tall column bottom) + sys panel -->
+    <section class="card span-tall">
+      <div class="hd"><span class="ic">🧵</span><h3 id="tracker-title">Quest Threads</h3><span class="tag">5 open</span></div>
+      <div class="bd">
+        <div class="thread hot">
+          <div class="mark2">!</div>
+          <div class="t"><b id="t1">Who pays the Pale Tithe?</b>
+            <p id="t1d">Three names recur in the ledger. One is a player’s patron.</p>
+            <span class="link">⤷ linked: Corwin · the ledger</span></div>
+        </div>
+        <div class="thread hot">
+          <div class="mark2">!</div>
+          <div class="t"><b id="t2">The wax sigil on the inner door</b>
+            <p id="t2d">Matches the brand on Mother Eshe’s wrist. Coincidence?</p>
+            <span class="link">⤷ linked: Mother Eshe</span></div>
+        </div>
+        <div class="thread">
+          <div class="mark2"></div>
+          <div class="t"><b id="t3">The missing caravan</b>
+            <p id="t3d">Hook still dangling from session 11. Players haven’t bitten.</p></div>
+        </div>
+        <div class="thread done">
+          <div class="mark2">✓</div>
+          <div class="t"><b id="t4">Find a way past the gate-wards</b>
+            <p id="t4d">Resolved — Mara’s lockpick + Quill’s dispel.</p></div>
+        </div>
+
+        <!-- System-specific swappable widget -->
+        <div class="sysview" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)">
+          <div class="dnd">
+            <div class="hd" style="padding:0 0 8px;border:0"><span class="ic">⚖</span><h3 style="font-size:14px">Encounter Balance</h3></div>
+            <div class="cr-row"><span>Party (4) · level 6</span><b>2,800<small> XP budget</small></b></div>
+            <div class="cr-row"><span>Tithe-Collector</span><b>CR 7<small> · 2,900</small></b></div>
+            <div class="cr-row"><span>Acolyte + 2 Mire-Hounds</span><b>1,150<small> XP</small></b></div>
+            <div class="diff-meter">
+              <div class="lbl"><span>Easy</span><span>Hard</span><span>Deadly</span></div>
+              <div class="diff-track"><i></i><span class="needle"></span></div>
+              <div class="verdict">Verdict: <span>Hard, trending Deadly</span> — the hounds are the swing.</div>
+            </div>
+          </div>
+          <div class="coc">
+            <div class="hd" style="padding:0 0 8px;border:0"><span class="ic">🜏</span><h3 style="font-size:14px">Sanity Tracker</h3></div>
+            <div class="san-row">
+              <div class="nm"><b>Eleanor Voss</b><small>journalist · 0/1 SAN lost today</small></div>
+              <div class="san-track"><i style="width:78%"></i></div>
+              <div class="san-val">61<small>/78</small></div>
+            </div>
+            <div class="san-row">
+              <div class="nm"><b>Dr. Harlan Pryce</b><small>physician · failed 1/1d6 — shaken</small></div>
+              <div class="san-track"><i style="width:44%"></i></div>
+              <div class="san-val">35<small>/80</small></div>
+            </div>
+            <div class="san-row">
+              <div class="nm"><b>“Whistling” Joe Carver</b><small>temporary insanity · 1 scene</small></div>
+              <div class="san-track"><i style="width:18%"></i></div>
+              <div class="san-val">12<small>/72</small></div>
+            </div>
+            <div class="verdict" style="font-size:13px">Next reveal: <span>the thing in the cellar</span> — call a 1/1d10 check.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== STATUS BAR ===== -->
+  <footer class="statusbar">
+    <span><span class="k">Layout:</span> <span id="layout-name">D&amp;D · Combat</span></span>
+    <span><span class="k">Reveal:</span> live to 1 shared window</span>
+    <span><span class="k">Notes:</span> 38 this session · autosaved</span>
+    <div class="spacer"></div>
+    <div class="palette" title="Global search"><span>⌕</span> Search anything… <kbd>⌘K</kbd></div>
+    <span><kbd>Space</kbd> next turn</span>
+    <span><kbd>H</kbd> hidden roll</span>
+  </footer>
+</div>
+
+<script>
+  // Neutral sample data per system — reads believable for both genres.
+  const DATA = {
+    dnd:{
+      camp:["Embers of the Hollow Crown","Session 14 · The Sunless Vault"],
+      seal:"⚜", layout:"D&amp;D · Combat", tracker:"Quest Threads",
+      acLabel:"AC", diceMode:"Open roll",
+      init:[
+        ["Sir Aldric Vane","· Paladin, party","18"],
+        ["The Pale Tithe-Collector","· antagonist","16"],
+        ["Brother Quill","· cleric, party","14"],
+        ["Mire-Hound","· minion ×2","13"],
+        ["Lady Mara Senn","· rogue, party","15"],
+        ["Wyrm-Touched Acolyte","· antagonist","12"]
+      ],
+      reveal:["🗝️","An iron key, still warm to the touch."],
+      dice:["23","d20 (19, 11) + 4 — advantage"],
+      macros:[["Longsword + Smite","1d20+7 · 1d8+3d8+4"],["Wisdom Save","1d20+5"],
+              ["behind the screen · players see nothing"]],
+      npc:[
+        ["Mother Eshe","Keeper of the vault · neutral","“low, deliberate — drops every final consonant”","Antechamber"],
+        ["The Pale Tithe-Collector","Antagonist · hostile","“whispering, too many S sounds; never blinks”","The Vault"],
+        ["Corwin Ashby","Nervous informant · ally","“fast, breathless, apologises constantly”","Last seen: docks"],
+        ["The Lady in the Mirror","Unknown · ???","“echoes a half-second late; mirrors the player’s words”","Everywhere"]
+      ],
+      notes:[
+        "Party bargained an extra night at the inn from Mother Eshe — owes them a favour now.",
+        "Mara picked the vault’s outer lock (Stealth 22). The inner door is sealed with the wax sigil — handout shown.",
+        "Corwin lied about the docks — track this. He flinched when the Tithe-Collector was named."
+      ],
+      scenes:["Vault","Tavern","Pursuit","Dread"], track:"Stone &amp; Slow Water",
+      threads:[
+        ["Who pays the Pale Tithe?","Three names recur in the ledger. One is a player’s patron."],
+        ["The wax sigil on the inner door","Matches the brand on Mother Eshe’s wrist. Coincidence?"],
+        ["The missing caravan","Hook still dangling from session 11. Players haven’t bitten."],
+        ["Find a way past the gate-wards","Resolved — Mara’s lockpick + Quill’s dispel."]
+      ]
+    },
+    coc:{
+      camp:["The Arkham Vigil","Scenario 3 · The House on Powderhorn Lane"],
+      seal:"🜏", layout:"CoC · Investigation", tracker:"Clue Board",
+      acLabel:"DEF", diceMode:"Roll-under %",
+      init:[
+        ["Eleanor Voss","· journalist, investigator","78"],
+        ["The Lodger","· antagonist","—"],
+        ["Dr. Harlan Pryce","· physician, investigator","80"],
+        ["Stray Cur","· animal","—"],
+        ["“Whistling” Joe Carver","· labourer, investigator","72"],
+        ["The Thing in the Cellar","· entity","—"]
+      ],
+      reveal:["✉️","“Burn this letter. They are already inside the walls.”"],
+      dice:["07","1d100 → 07 vs Library Use 65 — extreme success"],
+      macros:[["Spot Hidden","1d100 ≤ 55"],["Sanity Check","1/1d6 SAN"],
+              ["behind the screen · players see nothing"]],
+      npc:[
+        ["Mrs. Agatha Boon","Landlady · wary","“clipped, genteel, hides a tremor”","The parlour"],
+        ["The Lodger","Antagonist · unknown","“speaks in the third person; smells of brine”","Top-floor room"],
+        ["Patrolman Doyle","Beat cop · reluctant ally","“gruff Boston, off the record only”","Last seen: precinct"],
+        ["The Voice on the Wire","Unknown · ???","“faint, dripping, knows your name”","The telephone"]
+      ],
+      notes:[
+        "Investigators talked Mrs. Boon into a room key — she warned them not to go up after dark.",
+        "Joe found scratch-marks behind the wallpaper (Spot Hidden 07). Handout: the photograph shown.",
+        "Doyle lied about the precinct files — track this. He paled when the Lodger was named."
+      ],
+      scenes:["Cellar","Speakeasy","Pursuit","Dread"], track:"Wind Under the Door",
+      threads:[
+        ["Who signs the lease on Powderhorn Lane?","Three names recur in the deed. One is an investigator’s relative."],
+        ["The wax seal on the cellar door","Matches the brand on Mrs. Boon’s wrist. Coincidence?"],
+        ["The vanished streetcar conductor","Lead still dangling from scenario 1. Players haven’t pursued it."],
+        ["Get past the warded cellar door","Resolved — Joe’s crowbar + Eleanor’s Latin."]
+      ]
+    }
+  };
+
+  function setSystem(sys){
+    document.body.dataset.system = sys;
+    document.getElementById('btn-dnd').classList.toggle('active', sys==='dnd');
+    document.getElementById('btn-coc').classList.toggle('active', sys==='coc');
+    const d = DATA[sys];
+    document.getElementById('camp-name').innerHTML = d.camp[0];
+    document.getElementById('camp-sub').textContent = d.camp[1];
+    document.getElementById('seal').textContent = d.seal;
+    document.getElementById('layout-name').innerHTML = d.layout;
+    document.getElementById('tracker-title').textContent = d.tracker;
+    document.getElementById('dice-mode').textContent = d.diceMode;
+
+    // initiative
+    d.init.forEach((r,i)=>{
+      const k=i+1;
+      document.getElementById('i'+k+'n').textContent=r[0];
+      document.getElementById('i'+k+'r').textContent=r[1];
+      document.getElementById('i'+k+'a').textContent=r[2];
+      document.getElementById('i'+k+'al').innerHTML=d.acLabel;
+    });
+    // reveal
+    document.getElementById('reveal-scene').textContent=d.reveal[0];
+    document.getElementById('reveal-cap').textContent=d.reveal[1];
+    // dice
+    document.getElementById('dice-big').textContent=d.dice[0];
+    document.getElementById('dice-formula').textContent=d.dice[1];
+    document.getElementById('m1').textContent=d.macros[0][0];
+    document.getElementById('m1s').innerHTML=d.macros[0][1];
+    document.getElementById('m2').textContent=d.macros[1][0];
+    document.getElementById('m2s').innerHTML=d.macros[1][1];
+    document.getElementById('m3s').textContent=d.macros[2][0];
+    // npc
+    d.npc.forEach((r,i)=>{
+      const k=i+1;
+      document.getElementById('n'+k).textContent=r[0];
+      document.getElementById('n'+k+'r').textContent=r[1];
+      document.getElementById('n'+k+'v').textContent=r[2];
+      document.getElementById('n'+k+'l').textContent=r[3];
+    });
+    // notes
+    d.notes.forEach((t,i)=>document.getElementById('note'+(i+1)).textContent=t);
+    // scenes + track
+    d.scenes.forEach((s,i)=>document.getElementById('sc'+(i+1)).textContent=s);
+    document.getElementById('track').innerHTML=d.track;
+    // threads
+    d.threads.forEach((r,i)=>{
+      document.getElementById('t'+(i+1)).textContent=r[0];
+      document.getElementById('t'+(i+1)+'d').textContent=r[1];
+    });
+  }
+
+  // light interactivity
+  document.getElementById('scene-tabs').addEventListener('click',e=>{
+    if(!e.target.classList.contains('stab'))return;
+    document.querySelectorAll('#scene-tabs .stab').forEach(s=>s.classList.remove('on'));
+    e.target.classList.add('on');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+import type { ModuleId, ModuleManifest } from './module';
+import scene from '../modules/scene';
+import initiative from '../modules/initiative';
+import roller from '../modules/roller';
+import npcs from '../modules/npcs';
+import reveal from '../modules/reveal';
+
+function stub(
+  id: ModuleId,
+  title: string,
+  w: number,
+  h: number,
+  extra: Partial<ModuleManifest> = {}
+): ModuleManifest {
+  return { id, title, size: { w, h }, ...extra };
+}
+
+/** The single source of truth: id -> module. Surfaces resolve views from here. */
+export const modules: Record<ModuleId, ModuleManifest> = {
+  scene,
+  initiative,
+  roller,
+  npcs,
+  reveal,
+  handouts: stub('handouts', 'Handouts', 318, 236),
+  notebook: stub('notebook', 'Notebook', 344, 186),
+  map: stub('map', 'Battle Map', 520, 420, { broadcastable: true }),
+  audio: stub('audio', 'Audio', 320, 280),
+  clues: stub('clues', 'Clue Board', 380, 300),
+};
+
+export const moduleList: ModuleManifest[] = Object.values(modules);
+
+export function getModule(id: ModuleId): ModuleManifest {
+  return modules[id];
+}

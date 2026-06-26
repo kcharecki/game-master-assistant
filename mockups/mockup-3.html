@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GM Assistant — Mythwright</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #fbfbfc;
+    --border: #e7e8ec;
+    --border-strong: #d8dae0;
+    --text: #1c1e26;
+    --text-2: #5b6171;
+    --text-3: #8a90a0;
+    --accent: #5b5bf0;
+    --accent-soft: #ececfe;
+    --accent-2: #6366f1;
+    --emerald: #0f9d6b;
+    --emerald-soft: #e2f5ee;
+    --amber: #d98a0b;
+    --amber-soft: #fbf0da;
+    --rose: #e0436b;
+    --rose-soft: #fce3ea;
+    --sky: #2b8acb;
+    --sky-soft: #e1f0fb;
+    --violet: #8a5cf6;
+    --shadow-sm: 0 1px 2px rgba(20,22,30,.05), 0 1px 1px rgba(20,22,30,.04);
+    --shadow-md: 0 4px 14px rgba(20,22,30,.07), 0 1px 3px rgba(20,22,30,.05);
+    --shadow-lg: 0 20px 50px rgba(20,22,30,.18), 0 6px 18px rgba(20,22,30,.10);
+    --radius: 12px;
+    --radius-sm: 8px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  .app { display: flex; height: 100vh; min-width: 1280px; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: 248px;
+    flex: 0 0 248px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 14px 12px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 8px 14px;
+  }
+  .brand .logo {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--violet));
+    display: grid; place-items: center; color: #fff; font-size: 17px;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand .name { font-weight: 650; font-size: 15px; letter-spacing: -.2px; }
+  .brand .sub { font-size: 11px; color: var(--text-3); margin-top: -2px; }
+
+  .search-trigger {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 14px;
+    color: var(--text-3); font-size: 13px; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .search-trigger:hover { border-color: var(--border-strong); }
+  .search-trigger .kbd {
+    margin-left: auto; font-size: 11px; color: var(--text-3);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-family: inherit;
+  }
+
+  .nav-group { margin-bottom: 4px; }
+  .nav-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text-3);
+    padding: 12px 10px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: var(--radius-sm);
+    color: var(--text-2); font-size: 13.5px; font-weight: 500;
+    cursor: pointer; transition: background .12s, color .12s;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .nav-item .ico { width: 18px; text-align: center; font-size: 15px; }
+  .nav-item .count {
+    margin-left: auto; font-size: 11px; color: var(--text-3);
+    background: var(--surface-2); border-radius: 20px; padding: 0 7px;
+    border: 1px solid var(--border);
+  }
+  .nav-item.active .count { background: #fff; color: var(--accent); border-color: transparent; }
+
+  .sidebar-foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+  .campaign-pill {
+    display: flex; align-items: center; gap: 10px; padding: 8px;
+    border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .campaign-pill:hover { background: var(--surface-2); }
+  .campaign-pill .av {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg,#2a3142,#4b5468);
+    display: grid; place-items: center; color: #fff; font-size: 14px;
+  }
+  .campaign-pill .nm { font-size: 13px; font-weight: 600; }
+  .campaign-pill .mt { font-size: 11px; color: var(--text-3); }
+
+  /* ---------- Main ---------- */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 56px; flex: 0 0 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px; padding: 0 22px;
+  }
+  .crumbs { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .crumbs .c-muted { color: var(--text-3); }
+  .crumbs .c-cur { font-weight: 600; }
+  .crumbs .chev { color: var(--text-3); font-size: 11px; }
+
+  .top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .timer-chip {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 6px 5px 12px; font-size: 13px;
+  }
+  .timer-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 3px var(--emerald-soft); }
+  .timer-chip b { font-variant-numeric: tabular-nums; font-weight: 650; }
+  .timer-chip .pace { color: var(--text-3); }
+  .timer-chip .pbtn {
+    width: 24px; height: 24px; border-radius: 50%; border: none;
+    background: #fff; box-shadow: var(--shadow-sm); cursor: pointer; font-size: 11px;
+    display: grid; place-items: center; color: var(--text-2);
+  }
+  .btn {
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: var(--radius-sm); padding: 7px 13px; font-size: 13px;
+    font-weight: 550; cursor: pointer; color: var(--text); display:flex; align-items:center; gap:6px;
+    transition: border-color .12s, background .12s;
+  }
+  .btn:hover { border-color: var(--border-strong); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #4a4ae0; }
+  .avatar-me {
+    width: 32px; height: 32px; border-radius: 50%; margin-left: 4px;
+    background: linear-gradient(135deg,#0f9d6b,#2b8acb); color:#fff;
+    display:grid; place-items:center; font-weight:600; font-size:13px;
+  }
+
+  /* ---------- Content grid ---------- */
+  .content {
+    flex: 1; overflow-y: auto; padding: 22px;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-auto-rows: min-content;
+    gap: 18px;
+    align-content: start;
+  }
+  .content::-webkit-scrollbar { width: 10px; }
+  .content::-webkit-scrollbar-thumb { background: #dfe1e7; border-radius: 8px; border: 3px solid var(--bg); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .card-head .ttl { font-size: 14px; font-weight: 650; letter-spacing: -.1px; display:flex; align-items:center; gap:8px;}
+  .card-head .ttl .ic { font-size: 15px; }
+  .card-head .meta { font-size: 12px; color: var(--text-3); }
+  .card-head .act { margin-left: auto; display: flex; gap: 6px; align-items:center;}
+  .ghost-btn {
+    border: none; background: transparent; color: var(--text-3);
+    width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 14px;
+  }
+  .ghost-btn:hover { background: var(--surface-2); color: var(--text); }
+  .mini-btn {
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 550;
+    cursor: pointer; color: var(--text-2);
+  }
+  .mini-btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .mini-btn.accent { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+
+  .span-2 { grid-column: 1 / -1; }
+  .col-left { grid-column: 1; }
+  .col-right { grid-column: 2; }
+
+  /* ---------- Badges & pills ---------- */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+    border: 1px solid transparent; white-space: nowrap;
+  }
+  .badge.gray { background: var(--surface-2); color: var(--text-2); border-color: var(--border); }
+  .badge.indigo { background: var(--accent-soft); color: var(--accent); }
+  .badge.emerald { background: var(--emerald-soft); color: var(--emerald); }
+  .badge.amber { background: var(--amber-soft); color: var(--amber); }
+  .badge.rose { background: var(--rose-soft); color: var(--rose); }
+  .badge.sky { background: var(--sky-soft); color: var(--sky); }
+
+  /* ---------- Initiative tracker ---------- */
+  .init-toolbar {
+    display:flex; align-items:center; gap:10px; padding: 12px 16px;
+    border-bottom: 1px solid var(--border); background: var(--surface-2);
+  }
+  .round-pill {
+    display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
+    background:#fff; border:1px solid var(--border); border-radius:20px; padding:5px 6px 5px 12px;
+  }
+  .round-pill .rnav { width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text-2);display:grid;place-items:center;}
+  .init-toolbar .spacer { flex:1; }
+
+  .init-table { width: 100%; border-collapse: collapse; }
+  .init-table th {
+    text-align: left; font-size: 11px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: .04em; padding: 9px 16px;
+    border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .init-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .init-table tr:last-child td { border-bottom: none; }
+  .init-table tr.active-turn { background: linear-gradient(90deg, var(--accent-soft) 0%, rgba(236,236,254,.25) 100%); }
+  .init-table tr.active-turn td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  .init-table tr:hover:not(.active-turn) { background: var(--surface-2); }
+
+  .init-num {
+    width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center;
+    font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums;
+    background: var(--surface-2); border: 1px solid var(--border);
+  }
+  .active-turn .init-num { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grip { color: var(--text-3); cursor: grab; font-size: 14px; margin-right: 2px; }
+
+  .combatant { display: flex; align-items: center; gap: 10px; }
+  .token {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    font-size: 17px; color: #fff; flex: 0 0 34px; box-shadow: var(--shadow-sm);
+  }
+  .token.pc { border-radius: 50%; }
+  .c-name { font-weight: 600; font-size: 13.5px; }
+  .c-sub { font-size: 11.5px; color: var(--text-3); }
+
+  .hpbar-wrap { width: 130px; }
+  .hpbar-top { display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px; color:var(--text-2); font-variant-numeric: tabular-nums;}
+  .hpbar { height: 7px; border-radius: 6px; background: var(--surface-2); overflow: hidden; border:1px solid var(--border);}
+  .hpbar > span { display: block; height: 100%; border-radius: 6px; }
+  .hp-green { background: linear-gradient(90deg,#13b87f,#0f9d6b); }
+  .hp-amber { background: linear-gradient(90deg,#f0b03c,#d98a0b); }
+  .hp-red { background: linear-gradient(90deg,#f0617f,#e0436b); }
+  .hp-hidden { color: var(--text-3); font-style: italic; font-size: 12px; }
+
+  .ac-cell { display:flex; align-items:center; gap:5px; font-weight:600; font-variant-numeric: tabular-nums;}
+  .ac-cell .shield { color: var(--text-3); font-size: 13px; }
+  .cond-cell { display: flex; gap: 5px; flex-wrap: wrap; max-width: 180px; }
+
+  /* ---------- Player dashboard ---------- */
+  .pd-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 14px; }
+  .pd-card {
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px; background: var(--surface-2);
+  }
+  .pd-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .pd-av { width: 36px; height: 36px; border-radius: 50%; display:grid; place-items:center; color:#fff; font-weight:600; font-size:14px; flex:0 0 36px;}
+  .pd-name { font-weight: 650; font-size: 13.5px; }
+  .pd-class { font-size: 11px; color: var(--text-3); }
+  .pd-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+  .pd-stat { background: #fff; border: 1px solid var(--border); border-radius: 7px; padding: 6px 4px; text-align:center; }
+  .pd-stat .lbl { font-size: 9.5px; color: var(--text-3); text-transform: uppercase; letter-spacing:.04em; font-weight:600;}
+  .pd-stat .val { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top:1px;}
+  .pd-foot { display:flex; gap:6px; margin-top:9px; flex-wrap:wrap; }
+
+  /* ---------- Dice roller ---------- */
+  .dice-body { padding: 14px 16px; }
+  .dice-display {
+    background: linear-gradient(135deg,#1c1e2b,#2a2d3e); border-radius: var(--radius-sm);
+    padding: 16px; color: #fff; margin-bottom: 12px; position: relative; overflow:hidden;
+  }
+  .dice-display::after { content:""; position:absolute; inset:0; background: radial-gradient(circle at 80% 0%, rgba(99,102,241,.35), transparent 60%);}
+  .dice-display .formula { font-size: 12px; color: #b9bdd0; position:relative; }
+  .dice-display .result { font-size: 40px; font-weight: 750; line-height: 1; margin: 4px 0 6px; font-variant-numeric: tabular-nums; position:relative;}
+  .dice-display .breakdown { font-size: 12px; color: #c9cde0; position:relative; }
+  .dice-display .breakdown b { color: #fff; }
+  .dice-display .crit { position:absolute; top:14px; right:16px; }
+  .die-row { display: flex; gap: 7px; margin-bottom: 12px; }
+  .die-btn {
+    flex:1; border: 1px solid var(--border); background: var(--surface-2);
+    border-radius: 8px; padding: 9px 0; text-align:center; font-weight:650; font-size:12.5px;
+    cursor:pointer; color: var(--text-2);
+  }
+  .die-btn:hover { border-color: var(--accent); color: var(--accent); background:#fff;}
+  .macro-list { display:flex; flex-direction:column; gap:6px; }
+  .macro {
+    display:flex; align-items:center; gap:10px; padding:8px 10px;
+    border:1px solid var(--border); border-radius: 8px; cursor:pointer; background:#fff;
+  }
+  .macro:hover { border-color: var(--border-strong); background: var(--surface-2); }
+  .macro .mname { font-weight:600; font-size:13px; }
+  .macro .mform { font-size:11.5px; color: var(--text-3); margin-left:auto; font-variant-numeric:tabular-nums;}
+  .macro .mic { width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:13px; }
+  .hidden-toggle { display:flex; align-items:center; gap:8px; margin-top:12px; font-size:12.5px; color:var(--text-2);}
+  .toggle {
+    width: 36px; height: 20px; border-radius: 20px; background: var(--accent);
+    position: relative; cursor: pointer; flex:0 0 36px;
+  }
+  .toggle::after { content:""; position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow: var(--shadow-sm);}
+  .toggle.off { background: var(--border-strong); }
+  .toggle.off::after { left:2px; right:auto; }
+
+  /* ---------- Session notes ---------- */
+  .notes-body { padding: 6px 0; max-height: 360px; overflow-y:auto;}
+  .note {
+    padding: 12px 16px; border-bottom: 1px solid var(--border); display:flex; gap:12px;
+  }
+  .note:last-child { border-bottom:none; }
+  .note .tstamp {
+    font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; font-weight:600;
+    flex:0 0 46px; padding-top:1px;
+  }
+  .note .ntext { font-size: 13px; color: var(--text); }
+  .note .ntags { display:flex; gap:5px; margin-top:6px; flex-wrap:wrap;}
+  .note-input {
+    margin: 10px 16px 14px; display:flex; gap:8px; align-items:center;
+    border:1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface-2);
+  }
+  .note-input input { flex:1; border:none; background:transparent; font-size:13px; outline:none; font-family:inherit; color:var(--text);}
+  .note-input input::placeholder { color: var(--text-3); }
+
+  /* ---------- Right column compact cards ---------- */
+  .av-emoji { font-size:18px; }
+  .npc-item { display:flex; align-items:center; gap:11px; padding:11px 16px; border-bottom:1px solid var(--border); cursor:pointer;}
+  .npc-item:last-child{border-bottom:none;}
+  .npc-item:hover{background:var(--surface-2);}
+  .npc-av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:19px;flex:0 0 38px;box-shadow:var(--shadow-sm);}
+  .npc-nm{font-weight:600;font-size:13.5px;}
+  .npc-sub{font-size:11.5px;color:var(--text-3);}
+  .npc-loc{margin-left:auto;text-align:right;}
+
+  .quest-item{padding:12px 16px;border-bottom:1px solid var(--border);}
+  .quest-item:last-child{border-bottom:none;}
+  .quest-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .quest-nm{font-weight:600;font-size:13px;}
+  .quest-desc{font-size:12px;color:var(--text-2);}
+  .qprog{height:5px;border-radius:5px;background:var(--surface-2);margin-top:8px;overflow:hidden;border:1px solid var(--border);}
+  .qprog>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--violet));}
+
+  /* music + soundboard */
+  .music-body{padding:14px 16px;}
+  .now-playing{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .album{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#3b2a52,#5b3a7a);display:grid;place-items:center;font-size:22px;flex:0 0 48px;}
+  .np-title{font-weight:650;font-size:13.5px;}
+  .np-sub{font-size:11.5px;color:var(--text-3);}
+  .np-scrub{height:4px;border-radius:4px;background:var(--surface-2);margin-top:9px;overflow:hidden;border:1px solid var(--border);}
+  .np-scrub>span{display:block;height:100%;width:38%;background:var(--accent);}
+  .music-controls{display:flex;align-items:center;justify-content:center;gap:16px;margin:10px 0 4px;color:var(--text-2);font-size:16px;}
+  .music-controls .play{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px;box-shadow:var(--shadow-sm);}
+  .scene-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+  .soundboard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 16px;}
+  .sfx{aspect-ratio:1.5;border:1px solid var(--border);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;background:var(--surface-2);}
+  .sfx:hover{border-color:var(--accent);background:#fff;}
+  .sfx .e{font-size:20px;}
+  .sfx .l{font-size:10.5px;color:var(--text-2);font-weight:550;}
+
+  /* encounter builder strip */
+  .enc-body{padding:14px 16px;}
+  .cr-readout{display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:12px;}
+  .cr-gauge{flex:1;}
+  .cr-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
+  .cr-track{height:8px;border-radius:8px;background:linear-gradient(90deg,#13b87f 0%,#f0b03c 50%,#e0436b 100%);position:relative;}
+  .cr-track .marker{position:absolute;top:-3px;width:4px;height:14px;border-radius:3px;background:#1c1e26;box-shadow:0 0 0 2px #fff;}
+  .enc-list{display:flex;flex-direction:column;gap:7px;}
+  .enc-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;}
+  .enc-row .cnt{font-size:12px;font-weight:700;color:var(--text-2);width:24px;}
+  .enc-row .nm{font-weight:600;font-size:13px;}
+  .enc-row .cr{margin-left:auto;font-size:11.5px;color:var(--text-3);font-variant-numeric:tabular-nums;}
+
+  /* ---------- Command palette overlay ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(20,22,30,.32);
+    backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 12vh; z-index: 50;
+  }
+  .palette {
+    width: 620px; max-width: 90vw; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg);
+    overflow: hidden; animation: pop .14s ease;
+  }
+  @keyframes pop { from { transform: translateY(-8px) scale(.985); opacity:.4; } to { transform:none; opacity:1; } }
+  .palette-input { display:flex; align-items:center; gap:12px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .palette-input .pi-ic { font-size: 17px; color: var(--text-3); }
+  .palette-input input { flex:1; border:none; outline:none; font-size: 16px; font-family:inherit; color:var(--text); background:transparent;}
+  .palette-input .esc { font-size:11px;color:var(--text-3);background:var(--surface-2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;}
+  .palette-section { padding: 8px 8px; }
+  .palette-section .ps-label { font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);padding:6px 12px;}
+  .p-item { display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:8px; cursor:pointer;}
+  .p-item.sel { background: var(--accent-soft); }
+  .p-item .p-ic { width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:15px;background:var(--surface-2);border:1px solid var(--border);}
+  .p-item.sel .p-ic{ background:#fff; border-color:transparent;}
+  .p-item .p-nm { font-size:13.5px; font-weight:550; }
+  .p-item .p-cat { margin-left:auto; font-size:11.5px; color:var(--text-3);}
+  .p-item .p-go { font-size:12px;color:var(--accent);margin-left:8px;opacity:0;}
+  .p-item.sel .p-go{opacity:1;}
+  .palette-foot{display:flex;align-items:center;gap:16px;padding:9px 16px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-3);background:var(--surface-2);}
+  .palette-foot .kk{background:#fff;border:1px solid var(--border);border-radius:4px;padding:0 5px;font-size:10.5px;margin-right:3px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">⚔️</div>
+      <div>
+        <div class="name">Mythwright</div>
+        <div class="sub">GM Assistant</div>
+      </div>
+    </div>
+
+    <div class="search-trigger" onclick="document.getElementById('palette').style.display='flex'">
+      <span>🔍</span><span>Search anything…</span>
+      <span class="kbd">⌘K</span>
+    </div>
+
+    <nav>
+      <div class="nav-group">
+        <div class="nav-label">Session</div>
+        <div class="nav-item active"><span class="ico">🎲</span> Encounter Run<span class="count">live</span></div>
+        <div class="nav-item"><span class="ico">⚔️</span> Initiative Tracker</div>
+        <div class="nav-item"><span class="ico">📊</span> Player Dashboard</div>
+        <div class="nav-item"><span class="ico">📝</span> Session Notes</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Library</div>
+        <div class="nav-item"><span class="ico">🐉</span> Stat Blocks<span class="count">214</span></div>
+        <div class="nav-item"><span class="ico">🎭</span> NPC Roster<span class="count">38</span></div>
+        <div class="nav-item"><span class="ico">📖</span> Lore Wiki<span class="count">91</span></div>
+        <div class="nav-item"><span class="ico">🧭</span> Quests &amp; Threads<span class="count">7</span></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Atmosphere</div>
+        <div class="nav-item"><span class="ico">🎵</span> Ambient Music</div>
+        <div class="nav-item"><span class="ico">🔊</span> Soundboard</div>
+        <div class="nav-item"><span class="ico">🗺️</span> Battle Map</div>
+        <div class="nav-item"><span class="ico">📺</span> Reveal Window</div>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="campaign-pill">
+        <div class="av">🏰</div>
+        <div style="flex:1">
+          <div class="nm">Curse of the Ashen Crown</div>
+          <div class="mt">Session 14 · D&amp;D 5e</div>
+        </div>
+        <span style="color:var(--text-3);font-size:12px">⌄</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumbs">
+        <span class="c-muted">Curse of the Ashen Crown</span>
+        <span class="chev">›</span>
+        <span class="c-muted">Session 14</span>
+        <span class="chev">›</span>
+        <span class="c-cur">Encounter Run</span>
+      </div>
+      <div class="top-actions">
+        <div class="timer-chip">
+          <span class="dot"></span>
+          <b>02:47:12</b>
+          <span class="pace">· Act 2 of 3</span>
+          <button class="pbtn">⏸</button>
+        </div>
+        <button class="btn"><span>📺</span> Broadcast</button>
+        <button class="btn primary"><span>＋</span> Add Combatant</button>
+        <div class="avatar-me">KC</div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== INITIATIVE TRACKER (full width) ===== -->
+      <section class="card span-2">
+        <div class="init-toolbar">
+          <div class="round-pill">
+            <button class="rnav">‹</button>
+            <span>Round 4</span>
+            <button class="rnav">›</button>
+          </div>
+          <span class="badge indigo">⏱ Grung Ambush · The Sunken Vault</span>
+          <div class="spacer"></div>
+          <span class="badge amber">⚡ Lair action at init 20</span>
+          <button class="mini-btn">Sort ↓</button>
+          <button class="mini-btn accent">Next Turn →</button>
+        </div>
+        <table class="init-table">
+          <thead>
+            <tr>
+              <th style="width:60px">Init</th>
+              <th>Combatant</th>
+              <th style="width:160px">Hit Points</th>
+              <th style="width:70px">AC</th>
+              <th>Conditions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="active-turn">
+              <td><div style="display:flex;align-items:center"><span class="grip">⠿</span><span class="init-num">22</span></div></td>
+              <td><div class="combatant">
+                <div class="token" style="background:linear-gradient(135deg,#0f9d6b,#13b87f)">🛡️</div>
+                <div><div class="c-name">Sir Kaelen Vorth</div><div class="c-sub">Paladin 8 · Half-Orc</div></div>
+              </div></td>
+              <td><div class="hpbar-wrap"><div class="hpbar-top"><span>68 / 76</span><span>89%</span></div><div class="hpbar"><span class="hp-green" style="width:89%"></span></div></div></td>
+              <td><div class="ac-cell"><span class="shield">🛡</span>20</div></td>
+              <td><div class="cond-cell"><span class="badge sky">Blessed</span></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center"><span class="grip">⠿</span><span class="init-num">19</span></div></td>
+              <td><div class="combatant">
+                <div class="token" style="background:linear-gradient(135deg,#5b3a7a,#8a5cf6)">🐸</div>
+                <div><div class="c-name">Grung Elder Tziki</div><div class="c-sub">CR 1 · Elite · Reaction primed</div></div>
+              </div></td>
+              <td><div class="hpbar-wrap"><div class="hpbar-top"><span class="hp-hidden">Bloodied</span><span class="hp-hidden">🔒 GM</span></div><div class="hpbar"><span class="hp-amber" style="width:42%"></span></div></div></td>
+              <td><div class="ac-cell"><span class="shield">🛡</span>13</div></td>
+              <td><div class="cond-cell"><span class="badge amber">Poisoned · 2r</span><span class="badge rose">Marked</span></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center"><span class="grip">⠿</span><span class="init-num">17</span></div></td>
+              <td><div class="combatant">
+                <div class="token pc" style="background:linear-gradient(135deg,#2b8acb,#5b5bf0)">🏹</div>
+                <div><div class="c-name">Lyra Quickfoot</div><div class="c-sub">Ranger 8 · Wood Elf</div></div>
+              </div></td>
+              <td><div class="hpbar-wrap"><div class="hpbar-top"><span>31 / 58</span><span>53%</span></div><div class="hpbar"><span class="hp-amber" style="width:53%"></span></div></div></td>
+              <td><div class="ac-cell"><span class="shield">🛡</span>16</div></td>
+              <td><div class="cond-cell"><span class="badge gray">—</span></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center"><span class="grip">⠿</span><span class="init-num">14</span></div></td>
+              <td><div class="combatant">
+                <div class="token" style="background:linear-gradient(135deg,#7a4a2a,#b07a3a)">🐸</div>
+                <div><div class="c-name">Grung Warrior ×3</div><div class="c-sub">CR 1/4 · Pack tactics</div></div>
+              </div></td>
+              <td><div class="hpbar-wrap"><div class="hpbar-top"><span class="hp-hidden">Healthy</span><span class="hp-hidden">🔒 GM</span></div><div class="hpbar"><span class="hp-green" style="width:100%"></span></div></div></td>
+              <td><div class="ac-cell"><span class="shield">🛡</span>12</div></td>
+              <td><div class="cond-cell"><span class="badge gray">—</span></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center"><span class="grip">⠿</span><span class="init-num">11</span></div></td>
+              <td><div class="combatant">
+                <div class="token pc" style="background:linear-gradient(135deg,#e0436b,#f0617f)">✨</div>
+                <div><div class="c-name">Mira Nightveil</div><div class="c-sub">Sorcerer 8 · Tiefling</div></div>
+              </div></td>
+              <td><div class="hpbar-wrap"><div class="hpbar-top"><span>12 / 49</span><span>24%</span></div><div class="hpbar"><span class="hp-red" style="width:24%"></span></div></div></td>
+              <td><div class="ac-cell"><span class="shield">🛡</span>13</div></td>
+              <td><div class="cond-cell"><span class="badge rose">Frightened · 1r</span><span class="badge sky">Concentrating</span></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center"><span class="grip">⠿</span><span class="init-num">08</span></div></td>
+              <td><div class="combatant">
+                <div class="token pc" style="background:linear-gradient(135deg,#3a3f52,#5b6171)">⛏️</div>
+                <div><div class="c-name">Dorrim Stoneheart</div><div class="c-sub">Cleric 7 · Mountain Dwarf</div></div>
+              </div></td>
+              <td><div class="hpbar-wrap"><div class="hpbar-top"><span>54 / 61</span><span>89%</span></div><div class="hpbar"><span class="hp-green" style="width:89%"></span></div></div></td>
+              <td><div class="ac-cell"><span class="shield">🛡</span>18</div></td>
+              <td><div class="cond-cell"><span class="badge emerald">Spirit Guardians</span></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ===== PLAYER DASHBOARD (left) ===== -->
+      <section class="card col-left">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">📊</span> Player Dashboard</div>
+          <span class="meta">· GM reference only</span>
+          <div class="act"><span class="badge gray">4 PCs</span><button class="ghost-btn">⋯</button></div>
+        </div>
+        <div class="pd-grid">
+          <div class="pd-card">
+            <div class="pd-top">
+              <div class="pd-av" style="background:linear-gradient(135deg,#0f9d6b,#13b87f)">🛡️</div>
+              <div><div class="pd-name">Sir Kaelen</div><div class="pd-class">Paladin 8</div></div>
+            </div>
+            <div class="pd-stats">
+              <div class="pd-stat"><div class="lbl">Pass. Per</div><div class="val">13</div></div>
+              <div class="pd-stat"><div class="lbl">AC</div><div class="val">20</div></div>
+              <div class="pd-stat"><div class="lbl">Speed</div><div class="val">30</div></div>
+            </div>
+            <div class="pd-foot"><span class="badge gray">STR +5</span><span class="badge gray">CHA +3</span><span class="badge emerald">Frightened immune</span></div>
+          </div>
+          <div class="pd-card">
+            <div class="pd-top">
+              <div class="pd-av" style="background:linear-gradient(135deg,#2b8acb,#5b5bf0)">🏹</div>
+              <div><div class="pd-name">Lyra Quickfoot</div><div class="pd-class">Ranger 8</div></div>
+            </div>
+            <div class="pd-stats">
+              <div class="pd-stat"><div class="lbl">Pass. Per</div><div class="val">17</div></div>
+              <div class="pd-stat"><div class="lbl">AC</div><div class="val">16</div></div>
+              <div class="pd-stat"><div class="lbl">Speed</div><div class="val">35</div></div>
+            </div>
+            <div class="pd-foot"><span class="badge gray">DEX +5</span><span class="badge gray">WIS +4</span><span class="badge sky">Elvish · Sylvan</span></div>
+          </div>
+          <div class="pd-card">
+            <div class="pd-top">
+              <div class="pd-av" style="background:linear-gradient(135deg,#e0436b,#f0617f)">✨</div>
+              <div><div class="pd-name">Mira Nightveil</div><div class="pd-class">Sorcerer 8</div></div>
+            </div>
+            <div class="pd-stats">
+              <div class="pd-stat"><div class="lbl">Pass. Per</div><div class="val">11</div></div>
+              <div class="pd-stat"><div class="lbl">AC</div><div class="val">13</div></div>
+              <div class="pd-stat"><div class="lbl">Speed</div><div class="val">30</div></div>
+            </div>
+            <div class="pd-foot"><span class="badge gray">CHA +6</span><span class="badge amber">Fire resist</span><span class="badge gray">Infernal</span></div>
+          </div>
+          <div class="pd-card">
+            <div class="pd-top">
+              <div class="pd-av" style="background:linear-gradient(135deg,#3a3f52,#5b6171)">⛏️</div>
+              <div><div class="pd-name">Dorrim</div><div class="pd-class">Cleric 7</div></div>
+            </div>
+            <div class="pd-stats">
+              <div class="pd-stat"><div class="lbl">Pass. Per</div><div class="val">15</div></div>
+              <div class="pd-stat"><div class="lbl">AC</div><div class="val">18</div></div>
+              <div class="pd-stat"><div class="lbl">Speed</div><div class="val">25</div></div>
+            </div>
+            <div class="pd-foot"><span class="badge gray">WIS +5</span><span class="badge emerald">Poison resist</span><span class="badge gray">Dwarvish</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== DICE ROLLER (right) ===== -->
+      <section class="card col-right">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">🎲</span> Dice Roller</div>
+          <div class="act"><button class="ghost-btn">⋯</button></div>
+        </div>
+        <div class="dice-body">
+          <div class="dice-display">
+            <span class="badge amber crit">CRIT ✦</span>
+            <div class="formula">Greatsword + Smite · 2d6 + 4d8 + 5</div>
+            <div class="result">41</div>
+            <div class="breakdown">Damage · <b>[6,5]</b> + <b>[7,4,6,8]</b> + 5</div>
+          </div>
+          <div class="die-row">
+            <div class="die-btn">d4</div><div class="die-btn">d6</div><div class="die-btn">d8</div>
+            <div class="die-btn">d10</div><div class="die-btn">d12</div><div class="die-btn">d20</div>
+          </div>
+          <div class="macro-list">
+            <div class="macro"><div class="mic" style="background:var(--accent-soft);color:var(--accent)">⚔️</div><span class="mname">Longbow Attack</span><span class="mform">d20+8 / 1d8+5</span></div>
+            <div class="macro"><div class="mic" style="background:var(--emerald-soft);color:var(--emerald)">✚</div><span class="mname">Cure Wounds</span><span class="mform">2d8+4</span></div>
+            <div class="macro"><div class="mic" style="background:var(--rose-soft);color:var(--rose)">🔥</div><span class="mname">Fireball (8th)</span><span class="mform">8d6</span></div>
+            <div class="macro"><div class="mic" style="background:var(--amber-soft);color:var(--amber)">🎯</div><span class="mname">Advantage d20</span><span class="mform">2d20kh1</span></div>
+          </div>
+          <div class="hidden-toggle">
+            <div class="toggle"></div>
+            <span><b>Roll hidden</b> — results stay GM-only, off the broadcast</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SESSION NOTES (left) ===== -->
+      <section class="card col-left">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">📝</span> Session Notes</div>
+          <div class="act"><button class="mini-btn">⊕ Recap</button><button class="ghost-btn">⋯</button></div>
+        </div>
+        <div class="notes-body">
+          <div class="note">
+            <div class="tstamp">02:41</div>
+            <div><div class="ntext">Party triggered the grung ambush early — they ignored Lyra's warning about the wet moss. Tziki revealed herself from the ceiling.</div>
+              <div class="ntags"><span class="badge indigo">combat</span><span class="badge gray">Sunken Vault</span></div></div>
+          </div>
+          <div class="note">
+            <div class="tstamp">02:19</div>
+            <div><div class="ntext">Mira failed the DC 15 INT save vs the crown's whisper. She now believes Dorrim is hiding something (he is).</div>
+              <div class="ntags"><span class="badge rose">plot</span><span class="badge amber">secret</span></div></div>
+          </div>
+          <div class="note">
+            <div class="tstamp">01:52</div>
+            <div><div class="ntext">Bought 3 healing potions from Old Garrick for 150gp. He mentioned the Ashen cult was seen near Blackmoor bridge.</div>
+              <div class="ntags"><span class="badge emerald">clue</span><span class="badge gray">NPC</span></div></div>
+          </div>
+          <div class="note">
+            <div class="tstamp">01:08</div>
+            <div><div class="ntext">Kaelen swore an oath to protect the orphanage. Remember this for the Act 3 sacrifice beat.</div>
+              <div class="ntags"><span class="badge sky">character</span></div></div>
+          </div>
+        </div>
+        <div class="note-input">
+          <span style="color:var(--text-3)">＋</span>
+          <input placeholder="Add a timestamped note…  use #tags" />
+          <button class="mini-btn accent">Save</button>
+        </div>
+      </section>
+
+      <!-- ===== NPC ROSTER (right) ===== -->
+      <section class="card col-right">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">🎭</span> NPC Roster</div>
+          <div class="act"><button class="ghost-btn">🔍</button><button class="ghost-btn">⋯</button></div>
+        </div>
+        <div>
+          <div class="npc-item">
+            <div class="npc-av" style="background:linear-gradient(135deg,#b07a3a,#d9a85a)">🧔</div>
+            <div><div class="npc-nm">Old Garrick</div><div class="npc-sub">Gruff · Yorkshire lilt · owes the party</div></div>
+            <div class="npc-loc"><span class="badge gray">Tavern</span></div>
+          </div>
+          <div class="npc-item">
+            <div class="npc-av" style="background:linear-gradient(135deg,#5b3a7a,#8a5cf6)">👁️</div>
+            <div><div class="npc-nm">The Whisperer</div><div class="npc-sub">Sibilant · never blinks · cult contact</div></div>
+            <div class="npc-loc"><span class="badge rose">Hidden</span></div>
+          </div>
+          <div class="npc-item">
+            <div class="npc-av" style="background:linear-gradient(135deg,#0f9d6b,#13b87f)">👑</div>
+            <div><div class="npc-nm">Lady Seraphine</div><div class="npc-sub">Regal · clipped · secretly afraid</div></div>
+            <div class="npc-loc"><span class="badge sky">Keep</span></div>
+          </div>
+          <div class="npc-item">
+            <div class="npc-av" style="background:linear-gradient(135deg,#2b8acb,#5b5bf0)">🐀</div>
+            <div><div class="npc-nm">Skitch the Fence</div><div class="npc-sub">Fast-talker · twitchy · loyal to coin</div></div>
+            <div class="npc-loc"><span class="badge gray">Docks</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ENCOUNTER BUILDER (left) ===== -->
+      <section class="card col-left">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">📐</span> Encounter Builder</div>
+          <div class="act"><button class="mini-btn accent">▶ Run</button><button class="ghost-btn">⋯</button></div>
+        </div>
+        <div class="enc-body">
+          <div class="cr-readout">
+            <div style="text-align:center"><div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Difficulty</div><div style="font-size:18px;font-weight:750;color:var(--amber)">Hard</div></div>
+            <div class="cr-gauge">
+              <div class="cr-label"><span>2,400 XP · ×2.0 mult</span><span>Party threshold 3,400</span></div>
+              <div class="cr-track"><div class="marker" style="left:64%"></div></div>
+            </div>
+          </div>
+          <div class="enc-list">
+            <div class="enc-row"><span class="cnt">1×</span><div class="token" style="width:28px;height:28px;font-size:14px;background:linear-gradient(135deg,#5b3a7a,#8a5cf6)">🐸</div><span class="nm">Grung Elder Tziki</span><span class="cr">CR 1 · 700 XP</span></div>
+            <div class="enc-row"><span class="cnt">3×</span><div class="token" style="width:28px;height:28px;font-size:14px;background:linear-gradient(135deg,#7a4a2a,#b07a3a)">🐸</div><span class="nm">Grung Warrior</span><span class="cr">CR 1/4 · 150 XP</span></div>
+            <div class="enc-row"><span class="cnt">1×</span><div class="token" style="width:28px;height:28px;font-size:14px;background:linear-gradient(135deg,#0f9d6b,#13b87f)">🐍</div><span class="nm">Giant Constrictor</span><span class="cr">CR 2 · 450 XP</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== QUESTS (right) ===== -->
+      <section class="card col-right">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">🧭</span> Quests &amp; Threads</div>
+          <div class="act"><span class="badge amber">7 open</span></div>
+        </div>
+        <div>
+          <div class="quest-item">
+            <div class="quest-top"><span class="quest-nm">Recover the Ashen Crown</span><span class="badge rose" style="margin-left:auto">Main</span></div>
+            <div class="quest-desc">3 of 4 shards found. The last lies in the Sunken Vault.</div>
+            <div class="qprog"><span style="width:75%"></span></div>
+          </div>
+          <div class="quest-item">
+            <div class="quest-top"><span class="quest-nm">Who poisoned Lord Aldric?</span><span class="badge amber" style="margin-left:auto">Active</span></div>
+            <div class="quest-desc">2 clues planted. Suspect: Lady Seraphine's steward.</div>
+            <div class="qprog"><span style="width:40%"></span></div>
+          </div>
+          <div class="quest-item">
+            <div class="quest-top"><span class="quest-nm">The Orphanage Debt</span><span class="badge sky" style="margin-left:auto">Side</span></div>
+            <div class="quest-desc">Kaelen's oath. Payment due before the next moon.</div>
+            <div class="qprog"><span style="width:20%"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== AMBIENT MUSIC (left) ===== -->
+      <section class="card col-left">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">🎵</span> Ambient Music</div>
+          <div class="act"><span class="badge emerald">● Broadcasting</span><button class="ghost-btn">⋯</button></div>
+        </div>
+        <div class="music-body">
+          <div class="now-playing">
+            <div class="album">🌫️</div>
+            <div style="flex:1">
+              <div class="np-title">Dripping Depths — Cavern Loop</div>
+              <div class="np-sub">Dungeon · Tension playlist · crossfade 4s</div>
+              <div class="np-scrub"><span></span></div>
+            </div>
+          </div>
+          <div class="music-controls">
+            <span>⏮</span><span class="play">▶</span><span>⏭</span><span style="font-size:13px;color:var(--text-3)">🔀</span><span style="font-size:13px;color:var(--text-3)">🔁</span>
+          </div>
+          <div class="scene-tags">
+            <span class="badge gray">🍺 Tavern</span>
+            <span class="badge indigo">🕯 Dungeon</span>
+            <span class="badge gray">⚔️ Boss Fight</span>
+            <span class="badge gray">🌲 Wilderness</span>
+            <span class="badge gray">😱 Horror</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SOUNDBOARD (right) ===== -->
+      <section class="card col-right">
+        <div class="card-head">
+          <div class="ttl"><span class="ic">🔊</span> Soundboard</div>
+          <div class="act"><button class="ghost-btn">⋯</button></div>
+        </div>
+        <div class="soundboard">
+          <div class="sfx"><span class="e">🚪</span><span class="l">Door Creak</span></div>
+          <div class="sfx"><span class="e">⛈️</span><span class="l">Thunder</span></div>
+          <div class="sfx"><span class="e">⚔️</span><span class="l">Sword Clang</span></div>
+          <div class="sfx"><span class="e">😱</span><span class="l">Scream</span></div>
+          <div class="sfx"><span class="e">🔔</span><span class="l">Bell Toll</span></div>
+          <div class="sfx"><span class="e">🐺</span><span class="l">Wolf Howl</span></div>
+          <div class="sfx"><span class="e">💥</span><span class="l">Explosion</span></div>
+          <div class="sfx"><span class="e">🎻</span><span class="l">Sting</span></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============ COMMAND PALETTE OVERLAY ============ -->
+<div class="overlay" id="palette">
+  <div class="palette" onclick="event.stopPropagation()">
+    <div class="palette-input">
+      <span class="pi-ic">🔍</span>
+      <input value="garrick" autofocus />
+      <span class="esc">ESC</span>
+    </div>
+    <div class="palette-section">
+      <div class="ps-label">NPCs</div>
+      <div class="p-item sel"><div class="p-ic">🧔</div><span class="p-nm">Old Garrick</span><span class="p-cat">NPC · Tavern</span><span class="p-go">↵ open</span></div>
+    </div>
+    <div class="palette-section" style="border-top:1px solid var(--border)">
+      <div class="ps-label">Notes &amp; Lore</div>
+      <div class="p-item"><div class="p-ic">📝</div><span class="p-nm">Garrick mentions the Ashen cult near Blackmoor</span><span class="p-cat">Note · S14</span></div>
+      <div class="p-item"><div class="p-ic">📖</div><span class="p-nm">Garrick's Tavern — The Drowned Lantern</span><span class="p-cat">Lore · Location</span></div>
+    </div>
+    <div class="palette-section" style="border-top:1px solid var(--border)">
+      <div class="ps-label">Actions</div>
+      <div class="p-item"><div class="p-ic">🎲</div><span class="p-nm">Roll: Garrick Persuasion check</span><span class="p-cat">Quick roll</span></div>
+      <div class="p-item"><div class="p-ic">📺</div><span class="p-nm">Reveal Garrick's portrait to players</span><span class="p-cat">Broadcast</span></div>
+    </div>
+    <div class="palette-foot">
+      <span><span class="kk">↑</span><span class="kk">↓</span>navigate</span>
+      <span><span class="kk">↵</span>open</span>
+      <span><span class="kk">⌘</span><span class="kk">↵</span>broadcast</span>
+      <span style="margin-left:auto">38 NPCs · 91 lore pages · 214 stat blocks indexed</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Flavor only — page renders fully without JS.
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      document.getElementById('palette').style.display = 'flex';
+    }
+    if (e.key === 'Escape') document.getElementById('palette').style.display = 'none';
+  });
+  document.getElementById('palette').addEventListener('click', () =>
+    document.getElementById('palette').style.display = 'none');
+</script>
+</body>
+</html>

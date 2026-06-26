@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Assistant — Mockup Explorer</title>
+<style>
+  :root{
+    --bg:#0d0e14; --bg2:#14161f; --panel:#1a1d28; --line:#2a2e3d;
+    --text:#e7e9f0; --muted:#9aa0b4; --accent:#7c84ff; --accent2:#36e0c8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(124,132,255,.18),transparent 60%),
+      radial-gradient(900px 500px at -10% 110%,rgba(54,224,200,.12),transparent 60%),
+      var(--bg);
+    color:var(--text); min-height:100%;
+  }
+  header{
+    max-width:1320px;margin:0 auto;padding:48px 32px 8px;
+  }
+  .kicker{
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent2);font-weight:700;margin-bottom:14px;
+  }
+  h1{font-size:40px;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  h1 span{color:var(--muted);font-weight:500}
+  .sub{margin-top:14px;color:var(--muted);max-width:680px;font-size:15px;line-height:1.6}
+  .meta{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+  .pill{
+    font-size:12px;color:var(--muted);background:var(--panel);
+    border:1px solid var(--line);padding:6px 12px;border-radius:999px;
+  }
+
+  .grid{
+    max-width:1320px;margin:28px auto 80px;padding:0 32px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:26px;
+  }
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    overflow:hidden;display:flex;flex-direction:column;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-4px);border-color:var(--accent);
+    box-shadow:0 18px 50px -18px rgba(124,132,255,.55)}
+
+  .frame{
+    position:relative;aspect-ratio:16/10;background:var(--bg2);overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  /* render the real mockup, scaled down to a thumbnail */
+  .frame iframe{
+    position:absolute;top:0;left:0;border:0;
+    width:1440px;height:900px;
+    transform:scale(.2638);transform-origin:top left; /* 380/1440 */
+    pointer-events:none;background:#000;
+  }
+  .frame a.cover{position:absolute;inset:0;z-index:2}
+  .badge{
+    position:absolute;top:12px;left:12px;z-index:3;
+    font-size:11px;font-weight:700;letter-spacing:.04em;
+    background:rgba(13,14,20,.78);border:1px solid var(--line);
+    color:var(--text);padding:5px 10px;border-radius:8px;backdrop-filter:blur(6px);
+  }
+  .open-hint{
+    position:absolute;bottom:12px;right:12px;z-index:3;opacity:0;
+    font-size:12px;font-weight:600;background:var(--accent);color:#0d0e14;
+    padding:7px 13px;border-radius:8px;transition:opacity .18s ease;
+  }
+  .card:hover .open-hint{opacity:1}
+
+  .body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .name{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .num{font-size:12px;color:var(--muted);font-family:ui-monospace,monospace}
+  .style{font-size:12px;font-weight:600;color:var(--accent2)}
+  .desc{font-size:13.5px;color:var(--muted);line-height:1.55}
+  .tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+  .tag{font-size:11px;color:var(--muted);background:var(--bg2);
+    border:1px solid var(--line);padding:4px 9px;border-radius:6px}
+  .actions{margin-top:auto;display:flex;gap:10px;padding-top:6px}
+  .btn{
+    flex:1;text-align:center;text-decoration:none;font-size:13px;font-weight:600;
+    padding:10px 12px;border-radius:9px;border:1px solid var(--line);
+    color:var(--text);background:var(--bg2);transition:.15s;
+  }
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#0d0e14;border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.08)}
+
+  footer{max-width:1320px;margin:0 auto;padding:0 32px 60px;color:var(--muted);font-size:13px}
+
+  .section{max-width:1320px;margin:46px auto 0;padding:0 32px}
+  .section h2{font-size:22px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:baseline;gap:12px}
+  .section h2 .tag2{font-size:12px;font-weight:600;color:var(--accent2);letter-spacing:.04em}
+  .section p{margin-top:8px;color:var(--muted);font-size:14px;max-width:720px;line-height:1.55}
+  .section.b h2 .tag2{color:var(--accent)}
+  .section.c h2 .tag2{color:#5fbf8f}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Design Exploration · 11 Directions</div>
+  <h1>GM Assistant <span>— Mockup Explorer</span></h1>
+  <p class="sub">Eleven independent designers each interpreted the same brief: a GM-only virtual desktop for running online tabletop sessions. Hover a card to preview the live mockup; click to open it full-screen.</p>
+  <div class="meta">
+    <span class="pill">Single Game Master tool</span>
+    <span class="pill">One broadcast window</span>
+    <span class="pill">11 self-contained HTML mockups</span>
+  </div>
+</header>
+
+<section class="section a">
+  <h2>Original Concepts <span class="tag2">5 bold aesthetics</span></h2>
+  <p>Strong, distinct visual languages — each leaning into a single mood.</p>
+</section>
+<main class="grid" id="grid-a"></main>
+
+<section class="section b">
+  <h2>Genre-Neutral · Minimal <span class="tag2">5 directions · fits CoC + D&amp;D</span></h2>
+  <p>Quieter, usability-first designs built to serve both Call of Cthulhu and Dungeons &amp; Dragons, with a live system switcher.</p>
+</section>
+<main class="grid" id="grid-b"></main>
+
+<section class="section c">
+  <h2>Keeper's Table <span class="tag2">séance-green · Cthulhu edition</span></h2>
+  <p>A full dashboard in deep occult greens, anchored by a glowing animated all-seeing eye.</p>
+</section>
+<main class="grid" id="grid-c"></main>
+
+<footer>All mockups are self-contained HTML — no build, no network. Open any file directly in a browser.</footer>
+
+<script>
+const mocks = [
+  {
+    file:"mockup-1.html", n:"01", name:"Aegis Command", style:"Dark Tactical · Sci-Fi HUD",
+    desc:"Angular HUD windows with glowing cyan/amber borders, monospace telemetry, scanlines and corner brackets — a military ops dashboard for a Call of Cthulhu session.",
+    tags:["Dark","Neon HUD","Monospace","High-density"]
+  },
+  {
+    file:"mockup-2.html", n:"02", name:"The Grimoire", style:"Fantasy Tome · Illuminated",
+    desc:"Wax-sealed grimoire pages on aged parchment, gold-leaf borders, drop caps and ribbon bookmarks over a candlelit-tavern backdrop. Each module is a page of an enchanted book.",
+    tags:["Parchment","Serif","Ornate","Cozy"]
+  },
+  {
+    file:"mockup-3.html", n:"03", name:"Mythwright", style:"Clean Modern SaaS",
+    desc:"Light Linear/Notion aesthetic — left module sidebar, soft shadows, rounded cards, pill badges and an indigo accent, with a ⌘K command palette over D&D 5e data.",
+    tags:["Light","Minimal","Sidebar","Indigo"]
+  },
+  {
+    file:"mockup-4.html", n:"04", name:"GM//OS", style:"Retro CRT · Cyberpunk",
+    desc:"Phosphor terminal in neon cyan + magenta with scanlines, screen-curvature and flicker. Ten text-mode panes drawn in ANSI box characters and blinking command lines.",
+    tags:["CRT","Terminal","Cyberpunk","ASCII"]
+  },
+  {
+    file:"mockup-5.html", n:"05", name:"Lumen", style:"Glassmorphism · Vision-OS",
+    desc:"Floating frosted-glass windows over a purple/magenta/teal nebula wallpaper, twinkling stars, a magnifying dock and a Cmd+K palette. Vision-OS-meets-Big-Sur vibrancy.",
+    tags:["Glass","Gradient","Floating","Vibrant"]
+  },
+];
+
+const mocksB = [
+  {
+    file:"mockup-6.html", n:"06", name:"Bone & Ink", style:"Warm Editorial · Minimal",
+    desc:"Off-white paper, ink text, one oxblood accent (ink-blue in CoC mode). Serif headings over a calm responsive grid — a typeset RPG screen that fills the viewport.",
+    tags:["Editorial","Serif","Whitespace","Switcher"]
+  },
+  {
+    file:"mockup-7.html", n:"07", name:"Nightshade", style:"Muted Dark Slate · Focus",
+    desc:"Desaturated charcoal surfaces with one warm brass accent — dim and easy on the eyes for long night sessions. Slim top bar, icon rail, live system swap.",
+    tags:["Dark","Muted","Brass","Calm"]
+  },
+  {
+    file:"mockup-8.html", n:"08", name:"Folio", style:"Monochrome Ink · Swiss",
+    desc:"White, black, one confident red. Hairline-ruled baseline grid, big labels, square corners — pure information design where the structure is the decoration.",
+    tags:["Monochrome","Swiss","Grid","Legible"]
+  },
+  {
+    file:"mockup-9.html", n:"09", name:"Hearth", style:"Soft Scandinavian · Cards",
+    desc:"Warm oat background, gently rounded cards, sage→clay accent that shifts with system. Airy, friendly, approachable — a calm productivity-app feel.",
+    tags:["Soft","Rounded","Sage/Clay","Airy"]
+  },
+  {
+    file:"mockup-10.html", n:"10", name:"Candle", style:"Zen · Keyboard-First",
+    desc:"Deep ink with a single candle-amber accent, built around a 'Now Playing' turn panel. Command palette, shortcut hints (N/R/G), minimal chrome — only what's needed live.",
+    tags:["Zen","Keyboard","Focus","⌘K"]
+  },
+];
+
+const mocksC = [
+  {
+    file:"mockup-11.html", n:"11", name:"Keeper", style:"Séance Green · Cthulhu Edition",
+    desc:"Deep desaturated greens, glowing emerald accents, and a hero animated 'Keeper Panel' eye that pulses and blinks. A draggable desktop canvas — float windows (scene, initiative, d100 roller w/ Chaos/Sanity, NPCs, handouts, notebook) over a grid wallpaper, with an asset-setup rail and a bottom tool dock.",
+    tags:["Dark Green","Glowing Eye","Cthulhu","Desktop"]
+  },
+];
+
+const cardHTML = m=>`
+  <article class="card">
+    <div class="frame">
+      <span class="badge">${m.style}</span>
+      <iframe src="${m.file}" loading="lazy" scrolling="no" tabindex="-1" title="${m.name} preview"></iframe>
+      <span class="open-hint">Open full ↗</span>
+      <a class="cover" href="${m.file}" target="_blank" aria-label="Open ${m.name}"></a>
+    </div>
+    <div class="body">
+      <div class="row">
+        <span class="name">${m.name}</span>
+        <span class="num">№ ${m.n}</span>
+      </div>
+      <span class="style">${m.style}</span>
+      <p class="desc">${m.desc}</p>
+      <div class="tags">${m.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+      <div class="actions">
+        <a class="btn primary" href="${m.file}" target="_blank">Open mockup</a>
+        <a class="btn" href="${m.file}" target="_blank">New tab ↗</a>
+      </div>
+    </div>
+  </article>
+`;
+
+document.getElementById("grid-a").innerHTML = mocks.map(cardHTML).join("");
+document.getElementById("grid-b").innerHTML = mocksB.map(cardHTML).join("");
+document.getElementById("grid-c").innerHTML = mocksC.map(cardHTML).join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM//OS — TERMINAL ENVIRONMENT</title>
+<style>
+  :root{
+    --bg:#05070a;
+    --bg2:#080d12;
+    --cyan:#22e0e0;
+    --cyan-dim:#0e8a8a;
+    --mag:#ff3da8;
+    --mag-dim:#a02468;
+    --amber:#ffb53d;
+    --green:#3dff8a;
+    --red:#ff4d52;
+    --txt:#9fe9e9;
+    --txt-dim:#3a6a6a;
+    --pane:#070b10;
+    --line:#11414a;
+    --glow-c:0 0 6px rgba(34,224,224,.55);
+    --glow-m:0 0 7px rgba(255,61,168,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 40%, #0a131a 0%, #05070a 70%, #020304 100%);
+    color:var(--txt);
+    font-family:"Cascadia Code","Consolas","SFMono-Regular","Menlo","DejaVu Sans Mono",monospace;
+    font-size:13px;
+    line-height:1.45;
+    letter-spacing:.3px;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ===== CRT screen frame ===== */
+  #crt{
+    position:fixed;
+    inset:0;
+    padding:18px 22px 10px;
+    display:flex;
+    flex-direction:column;
+    border-radius:26px;
+    box-shadow:
+      inset 0 0 120px rgba(0,0,0,.9),
+      inset 0 0 30px rgba(34,224,224,.06);
+    overflow:hidden;
+  }
+  #crt::before{ /* curvature vignette */
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    border-radius:26px;
+    background:radial-gradient(ellipse 130% 110% at 50% 50%, transparent 55%, rgba(0,0,0,.55) 90%, rgba(0,0,0,.9) 100%);
+    z-index:50;
+  }
+  #scan{ /* scanlines */
+    position:fixed;inset:0;pointer-events:none;z-index:60;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.22) 3px, rgba(0,0,0,0) 4px);
+    mix-blend-mode:multiply;
+  }
+  #flicker{
+    position:fixed;inset:0;pointer-events:none;z-index:61;
+    background:rgba(34,224,224,.012);
+    animation:flick 5s steps(2,end) infinite;
+  }
+  @keyframes flick{0%,97%{opacity:.6}98%{opacity:.15}99%{opacity:.8}100%{opacity:.5}}
+  #grain{
+    position:fixed;inset:0;pointer-events:none;z-index:59;opacity:.05;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* ===== top status bar ===== */
+  #topbar{
+    display:flex;align-items:center;gap:18px;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#081218,#060c11);
+    padding:5px 14px;
+    font-size:12px;
+    color:var(--cyan);
+    text-shadow:var(--glow-c);
+    flex:0 0 auto;
+    z-index:10;
+  }
+  #topbar .logo{color:var(--mag);text-shadow:var(--glow-m);font-weight:bold;letter-spacing:1px;}
+  #topbar .seg{color:var(--txt-dim);}
+  #topbar .k{color:var(--txt-dim);}
+  #topbar .v{color:var(--amber);text-shadow:0 0 5px rgba(255,181,61,.5);}
+  #topbar .spacer{flex:1;}
+  .blink{animation:blink 1.05s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  .rec{color:var(--red);text-shadow:0 0 6px rgba(255,77,82,.7);}
+
+  /* ===== desktop grid of panes ===== */
+  #desk{
+    flex:1;
+    display:grid;
+    grid-template-columns:330px 1fr 360px;
+    grid-template-rows:minmax(0,1fr) minmax(0,1fr);
+    gap:10px;
+    padding-top:10px;
+    min-height:0;
+    z-index:5;
+  }
+  .pane{
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(10,20,26,.85), rgba(5,9,13,.92));
+    display:flex;flex-direction:column;
+    min-height:0;min-width:0;
+    box-shadow:inset 0 0 24px rgba(0,40,45,.25), 0 0 0 1px rgba(0,0,0,.4);
+    position:relative;
+  }
+  .pane.mag{border-color:var(--mag-dim);box-shadow:inset 0 0 24px rgba(60,0,30,.3);}
+  .pane.amber{border-color:#6a4a12;box-shadow:inset 0 0 24px rgba(50,35,0,.3);}
+  .titlebar{
+    display:flex;align-items:center;gap:8px;
+    padding:3px 9px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0a161c,#071017);
+    font-size:11px;letter-spacing:.6px;
+    color:var(--cyan);text-shadow:var(--glow-c);
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+  .pane.mag .titlebar{color:var(--mag);text-shadow:var(--glow-m);border-color:var(--mag-dim);}
+  .pane.amber .titlebar{color:var(--amber);text-shadow:0 0 6px rgba(255,181,61,.5);border-color:#6a4a12;}
+  .titlebar .dots{letter-spacing:-1px;color:var(--txt-dim);}
+  .titlebar .t{font-weight:bold;}
+  .titlebar .id{margin-left:auto;color:var(--txt-dim);font-size:10px;}
+  .titlebar .ctl{color:var(--txt-dim);letter-spacing:0;}
+  .body{
+    padding:8px 11px;
+    overflow:auto;
+    flex:1;
+    min-height:0;
+    scrollbar-width:thin;
+    scrollbar-color:var(--cyan-dim) transparent;
+  }
+  .body::-webkit-scrollbar{width:8px;height:8px;}
+  .body::-webkit-scrollbar-thumb{background:var(--cyan-dim);}
+  .body::-webkit-scrollbar-track{background:transparent;}
+
+  /* spanning helpers */
+  .col-mid{grid-column:2;}
+  .span-r2{grid-row:1 / span 2;}
+
+  /* ===== generic terminal text utilities ===== */
+  .dim{color:var(--txt-dim);}
+  .c{color:var(--cyan);}
+  .m{color:var(--mag);}
+  .a{color:var(--amber);}
+  .g{color:var(--green);}
+  .r{color:var(--red);}
+  .hl{background:rgba(34,224,224,.13);}
+  b{font-weight:bold;}
+  .box{color:var(--line);}
+  table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;}
+  th{color:var(--txt-dim);text-align:left;font-weight:normal;border-bottom:1px solid var(--line);padding:2px 6px 4px 0;}
+  td{padding:2px 6px 2px 0;border-bottom:1px dotted #0f2a2f;}
+  tr.active td{background:rgba(255,61,168,.10);color:#ffd;}
+  .bar{display:inline-block;letter-spacing:-1px;}
+  pre{font:inherit;white-space:pre;line-height:1.25;}
+
+  /* ===== initiative ===== */
+  .turnmark{color:var(--mag);text-shadow:var(--glow-m);}
+  .cond{font-size:10px;color:var(--amber);}
+  .hp-ok{color:var(--green);}
+  .hp-mid{color:var(--amber);}
+  .hp-low{color:var(--red);text-shadow:0 0 5px rgba(255,77,82,.6);}
+
+  /* ===== dice ===== */
+  .rolllog div{padding:1px 0;border-bottom:1px dotted #0e2226;}
+  .crit{color:var(--green);text-shadow:0 0 7px rgba(61,255,138,.6);font-weight:bold;}
+  .fumble{color:var(--red);text-shadow:0 0 7px rgba(255,77,82,.6);font-weight:bold;}
+  .big{font-size:30px;line-height:1;}
+
+  /* ===== sanity meters ===== */
+  .meter{margin:6px 0;}
+  .meter .lbl{display:flex;justify-content:space-between;font-size:11px;}
+
+  /* ===== clue board ===== */
+  .board{position:relative;height:100%;min-height:150px;}
+  .pin{position:absolute;border:1px solid var(--amber);background:rgba(20,14,0,.85);
+       padding:3px 6px;font-size:10px;color:var(--amber);max-width:130px;line-height:1.25;
+       box-shadow:0 0 8px rgba(0,0,0,.6), inset 0 0 8px rgba(255,181,61,.07);}
+  .pin b{color:#ffd98a;}
+  .pin .tack{position:absolute;top:-4px;left:50%;transform:translateX(-50%);color:var(--red);font-size:9px;}
+
+  /* command palette */
+  #cmd{
+    flex:0 0 auto;
+    border:1px solid var(--mag-dim);
+    background:linear-gradient(180deg,#0d0710,#080409);
+    margin-top:10px;
+    padding:6px 12px;
+    display:flex;align-items:center;gap:10px;
+    font-size:13px;
+    color:var(--mag);
+    text-shadow:var(--glow-m);
+    z-index:10;
+  }
+  #cmd .prompt{color:var(--cyan);text-shadow:var(--glow-c);}
+  #cmd .typed{color:var(--txt);text-shadow:none;}
+  #cmd .cur{display:inline-block;width:9px;height:15px;background:var(--cyan);box-shadow:var(--glow-c);vertical-align:-2px;}
+  #cmd .hint{margin-left:auto;color:var(--txt-dim);font-size:11px;text-shadow:none;}
+
+  /* soundboard buttons */
+  .sb{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+  .sb .btn{border:1px solid var(--line);padding:4px 6px;font-size:10px;color:var(--cyan);
+           text-align:center;background:rgba(10,30,34,.5);text-shadow:var(--glow-c);}
+  .sb .btn.on{border-color:var(--mag);color:var(--mag);text-shadow:var(--glow-m);background:rgba(40,0,22,.4);}
+
+  /* music eq */
+  .eq{display:flex;align-items:flex-end;gap:2px;height:22px;}
+  .eq i{width:4px;background:var(--cyan);box-shadow:var(--glow-c);animation:eq 1.1s ease-in-out infinite;}
+  @keyframes eq{0%,100%{height:20%}50%{height:100%}}
+
+  .tag{border:1px solid var(--line);padding:0 4px;font-size:10px;color:var(--txt-dim);}
+  .tag.on{color:var(--green);border-color:var(--green);text-shadow:0 0 5px rgba(61,255,138,.5);}
+  hr.ascii{border:none;color:var(--line);}
+  .kbd{border:1px solid var(--txt-dim);padding:0 4px;font-size:10px;color:var(--txt-dim);border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="crt">
+
+  <!-- ======= TOP STATUS BAR ======= -->
+  <div id="topbar">
+    <span class="logo">▓ GM//OS</span>
+    <span class="dim">v3.7.1</span>
+    <span class="seg">│</span>
+    <span class="k">CAMPAIGN:</span><span class="v">THE_DROWNED_VEIN</span>
+    <span class="seg">│</span>
+    <span class="k">SYS:</span><span class="v">CoC_7e</span>
+    <span class="k">+</span><span class="v">5E_SRD</span>
+    <span class="seg">│</span>
+    <span class="k">SESSION:</span><span class="v">#0017</span>
+    <span class="spacer"></span>
+    <span class="rec">● REC 01:47:22</span>
+    <span class="seg">│</span>
+    <span class="k">BROADCAST:</span><span class="g">▶ LIVE</span>
+    <span class="seg">│</span>
+    <span class="k">UPLINK:</span><span class="c">▰▰▰▰▱</span>
+    <span class="seg">│</span>
+    <span class="v">23:14:07</span><span class="blink c">_</span>
+  </div>
+
+  <!-- ======= DESKTOP ======= -->
+  <div id="desk">
+
+    <!-- ===== LEFT COLUMN ===== -->
+
+    <!-- INITIATIVE (left, row1) -->
+    <div class="pane mag">
+      <div class="titlebar">
+        <span class="dots">┌─</span><span class="t">[ INITIATIVE_TRACKER ]</span>
+        <span class="id">PROC.01</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body">
+        <div class="dim" style="font-size:11px;margin-bottom:4px;">ROUND <span class="a">04</span> · TURN <span class="m">06/09</span> · ELAPSED 22m</div>
+        <table>
+          <thead><tr><th>#</th><th>NAME</th><th>HP</th><th>AC</th><th>STATUS</th></tr></thead>
+          <tbody>
+            <tr><td class="dim">19</td><td>Vale Crowmoor</td><td class="hp-ok">31/31</td><td>16</td><td class="g">▰ ready</td></tr>
+            <tr><td class="dim">17</td><td>Sgt. Honce</td><td class="hp-mid">22/40</td><td>18</td><td class="cond">prone</td></tr>
+            <tr><td class="dim">15</td><td>Br. Aldric</td><td class="hp-ok">27/29</td><td>14</td><td class="g">▰</td></tr>
+            <tr class="active"><td><span class="turnmark">►14</span></td><td><b>Deep One Hybrid</b></td><td class="hp-low">9/19 ⚠</td><td>13</td><td class="cond">poisoned (2r)</td></tr>
+            <tr><td class="dim">12</td><td>Deep One Hybrid</td><td class="hp-mid">14/19</td><td>13</td><td class="r">bloodied</td></tr>
+            <tr><td class="dim">11</td><td>Mira Tann</td><td class="hp-ok">24/24</td><td>15</td><td class="cond">hidden</td></tr>
+            <tr><td class="dim">08</td><td>★ Y'ha Spawn</td><td class="dim">██/██ ?</td><td>17</td><td class="cond">frightful</td></tr>
+            <tr><td class="dim">05</td><td>Cultist Acolyte</td><td class="hp-low">3/11</td><td>12</td><td class="cond">grappled</td></tr>
+            <tr><td class="dim">03</td><td>Cultist Acolyte</td><td class="hp-ok">11/11</td><td>12</td><td class="g">▰</td></tr>
+          </tbody>
+        </table>
+        <hr class="ascii"><pre class="box">├──────────────────────────────┤</pre>
+        <div style="font-size:11px;"><span class="a">⚑ LAIR</span> <span class="dim">ACTION fires on init</span> <span class="m">20</span> <span class="dim">— tide surge, DEX save DC14</span></div>
+      </div>
+    </div>
+
+    <!-- DICE ROLLER (left, row2) -->
+    <div class="pane">
+      <div class="titlebar">
+        <span class="dots">├─</span><span class="t">[ DICE_ROLLER // hidden GM ]</span>
+        <span class="id">PROC.07</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px;">
+          <div>
+            <div class="dim" style="font-size:10px;">LAST&nbsp;ROLL&nbsp;//&nbsp;1d20+7&nbsp;[ADV]</div>
+            <span class="big crit">27</span>
+            <span class="crit">✦ CRIT</span>
+          </div>
+          <pre class="box" style="font-size:10px;line-height:1.1;">  ___
+ /20 \  rolled
+ \_19_/  (19,11)
+   +7</pre>
+        </div>
+        <div class="rolllog" style="font-size:11px;">
+          <div><span class="dim">23:11</span> <span class="c">attack</span> 1d20+7[adv] → (19,11)+7 = <b class="crit">27 HIT</b></div>
+          <div><span class="dim">23:11</span> <span class="c">tentacle</span> 2d6+4 → (5,3)+4 = <b class="a">12 dmg</b></div>
+          <div><span class="dim">23:09</span> <span class="m">🔒hidden</span> sanity 1d10 → <b>6 lost</b> <span class="dim">(player unseen)</span></div>
+          <div><span class="dim">23:07</span> <span class="c">save</span> 1d20+2[dis] → (2,18)+2 = <b class="fumble">4 FAIL</b></div>
+          <div><span class="dim">23:05</span> <span class="c">macro:</span><span class="a">»fireball«</span> 8d6 → 29 fire</div>
+          <div><span class="dim">23:02</span> <span class="c">perception</span> 1d100 → <b>07</b> vs Spot(45) <span class="g">SUCCESS</span></div>
+        </div>
+        <hr class="ascii"><pre class="box">├────────── MACROS ────────────┤</pre>
+        <div style="font-size:10px;line-height:1.7;">
+          <span class="tag on">»sneak-atk 1d20+9 / +3d6</span>
+          <span class="tag">»death-save</span>
+          <span class="tag">»SAN 1/1d6</span>
+          <span class="tag on">»🔒hidden</span>
+          <span class="tag">»adv</span>
+          <span class="tag">»dis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MIDDLE COLUMN ===== -->
+
+    <!-- BATTLE MAP (mid, row1) -->
+    <div class="pane col-mid">
+      <div class="titlebar">
+        <span class="dots">┌─</span><span class="t">[ BATTLE_MAP // FOG_OF_WAR ]</span>
+        <span class="dim">grid 30ft·sq=5ft</span>
+        <span class="id">BROADCAST◆</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body" style="padding:6px 8px;">
+        <pre style="font-size:12px;line-height:1.12;color:var(--cyan-dim);">
+<span class="dim">    A   B   C   D   E   F   G   H   I   J</span>
+<span class="dim">  ╔═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╗</span>
+<span class="dim">1 ║</span><span class="r"> ▓▓</span><span class="dim">╎</span>~~~╎<span class="c"> ⛬ </span>╎ . ╎ . ╎<span class="dim">▒▒▒╎▒▒▒╎▒▒▒╎▒▒▒║</span>
+<span class="dim">  ╟───┼───┼───┼───┼───┼───┼───┼───┼───┼───╢</span>
+<span class="dim">2 ║</span>~~~╎~~~╎ . ╎<span class="m"> ① </span>╎ . ╎ # ╎<span class="dim">▒▒▒╎▒▒▒╎▒▒▒╎▒▒▒║</span>
+<span class="dim">  ╟───┼───┼───┼───┼───┼───┼───┼───┼───┼───╢</span>
+<span class="dim">3 ║</span> . ╎ . ╎<span class="m"> ② </span>╎ . ╎<span class="r"> D </span>╎ . ╎ . ╎<span class="dim">▒▒▒╎▒▒▒╎▒▒▒║</span>
+<span class="dim">  ╟───┼───┼───┼───┼───┼───┼───┼───┼───┼───╢</span>
+<span class="dim">4 ║</span> . ╎ ╬ ╎ . ╎ . ╎<span class="r"> D </span>╎ . ╎<span class="a">[!]</span>╎ . ╎<span class="dim">▒▒▒╎▒▒▒║</span>
+<span class="dim">  ╟───┼───┼───┼───┼───┼───┼───┼───┼───┼───╢</span>
+<span class="dim">5 ║</span> . ╎ . ╎<span class="m"> ③ </span>╎ . ╎ . ╎<span class="g"> ☣ </span>╎ . ╎ . ╎<span class="dim">▒▒▒╎▒▒▒║</span>
+<span class="dim">  ╟───┼───┼───┼───┼───┼───┼───┼───┼───┼───╢</span>
+<span class="dim">6 ║</span> ⛰ ╎ . ╎ . ╎<span class="r"> ★ </span>╎ . ╎ . ╎ . ╎ ⛬ ╎<span class="dim">▒▒▒╎▒▒▒║</span>
+<span class="dim">  ╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝</span>
+        </pre>
+        <div style="display:flex;gap:14px;font-size:10px;margin-top:2px;flex-wrap:wrap;">
+          <span class="m">① ② ③ party</span>
+          <span class="r">D deep one</span>
+          <span class="r">★ y'ha-spawn</span>
+          <span class="dim">▒ fog (unrevealed)</span>
+          <span class="a">[!] trap</span>
+          <span class="g">☣ corruption</span>
+          <span class="c">⛬ light</span>
+          <span class="r">⊙ ping → D4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENCOUNTER + STATBLOCK (mid, row2) -->
+    <div class="pane col-mid">
+      <div class="titlebar">
+        <span class="dots">├─</span><span class="t">[ ENCOUNTER_BUILDER ]</span>
+        <span class="dim">≫ stat_block</span>
+        <span class="id">PROC.04</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body" style="display:flex;gap:14px;">
+        <div style="flex:1;min-width:0;">
+          <div class="dim" style="font-size:10px;">PARTY: 4 PCs · AVG LVL 5 · THRESHOLDS [DEADLY 2200]</div>
+          <table style="margin-top:3px;">
+            <thead><tr><th>×</th><th>CREATURE</th><th>CR</th><th>XP</th></tr></thead>
+            <tbody>
+              <tr><td class="c">3</td><td>Deep One Hybrid</td><td>1</td><td class="dim">200</td></tr>
+              <tr><td class="c">2</td><td>Cultist Acolyte</td><td>1/4</td><td class="dim">50</td></tr>
+              <tr><td class="c">1</td><td>★ Y'ha Spawn</td><td>6</td><td class="dim">2300</td></tr>
+            </tbody>
+          </table>
+          <hr class="ascii"><pre class="box">├──────────────────────────┤</pre>
+          <div style="font-size:11px;">
+            ADJ XP <span class="a">5,400</span> ·
+            <b class="r">▰▰▰▰▰▰▰▰▱ DEADLY+</b><br>
+            <span class="dim">multiplier ×2.0 (6 enemies)</span>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0;border-left:1px solid var(--line);padding-left:12px;">
+          <div class="m" style="font-size:11px;">▍Y'HA-NTHLEI SPAWN</div>
+          <pre style="font-size:10px;line-height:1.3;color:var(--txt);">
+<span class="dim">Large aberration, CE</span>
+AC 17  HP 76(9d10+27)
+SPD 20 swim 50
+STR18 DEX12 CON17
+INT9 WIS13 CHA15
+<span class="dim">───────────────</span>
+<span class="a">Amphibious · Limited Telepathy</span>
+<span class="c">Multiattack</span> 2 claw +6 (1d8+4)
+<span class="c">Maddening Gaze</span> WIS DC13
+  → SAN 1/1d6
+<span class="r">Legendary (2/rnd)</span> tide grasp</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RIGHT COLUMN ===== -->
+
+    <!-- SANITY TRACKER (right, row1) -->
+    <div class="pane amber">
+      <div class="titlebar">
+        <span class="dots">┌─</span><span class="t">[ SANITY_TRACKER // CoC ]</span>
+        <span class="id">PROC.09</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body" style="font-size:11px;">
+        <div class="meter">
+          <div class="lbl"><span><b>Vale Crowmoor</b></span><span class="a">SAN 41/65</span></div>
+          <pre class="bar"><span class="g">████████████</span><span class="dim">██████</span> <span class="dim">temp.insane: no</span></pre>
+        </div>
+        <div class="meter">
+          <div class="lbl"><span><b>Mira Tann</b></span><span class="r">SAN 12/70 ⚠</span></div>
+          <pre class="bar"><span class="r">███</span><span class="dim">███████████████</span> <span class="r">INDEFINITE INSANITY</span></pre>
+        </div>
+        <div class="meter">
+          <div class="lbl"><span><b>Sgt. Honce</b></span><span class="a">SAN 33/55</span></div>
+          <pre class="bar"><span class="g">█████████</span><span class="dim">██████</span> <span class="a">phobia: deep water</span></pre>
+        </div>
+        <div class="meter">
+          <div class="lbl"><span><b>Br. Aldric</b></span><span class="g">SAN 58/60</span></div>
+          <pre class="bar"><span class="g">███████████████</span><span class="dim">█</span> <span class="g">stable</span></pre>
+        </div>
+        <hr class="ascii"><pre class="box">├── LAST SAN CHECK ────────────┤</pre>
+        <div class="dim">Mira → saw the Spawn surface · 1/1d6 → rolled <b class="r">5</b> · <span class="r">bout of madness (1d10 rnds)</span></div>
+      </div>
+    </div>
+
+    <!-- NPC ROSTER + LORE (right, row2 top half via stacking) -->
+    <div class="pane">
+      <div class="titlebar">
+        <span class="dots">├─</span><span class="t">[ NPC_ROSTER ]</span>
+        <span class="dim">≫ lore_wiki</span>
+        <span class="id">DB.02</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body" style="font-size:11px;">
+        <table>
+          <thead><tr><th>NPC</th><th>LOC</th><th>DISPOSITION</th></tr></thead>
+          <tbody>
+            <tr><td><span class="c">◈</span> Father Ezekiel</td><td class="dim">Innsbluff Chapel</td><td class="r">hostile (cult)</td></tr>
+            <tr><td><span class="c">◈</span> Marsh "Salt" Doyle</td><td class="dim">The Wet Lantern</td><td class="a">wary / bribable</td></tr>
+            <tr><td><span class="c">◈</span> Dr. Helena Voss</td><td class="dim">Asylum, Ward C</td><td class="g">ally — knows ritual</td></tr>
+            <tr><td><span class="c">◈</span> The Tidewarden</td><td class="dim">Sea-cave (rumored)</td><td class="dim">unknown</td></tr>
+          </tbody>
+        </table>
+        <hr class="ascii"><pre class="box">├── LORE_WIKI: backlinks ──────┤</pre>
+        <div style="line-height:1.6;">
+          <span class="c">▸ [[Innsbluff]]</span> <span class="dim">→ links 7 · last edit S16</span><br>
+          <span class="c">▸ [[Y'ha-nthlei]]</span> <span class="dim">→ links 4 · drowned city</span><br>
+          <span class="c">▸ [[The Drowned Vein]]</span> <span class="dim">→ artifact, cursed</span><br>
+          <span class="c">▸ [[Esoteric Order]]</span> <span class="dim">→ faction · 12 members</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLUE BOARD (spans middle-ish, placed at right row spanning? We'll put it mid — actually use a 4th cell) -->
+
+  </div>
+
+  <!-- ======= SECONDARY ROW: clue board / soundboard / music / rulings + notes ======= -->
+  <div id="desk" style="grid-template-rows:minmax(0,1fr);padding-top:10px;flex:0 0 230px;">
+    <!-- CLUE BOARD -->
+    <div class="pane mag">
+      <div class="titlebar">
+        <span class="dots">┌─</span><span class="t">[ CLUE_BOARD ]</span>
+        <span class="dim">red_string.engine</span>
+        <span class="id">PROC.11</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body" style="padding:4px;">
+        <div class="board">
+          <svg width="100%" height="100%" viewBox="0 0 320 200" preserveAspectRatio="none" style="position:absolute;inset:0;">
+            <line x1="55" y1="40" x2="160" y2="100" stroke="#ff3da8" stroke-width="1" opacity=".8"/>
+            <line x1="160" y1="100" x2="265" y2="46" stroke="#ff3da8" stroke-width="1" opacity=".8"/>
+            <line x1="160" y1="100" x2="70" y2="160" stroke="#ff3da8" stroke-width="1" opacity=".8"/>
+            <line x1="160" y1="100" x2="260" y2="158" stroke="#ff3da8" stroke-width="1" opacity=".8"/>
+            <line x1="265" y1="46" x2="260" y2="158" stroke="#ffb53d" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>
+          </svg>
+          <div class="pin" style="left:8px;top:14px;"><span class="tack">▼</span><b>WET LEDGER</b><br>shipments → Innsbluff, signed "E.O."</div>
+          <div class="pin" style="left:120px;top:76px;border-color:var(--mag);color:var(--mag);"><span class="tack">▼</span><b>THE RITUAL</b><br>full moon · 3 nights left</div>
+          <div class="pin" style="left:228px;top:18px;"><span class="tack">▼</span><b>F. EZEKIEL</b><br>missing since S14</div>
+          <div class="pin" style="left:8px;top:140px;"><span class="tack">▼</span><b>GILL MARKS</b><br>on 4 villagers</div>
+          <div class="pin" style="left:206px;top:140px;"><span class="tack">▼</span><b>SEA-CAVE MAP</b><br>torn — half found</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIO STACK: soundboard + music -->
+    <div class="pane col-mid">
+      <div class="titlebar">
+        <span class="dots">┌─</span><span class="t">[ AUDIO_DECK ]</span>
+        <span class="dim">soundboard + ambient · routed→BROADCAST</span>
+        <span class="id">SND.05</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body" style="display:flex;gap:14px;">
+        <div style="flex:1;">
+          <div class="dim" style="font-size:10px;margin-bottom:4px;">▍SOUNDBOARD</div>
+          <div class="sb">
+            <div class="btn">⛆ rain</div>
+            <div class="btn on">▶ waves</div>
+            <div class="btn">⚡ thunder</div>
+            <div class="btn">🚪 door creak</div>
+            <div class="btn">⚔ steel clang</div>
+            <div class="btn">😱 scream</div>
+            <div class="btn">🔔 chapel bell</div>
+            <div class="btn">🐙 deep call</div>
+          </div>
+        </div>
+        <div style="flex:1;border-left:1px solid var(--line);padding-left:12px;">
+          <div class="dim" style="font-size:10px;margin-bottom:4px;">▍AMBIENT // crossfade</div>
+          <div style="font-size:11px;">NOW: <span class="m">"Tide of Whispers"</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin:5px 0;">
+            <div class="eq"><i style="animation-delay:0s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.15s"></i><i style="animation-delay:.45s"></i></div>
+            <span class="c">▶</span> <span class="dim">02:14 / 06:40</span> <span class="dim">vol</span><span class="c">▰▰▰▰▰▱▱</span>
+          </div>
+          <pre class="box" style="font-size:10px;">├──── playlist: DUNGEON ────┤</pre>
+          <div style="font-size:10px;line-height:1.6;">
+            <span class="tag on">⌖ tavern</span> <span class="tag on">⌖ dungeon</span> <span class="tag">⌖ boss</span> <span class="tag">⌖ ritual</span> <span class="tag">⌖ open-sea</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULINGS + SESSION NOTES -->
+    <div class="pane amber">
+      <div class="titlebar">
+        <span class="dots">┌─</span><span class="t">[ RULINGS_LOG ]</span>
+        <span class="dim">≫ session_notes</span>
+        <span class="id">LOG.06</span><span class="ctl">─[_][□][x]</span>
+      </div>
+      <div class="body" style="font-size:10px;line-height:1.45;">
+        <div class="a">▍HOUSE RULINGS</div>
+        <div><span class="dim">S12·</span> Flanking grants <b>+2</b>, not adv.</div>
+        <div><span class="dim">S15·</span> Crit = max dice + roll.</div>
+        <div><span class="dim">S17·</span> SAN loss from same source once/scene.</div>
+        <hr class="ascii"><pre class="box">├── SESSION_NOTES #17 ─────┤</pre>
+        <div class="g">▍tagged · searchable</div>
+        <div><span class="dim">23:01</span> Mira broke into the chapel cellar. <span class="tag on">#clue</span></div>
+        <div><span class="dim">23:08</span> Salt Doyle sold them the cave map for 50gp. <span class="tag on">#npc</span></div>
+        <div><span class="dim">23:14</span> Y'ha-Spawn surfaced — combat begun. <span class="tag on">#combat</span></div>
+        <div class="dim blink" style="margin-top:3px;">▌_ logging…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= COMMAND PALETTE ======= -->
+  <div id="cmd">
+    <span class="prompt">gm@os:~/drowned_vein$</span>
+    <span class="typed">find npc "doyle" --reveal&nbsp;</span><span class="cur blink"></span>
+    <span class="hint"><span class="kbd">⌘K</span> palette · <span class="kbd">/roll</span> · <span class="kbd">/reveal</span> · <span class="kbd">/san</span> · <span class="kbd">/whisper</span> · <span class="kbd">esc</span> hide</span>
+  </div>
+
+</div>
+
+<div id="scan"></div>
+<div id="grain"></div>
+<div id="flicker"></div>
+
+<script>
+/* purely cosmetic — page renders fully without it */
+(function(){
+  // tick the clock
+  var clk = document.querySelector('#topbar .v:last-of-type');
+  // randomize eq bar heights a touch for life
+  document.querySelectorAll('.eq i').forEach(function(b){
+    b.style.height = (20 + Math.random()*70) + '%';
+  });
+})();
+</script>
+</body>
+</html>

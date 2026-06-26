@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM ASSISTANT — Game Master Workspace</title>
+<style>
+  :root{
+    --ink:#0a0a0a;
+    --paper:#fbfbf8;
+    --paper-2:#f2f1ec;
+    --red:#d4231e;
+    --rule:#0a0a0a;
+    --muted:#6b6b66;
+    --hair:1px solid var(--ink);
+    --sans:"Helvetica Neue",Helvetica,Arial,"Segoe UI",system-ui,sans-serif;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans);
+    background:var(--paper);
+    color:var(--ink);
+    font-size:13px;
+    line-height:1.35;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  /* APP SHELL ---------------------------------------------------- */
+  .app{
+    height:100vh;
+    min-height:100vh;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+  }
+  /* MASTHEAD ----------------------------------------------------- */
+  header.masthead{
+    border-bottom:2px solid var(--ink);
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:stretch;
+  }
+  .brand{
+    padding:10px 18px;
+    border-right:var(--hair);
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand .mark{
+    width:30px;height:30px;
+    background:var(--ink);
+    color:var(--paper);
+    display:grid;place-items:center;
+    font-weight:800;font-size:17px;
+    font-family:var(--mono);
+  }
+  .brand h1{
+    font-size:18px;
+    letter-spacing:.16em;
+    font-weight:800;
+    text-transform:uppercase;
+  }
+  .brand .sub{
+    font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
+    font-family:var(--mono);
+  }
+  .mast-mid{
+    display:flex;align-items:center;gap:0;
+    overflow:hidden;
+  }
+  .mast-mid .ticker{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.05em;
+    color:var(--muted);
+    white-space:nowrap;
+    padding-left:18px;
+    text-transform:uppercase;
+  }
+  .mast-mid .ticker b{color:var(--ink)}
+  .mast-mid .ticker .rd{color:var(--red)}
+  /* system switcher */
+  .switcher{
+    display:flex;align-items:stretch;border-left:var(--hair);
+  }
+  .switcher .sw-label{
+    display:flex;flex-direction:column;justify-content:center;
+    padding:0 14px;border-right:var(--hair);
+  }
+  .switcher .sw-label .k{font-size:8px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;font-family:var(--mono)}
+  .switcher .sw-label .v{font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+  .seg{display:flex}
+  .seg button{
+    font-family:var(--sans);
+    border:none;background:var(--paper);color:var(--ink);
+    padding:0 16px;cursor:pointer;
+    font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    border-left:var(--hair);
+    transition:none;
+  }
+  .seg button.on{background:var(--ink);color:var(--paper)}
+  .seg button.on.coc{background:var(--red)}
+  .seg button:hover:not(.on){background:var(--paper-2)}
+  .clock{
+    border-left:var(--hair);padding:0 16px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;min-width:96px;
+  }
+  .clock .t{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:.04em}
+  .clock .l{font-size:8px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;font-family:var(--mono)}
+
+  /* GRID --------------------------------------------------------- */
+  main.grid{
+    display:grid;
+    grid-template-columns:1.15fr 1.5fr 1.15fr;
+    grid-template-rows:1fr 1fr;
+    min-height:0;
+    overflow:hidden;
+  }
+  .cell{
+    border-right:var(--hair);
+    border-bottom:var(--hair);
+    display:flex;flex-direction:column;
+    min-height:0;min-width:0;
+    overflow:hidden;
+    background:var(--paper);
+  }
+  .col-r .cell{border-right:none}
+  /* span helpers */
+  #m-init{grid-row:1 / span 2;}      /* tall left: initiative */
+  #m-reveal{grid-column:2; grid-row:1;}
+  #m-dice{grid-column:2; grid-row:2;}
+  #m-system{grid-column:3; grid-row:1;}
+  #m-npc{grid-column:3; grid-row:2;}
+  /* second row left handled by tall init; we need npc + audio... rework below */
+
+  /* MODULE HEAD -------------------------------------------------- */
+  .mhead{
+    display:flex;align-items:baseline;gap:10px;
+    padding:7px 12px 6px;
+    border-bottom:var(--hair);
+    flex:0 0 auto;
+  }
+  .mhead .num{
+    font-family:var(--mono);font-size:10px;font-weight:700;
+    background:var(--ink);color:var(--paper);
+    padding:1px 5px;letter-spacing:.05em;
+  }
+  .mhead h2{
+    font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  }
+  .mhead .tag{
+    margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .mhead .tag.rd{color:var(--red);font-weight:700}
+  .mbody{padding:9px 12px;overflow:auto;flex:1 1 auto;min-height:0}
+  .mbody::-webkit-scrollbar{width:7px;height:7px}
+  .mbody::-webkit-scrollbar-thumb{background:var(--ink)}
+  .mbody::-webkit-scrollbar-track{background:var(--paper-2)}
+
+  /* INITIATIVE --------------------------------------------------- */
+  .init-row{
+    display:grid;
+    grid-template-columns:22px 1fr auto;
+    align-items:center;
+    gap:8px;
+    padding:8px 6px;
+    border-bottom:var(--hair);
+    position:relative;
+  }
+  .init-row:first-child{border-top:none}
+  .init-row.active{background:var(--ink);color:var(--paper)}
+  .init-row.active .cond{border-color:var(--paper)}
+  .init-row.active .meta,.init-row.active .ac{color:var(--paper)}
+  .init-row.active .red-flag{color:#ff6b66}
+  .init-num{
+    font-family:var(--mono);font-weight:800;font-size:18px;text-align:center;
+  }
+  .init-row.active .init-num::after{content:"\25B6";color:var(--red);font-size:8px;position:absolute;left:4px;top:6px}
+  .ir-name{font-weight:800;font-size:13px;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
+  .ir-name .dot{width:8px;height:8px;border:1px solid currentColor;flex:0 0 auto}
+  .ir-name .dot.foe{background:var(--red);border-color:var(--red)}
+  .ir-name .dot.pc{background:currentColor}
+  .meta{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.02em;margin-top:2px}
+  .red-flag{color:var(--red);font-weight:700}
+  .ir-stats{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+  .hpbar{width:96px;height:9px;border:1px solid currentColor;display:flex;overflow:hidden}
+  .hpbar i{display:block;height:100%;background:currentColor}
+  .hpbar.hidden i{background:repeating-linear-gradient(45deg,currentColor 0 3px,transparent 3px 6px)}
+  .ir-stats .nums{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.03em}
+  .ac{display:inline-block;border:1px solid currentColor;padding:0 4px;font-family:var(--mono);font-size:10px;font-weight:700}
+  .conds{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+  .cond{font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;padding:1px 4px}
+  .cond.rd{color:var(--red);border-color:var(--red);font-weight:700}
+  .round-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    padding:6px 12px;border-bottom:var(--hair);color:var(--muted);
+  }
+  .round-bar b{color:var(--ink);font-size:13px}
+  .round-bar .ctl{display:flex;gap:6px}
+  .round-bar .ctl span{border:1px solid var(--ink);width:18px;height:18px;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+  .round-bar .ctl span:hover{background:var(--ink);color:var(--paper)}
+
+  /* REVEAL ------------------------------------------------------- */
+  #m-reveal .mhead{background:var(--ink);color:var(--paper)}
+  #m-reveal .mhead .num{background:var(--red);color:var(--paper)}
+  #m-reveal .mhead .tag{color:#ff8d88}
+  .reveal-stage{
+    flex:1 1 auto;min-height:0;
+    display:grid;grid-template-columns:1fr;
+    position:relative;
+    background:
+      linear-gradient(0deg,rgba(10,10,10,.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(10,10,10,.04) 1px,transparent 1px);
+    background-size:22px 22px;
+    overflow:hidden;
+  }
+  .reveal-live{
+    position:absolute;inset:14px;
+    border:2px solid var(--ink);
+    display:flex;flex-direction:column;
+    background:var(--paper);
+  }
+  .reveal-live .lhead{
+    border-bottom:var(--hair);padding:4px 8px;display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  }
+  .reveal-live .lhead .on-air{color:var(--red);font-weight:700;display:flex;align-items:center;gap:5px}
+  .reveal-live .lhead .on-air::before{content:"";width:7px;height:7px;background:var(--red);border-radius:50%;display:inline-block}
+  .reveal-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;gap:8px}
+  .reveal-content .doc-icon{font-size:30px;line-height:1}
+  .reveal-content .rtitle{font-size:16px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .reveal-content .rquote{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:13px;max-width:340px;line-height:1.5}
+  .reveal-content .rmeta{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;border-top:var(--hair);padding-top:6px}
+  .reveal-tray{
+    border-top:var(--hair);display:flex;flex:0 0 auto;
+  }
+  .reveal-tray button{
+    flex:1;border:none;border-right:var(--hair);background:var(--paper);
+    padding:7px 4px;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+  }
+  .reveal-tray button:last-child{border-right:none}
+  .reveal-tray button .ic{font-size:15px}
+  .reveal-tray button.on{background:var(--red);color:var(--paper)}
+  .reveal-tray button:hover:not(.on){background:var(--paper-2)}
+
+  /* DICE --------------------------------------------------------- */
+  #m-dice .mbody{display:flex;flex-direction:column;gap:0;padding:0}
+  .dice-top{display:grid;grid-template-columns:1.1fr 1fr;border-bottom:var(--hair)}
+  .dice-readout{
+    padding:12px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border-right:var(--hair);gap:4px;
+    position:relative;
+  }
+  .dice-readout .expr{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted)}
+  .dice-readout .total{font-family:var(--mono);font-weight:800;font-size:54px;line-height:.9}
+  .dice-readout .total.crit{color:var(--red)}
+  .dice-readout .brk{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.04em}
+  .dice-readout .adv-tag{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--ink);padding:1px 4px}
+  .dice-readout .hidden-tag{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;background:var(--red);color:var(--paper);padding:1px 4px;font-weight:700}
+  .dice-opts{display:flex;flex-direction:column}
+  .dice-opts .opt{flex:1;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:var(--hair);cursor:pointer}
+  .dice-opts .opt:last-child{border-bottom:none}
+  .dice-opts .opt .box{width:13px;height:13px;border:1.5px solid var(--ink);flex:0 0 auto;display:grid;place-items:center}
+  .dice-opts .opt.on .box{background:var(--ink)}
+  .dice-opts .opt.on .box::after{content:"\2713";color:var(--paper);font-size:10px;font-weight:800}
+  .dice-opts .opt.rd.on .box{background:var(--red);border-color:var(--red)}
+  .dice-opts .opt .lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .dice-opts .opt .lbl small{display:block;font-weight:400;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0;text-transform:none}
+  .macros{padding:10px 12px}
+  .macros .mlabel{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .macro-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:var(--hair)}
+  .macro-grid button{
+    border:none;border-right:var(--hair);border-bottom:var(--hair);background:var(--paper);
+    padding:7px 6px;cursor:pointer;text-align:left;color:var(--ink);
+  }
+  .macro-grid button:nth-child(3n){border-right:none}
+  .macro-grid button:nth-last-child(-n+3){border-bottom:none}
+  .macro-grid button .mn{font-weight:800;font-size:11px;letter-spacing:.03em;display:block}
+  .macro-grid button .me{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.02em}
+  .macro-grid button:hover{background:var(--ink);color:var(--paper)}
+  .macro-grid button:hover .me{color:#ccc}
+
+  /* SYSTEM WIDGET (SANITY / CR) ---------------------------------- */
+  #m-system .mhead .num{background:var(--red)}
+  .san-investigator{
+    display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+    padding:8px 0;border-bottom:var(--hair);
+  }
+  .san-investigator:last-child{border-bottom:none}
+  .san-name{font-weight:800;font-size:12px;letter-spacing:.02em}
+  .san-name small{display:block;font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:400;letter-spacing:.02em}
+  .san-track{display:flex;align-items:center;gap:8px}
+  .san-meter{width:80px;height:11px;border:1px solid var(--ink);display:flex;overflow:hidden}
+  .san-meter i{display:block;height:100%;background:var(--ink)}
+  .san-meter.low i{background:var(--red)}
+  .san-val{font-family:var(--mono);font-weight:800;font-size:13px;min-width:54px;text-align:right}
+  .san-val small{color:var(--muted);font-weight:400}
+  .san-note{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:.03em;margin-top:2px}
+  .san-foot{margin-top:10px;border-top:2px solid var(--ink);padding-top:8px;display:flex;justify-content:space-between;align-items:center}
+  .san-foot button{border:1px solid var(--red);background:var(--red);color:var(--paper);font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;cursor:pointer}
+  .san-foot button:hover{background:var(--ink);border-color:var(--ink)}
+  .san-foot .meta{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+
+  /* CR widget (D&D) — hidden by default */
+  .cr-wrap{display:none}
+  .cr-big{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:8px}
+  .cr-big .lab{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .cr-big .deadly{font-weight:800;font-size:26px;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+  .cr-meter{height:14px;border:1px solid var(--ink);display:flex;margin-bottom:4px;overflow:hidden}
+  .cr-meter i{height:100%;display:block}
+  .cr-meter .easy{background:var(--paper-2)}
+  .cr-meter .fill{background:var(--red)}
+  .cr-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .enc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:var(--hair);font-size:11px}
+  .enc-row:last-child{border-bottom:none}
+  .enc-row .ename{font-weight:700}
+  .enc-row .ename small{font-family:var(--mono);font-weight:400;color:var(--muted);font-size:9px}
+  .enc-row .exp{font-family:var(--mono);font-weight:700;font-size:11px}
+  .enc-foot{margin-top:8px;border-top:2px solid var(--ink);padding-top:8px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.04em}
+  .enc-foot b{font-size:13px}
+
+  /* NPC ROSTER --------------------------------------------------- */
+  .npc{display:grid;grid-template-columns:34px 1fr;gap:9px;padding:8px 0;border-bottom:var(--hair);align-items:start}
+  .npc:last-child{border-bottom:none}
+  .npc .portrait{
+    width:34px;height:34px;border:1px solid var(--ink);display:grid;place-items:center;font-size:18px;background:var(--paper-2);
+  }
+  .npc .portrait.foe{background:var(--ink);color:var(--paper)}
+  .npc-main .nh{display:flex;align-items:baseline;gap:7px}
+  .npc-main .nname{font-weight:800;font-size:12px;letter-spacing:.02em}
+  .npc-main .nrole{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:.05em;text-transform:uppercase}
+  .npc-main .nloc{margin-left:auto;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .npc-main .ndesc{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
+  .npc-main .nvoice{font-family:var(--mono);font-size:9px;margin-top:3px;letter-spacing:.02em}
+  .npc-main .nvoice b{color:var(--ink)}
+
+  /* RIGHT BOTTOM is shared by clue + audio via inner split? We use 2x2 + tall.
+     Layout: left tall=init. center top=reveal, center bottom=dice.
+     right top=system widget, right bottom=npc.
+     We still need notes, clue/quest, audio. Put them in a bottom strip + footer?
+     Better: make 3-col but center column splits, and add a 4th region.
+     Implement: bottom utility bar holds audio/soundboard. Notes & clue in left-lower?
+     We'll restructure: see footer. */
+
+  /* FOOTER UTILITY (AUDIO + NOTES + CLUE strip) ------------------ */
+  footer.util{
+    border-top:2px solid var(--ink);
+    display:grid;
+    grid-template-columns:1.3fr 1.4fr 1.3fr;
+    height:182px;
+  }
+  .ucell{border-right:var(--hair);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .ucell:last-child{border-right:none}
+
+  /* AUDIO */
+  .audio-now{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:var(--hair)}
+  .audio-now .eq{display:flex;align-items:flex-end;gap:2px;height:22px}
+  .audio-now .eq i{width:3px;background:var(--red);display:block;animation:eq 1s ease-in-out infinite}
+  .audio-now .eq i:nth-child(2){animation-delay:.2s}
+  .audio-now .eq i:nth-child(3){animation-delay:.4s}
+  .audio-now .eq i:nth-child(4){animation-delay:.1s}
+  .audio-now .eq i:nth-child(5){animation-delay:.3s}
+  @keyframes eq{0%,100%{height:5px}50%{height:22px}}
+  .audio-now .track{flex:1}
+  .audio-now .track .tn{font-weight:800;font-size:12px;letter-spacing:.02em}
+  .audio-now .track .ts{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+  .audio-now .vol{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:right}
+  .audio-now .vol b{display:block;color:var(--ink);font-size:11px}
+  .scene-tabs{display:flex;border-bottom:var(--hair)}
+  .scene-tabs button{flex:1;border:none;border-right:var(--hair);background:var(--paper);font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:5px 2px;cursor:pointer;color:var(--ink)}
+  .scene-tabs button:last-child{border-right:none}
+  .scene-tabs button.on{background:var(--ink);color:var(--paper)}
+  .scene-tabs button:hover:not(.on){background:var(--paper-2)}
+  .soundboard{display:grid;grid-template-columns:repeat(4,1fr);flex:1;min-height:0}
+  .soundboard button{
+    border:none;border-right:var(--hair);border-bottom:var(--hair);background:var(--paper);cursor:pointer;color:var(--ink);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;
+  }
+  .soundboard button:nth-child(4n){border-right:none}
+  .soundboard button:nth-last-child(-n+4){border-bottom:none}
+  .soundboard button .ic{font-size:16px}
+  .soundboard button .sn{font-family:var(--mono);font-size:7.5px;letter-spacing:.05em;text-transform:uppercase}
+  .soundboard button:hover{background:var(--red);color:var(--paper)}
+
+  /* NOTES */
+  .note{padding:7px 0;border-bottom:var(--hair)}
+  .note:last-child{border-bottom:none}
+  .note .nt{display:flex;align-items:baseline;gap:8px}
+  .note .time{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--red);letter-spacing:.02em;flex:0 0 auto}
+  .note .body{font-size:11px;line-height:1.4}
+  .note .tags{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;padding-left:46px}
+  .note .tags span{font-family:var(--mono);font-size:8px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--muted);color:var(--muted);padding:0 4px}
+  .note-input{display:flex;gap:0;border-top:2px solid var(--ink);flex:0 0 auto}
+  .note-input input{flex:1;border:none;background:var(--paper-2);padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--ink)}
+  .note-input input::placeholder{color:var(--muted)}
+  .note-input button{border:none;border-left:var(--hair);background:var(--ink);color:var(--paper);font-weight:800;font-size:10px;letter-spacing:.08em;padding:0 12px;cursor:pointer;text-transform:uppercase}
+
+  /* CLUE / QUEST */
+  .clue{padding:7px 0;border-bottom:var(--hair);display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}
+  .clue:last-child{border-bottom:none}
+  .clue .chk{width:14px;height:14px;border:1.5px solid var(--ink);flex:0 0 auto;display:grid;place-items:center;margin-top:1px}
+  .clue.done .chk{background:var(--ink)}
+  .clue.done .chk::after{content:"\2713";color:var(--paper);font-size:10px;font-weight:800}
+  .clue .ctitle{font-weight:700;font-size:11px;letter-spacing:.01em}
+  .clue.done .ctitle{text-decoration:line-through;color:var(--muted)}
+  .clue .cmeta{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.02em;margin-top:2px;line-height:1.4}
+  .clue .cmeta .lead{color:var(--red);font-weight:700}
+  .clue .ctitle .pri{font-family:var(--mono);font-size:8px;letter-spacing:.08em;border:1px solid var(--red);color:var(--red);padding:0 3px;margin-left:6px;text-transform:uppercase}
+
+  /* GENERIC scroll padding */
+  .pad{padding:9px 12px}
+  .pad-tight{padding:0 12px}
+
+  @media (max-width:1100px){
+    main.grid{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto}
+    #m-init{grid-row:auto;grid-column:1 / span 2}
+    #m-reveal{grid-column:1;grid-row:auto}
+    #m-dice{grid-column:2;grid-row:auto}
+    #m-system{grid-column:1;grid-row:auto}
+    #m-npc{grid-column:2;grid-row:auto}
+    body{overflow:auto}
+    .app{height:auto;min-height:100vh}
+    footer.util{height:auto;grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <div class="brand">
+      <div class="mark">G</div>
+      <div>
+        <h1>GM&nbsp;Assistant</h1>
+        <div class="sub">Game Master Workspace · No.8</div>
+      </div>
+    </div>
+    <div class="mast-mid">
+      <div class="ticker" id="ticker">
+        <b>CAMPAIGN:</b> The Whispering Vault &nbsp;·&nbsp; <b>SESSION 14</b> &nbsp;·&nbsp; <span class="rd">3 THREADS OPEN</span> &nbsp;·&nbsp; 6 NPCs ON SCENE &nbsp;·&nbsp; <b>SCENE:</b> The Drowned Library &nbsp;·&nbsp; autosaved 19:42
+      </div>
+    </div>
+    <div class="switcher">
+      <div class="sw-label">
+        <span class="k">System</span>
+        <span class="v" id="sysName">D&amp;D 5e</span>
+      </div>
+      <div class="seg" id="seg">
+        <button class="on" data-sys="dnd" onclick="setSys('dnd')">D&amp;D 5E</button>
+        <button data-sys="coc" onclick="setSys('coc')">Call of Cthulhu</button>
+      </div>
+      <div class="clock">
+        <span class="t" id="clock">19:42</span>
+        <span class="l">Session · 2h 11m</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN GRID ============ -->
+  <main class="grid">
+
+    <!-- INITIATIVE (tall left) -->
+    <section class="cell" id="m-init">
+      <div class="mhead">
+        <span class="num">01</span><h2>Turn Order</h2>
+        <span class="tag" id="initTag">Initiative · Round 3</span>
+      </div>
+      <div class="round-bar">
+        <span>ROUND <b id="roundNo">3</b> · TURN <b>4/8</b></span>
+        <span class="ctl"><span title="prev">&#8249;</span><span title="next">&#8250;</span></span>
+      </div>
+      <div class="mbody" style="padding:0">
+        <!-- combatant rows -->
+        <div class="init-row active">
+          <div class="init-num">21</div>
+          <div>
+            <div class="ir-name"><span class="dot pc"></span>Brother Aldric</div>
+            <div class="meta">PC · Cleric / Antiquarian · spd 30</div>
+            <div class="conds"><span class="cond">Blessed</span><span class="cond rd">Concentrating</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 18</span>
+            <div class="hpbar"><i style="width:74%"></i></div>
+            <span class="nums">31 / 42 HP</span>
+          </div>
+        </div>
+
+        <div class="init-row">
+          <div class="init-num">18</div>
+          <div>
+            <div class="ir-name"><span class="dot foe"></span>Drowned Acolyte <span class="red-flag">×3</span></div>
+            <div class="meta red-flag">HP HIDDEN — showing "Bloodied"</div>
+            <div class="conds"><span class="cond rd">Bloodied</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 13</span>
+            <div class="hpbar hidden"><i style="width:40%"></i></div>
+            <span class="nums">?? / ?? HP</span>
+          </div>
+        </div>
+
+        <div class="init-row">
+          <div class="init-num">16</div>
+          <div>
+            <div class="ir-name"><span class="dot pc"></span>Vesna Halloway</div>
+            <div class="meta">PC · Rogue / Reporter · spd 30</div>
+            <div class="conds"><span class="cond">Hidden</span><span class="cond">Advantage</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 15</span>
+            <div class="hpbar"><i style="width:100%"></i></div>
+            <span class="nums">29 / 29 HP</span>
+          </div>
+        </div>
+
+        <div class="init-row">
+          <div class="init-num">14</div>
+          <div>
+            <div class="ir-name"><span class="dot"></span>Inspector Cole</div>
+            <div class="meta">Ally NPC · Investigator · spd 30</div>
+            <div class="conds"><span class="cond rd">Frightened</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 12</span>
+            <div class="hpbar"><i style="width:55%"></i></div>
+            <span class="nums">12 / 22 HP</span>
+          </div>
+        </div>
+
+        <div class="init-row">
+          <div class="init-num">11</div>
+          <div>
+            <div class="ir-name"><span class="dot foe"></span>The Tide-Caller</div>
+            <div class="meta red-flag">BOSS · Legendary · lair act @ 20</div>
+            <div class="conds"><span class="cond rd">Legendary ×3</span><span class="cond">Submerged</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 17</span>
+            <div class="hpbar hidden"><i style="width:88%"></i></div>
+            <span class="nums">?? / ?? HP</span>
+          </div>
+        </div>
+
+        <div class="init-row">
+          <div class="init-num">09</div>
+          <div>
+            <div class="ir-name"><span class="dot pc"></span>Marisol Vance</div>
+            <div class="meta">PC · Wizard / Occult Scholar · spd 30</div>
+            <div class="conds"><span class="cond">Mage Armor</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 15</span>
+            <div class="hpbar"><i style="width:90%"></i></div>
+            <span class="nums">27 / 30 HP</span>
+          </div>
+        </div>
+
+        <div class="init-row">
+          <div class="init-num">07</div>
+          <div>
+            <div class="ir-name"><span class="dot foe"></span>Lurker in the Stacks</div>
+            <div class="meta">Ambusher · prone in fog · spd 40</div>
+            <div class="conds"><span class="cond">Unseen</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 14</span>
+            <div class="hpbar hidden"><i style="width:100%"></i></div>
+            <span class="nums">?? / ?? HP</span>
+          </div>
+        </div>
+
+        <div class="init-row">
+          <div class="init-num">04</div>
+          <div>
+            <div class="ir-name"><span class="dot pc"></span>"Tank" Mahoney</div>
+            <div class="meta">PC · Fighter / Dockworker · spd 30</div>
+            <div class="conds"><span class="cond rd">Poisoned · 2rd</span><span class="cond">Reckless</span></div>
+          </div>
+          <div class="ir-stats">
+            <span class="ac">AC 18</span>
+            <div class="hpbar"><i style="width:35%"></i></div>
+            <span class="nums">17 / 48 HP</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVEAL / BROADCAST -->
+    <section class="cell" id="m-reveal">
+      <div class="mhead">
+        <span class="num">02</span><h2>Reveal Window</h2>
+        <span class="tag">Broadcast · Shared</span>
+      </div>
+      <div class="reveal-stage">
+        <div class="reveal-live">
+          <div class="lhead">
+            <span>BROADCAST · 1 of 1 shared window</span>
+            <span class="on-air">ON AIR</span>
+          </div>
+          <div class="reveal-content">
+            <div class="doc-icon">&#9991;</div>
+            <div class="rtitle">A Letter, Water-Stained</div>
+            <div class="rquote">"...the thing in the lower stacks is not drowned, it is <em>waiting</em>. Do not read the eleventh shelf aloud. We did. Margaret no longer sleeps."</div>
+            <div class="rmeta">Handout #07 · found on the librarian's corpse</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal-tray">
+        <button onclick="pickReveal(this)"><span class="ic">&#9993;</span>Letter</button>
+        <button class="on" onclick="pickReveal(this)"><span class="ic">&#128506;</span>Map Crop</button>
+        <button onclick="pickReveal(this)"><span class="ic">&#127750;</span>Image</button>
+        <button onclick="pickReveal(this)"><span class="ic">&#128196;</span>Text</button>
+        <button onclick="pickReveal(this)"><span class="ic">&#9899;</span>Black Out</button>
+      </div>
+    </section>
+
+    <!-- DICE -->
+    <section class="cell" id="m-dice">
+      <div class="mhead">
+        <span class="num">03</span><h2>Dice / Macros</h2>
+        <span class="tag rd" id="diceTag">Hidden GM Roll</span>
+      </div>
+      <div class="mbody">
+        <div class="dice-top">
+          <div class="dice-readout">
+            <span class="adv-tag" id="advTag">ADVANTAGE</span>
+            <span class="hidden-tag" id="hidTag">GM HIDDEN</span>
+            <span class="expr" id="diceExpr">2d20kh1 + 7</span>
+            <span class="total" id="diceTotal">24</span>
+            <span class="brk" id="diceBrk">rolls [17, 9] keep 17 · +7</span>
+          </div>
+          <div class="dice-opts">
+            <div class="opt on rd" id="optHidden" onclick="toggleOpt(this)"><div class="box"></div><div class="lbl">Hidden<small>GM-only result</small></div></div>
+            <div class="opt on" id="optAdv" onclick="toggleAdv('adv')"><div class="box"></div><div class="lbl">Advantage<small>roll 2, keep high</small></div></div>
+            <div class="opt" id="optDis" onclick="toggleAdv('dis')"><div class="box"></div><div class="lbl">Disadvantage<small>roll 2, keep low</small></div></div>
+          </div>
+        </div>
+        <div class="macros">
+          <div class="mlabel">Saved Macros — tap to roll</div>
+          <div class="macro-grid">
+            <button onclick="rollMacro('Attack','1d20+7',24)"><span class="mn">Attack</span><span class="me">1d20+7</span></button>
+            <button onclick="rollMacro('Sneak Atk','1d20+9',31)"><span class="mn">Sneak Atk</span><span class="me">1d20+9</span></button>
+            <button onclick="rollMacro('Fireball','8d6',28)"><span class="mn">Fireball</span><span class="me">8d6</span></button>
+            <button onclick="rollMacro('Wisdom Sv','1d20+5',18)"><span class="mn">Wis Save</span><span class="me">1d20+5</span></button>
+            <button onclick="rollMacro('SAN Check','1d100',43)"><span class="mn">SAN d100</span><span class="me">1d100</span></button>
+            <button onclick="rollMacro('Perception','1d20+6',11)"><span class="mn">Perception</span><span class="me">1d20+6</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SYSTEM WIDGET -->
+    <section class="cell" id="m-system">
+      <div class="mhead">
+        <span class="num">04</span><h2 id="sysWidgetTitle">Encounter / CR</h2>
+        <span class="tag rd" id="sysWidgetTag">D&amp;D · swappable</span>
+      </div>
+      <div class="mbody">
+        <!-- D&D: CR / Encounter -->
+        <div class="cr-wrap" id="crWrap">
+          <div class="cr-big">
+            <span class="lab">Difficulty vs party of 5 · Lv 6</span>
+            <span class="deadly">Deadly</span>
+          </div>
+          <div class="cr-meter"><i class="easy" style="width:62%"></i><i class="fill" style="width:38%"></i></div>
+          <div class="cr-scale"><span>Easy</span><span>Med</span><span>Hard</span><span>Deadly</span></div>
+          <div class="enc-row"><span class="ename">The Tide-Caller <small>CR 8</small></span><span class="exp">3,900 XP</span></div>
+          <div class="enc-row"><span class="ename">Drowned Acolyte <small>×3 · CR 1</small></span><span class="exp">600 XP</span></div>
+          <div class="enc-row"><span class="ename">Lurker in the Stacks <small>CR 3</small></span><span class="exp">700 XP</span></div>
+          <div class="enc-foot"><span>ADJUSTED XP (×2)</span><b>10,400 XP</b></div>
+          <div class="enc-foot" style="border-top:none;padding-top:2px;color:var(--red)"><span>DEADLY THRESHOLD</span><b style="color:var(--red)">8,000 XP</b></div>
+        </div>
+        <!-- CoC: Sanity -->
+        <div id="sanWrap">
+          <div class="san-investigator">
+            <div class="san-name">Vesna Halloway<small>Reporter · POW 60</small></div>
+            <div class="san-track">
+              <div class="san-meter"><i style="width:78%"></i></div>
+              <div class="san-val">47<small>/60</small></div>
+            </div>
+          </div>
+          <div class="san-investigator">
+            <div class="san-name">Marisol Vance<small>Occult Scholar · POW 75</small></div>
+            <div class="san-track">
+              <div class="san-meter low"><i style="width:31%"></i></div>
+              <div class="san-val">23<small>/75</small></div>
+            </div>
+            <div class="san-note" style="grid-column:1 / -1">▲ Temporary insanity — phobia: deep water (1d10 rounds)</div>
+          </div>
+          <div class="san-investigator">
+            <div class="san-name">Inspector Cole<small>Investigator · POW 50</small></div>
+            <div class="san-track">
+              <div class="san-meter"><i style="width:64%"></i></div>
+              <div class="san-val">32<small>/50</small></div>
+            </div>
+          </div>
+          <div class="san-investigator">
+            <div class="san-name">"Tank" Mahoney<small>Dockworker · POW 40</small></div>
+            <div class="san-track">
+              <div class="san-meter low"><i style="width:20%"></i></div>
+              <div class="san-val">08<small>/40</small></div>
+            </div>
+            <div class="san-note" style="grid-column:1 / -1">▲ Near breaking point — 1 more major loss = indefinite insanity</div>
+          </div>
+          <div class="san-foot">
+            <span class="meta">Next horror: The Tide-Caller revealed · 1/1d6+1</span>
+            <button>Roll SAN Loss</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NPC ROSTER -->
+    <section class="cell col-r" id="m-npc">
+      <div class="mhead">
+        <span class="num">05</span><h2>NPC Roster</h2>
+        <span class="tag">6 on scene</span>
+      </div>
+      <div class="mbody">
+        <div class="npc">
+          <div class="portrait">&#129502;</div>
+          <div class="npc-main">
+            <div class="nh"><span class="nname">Silas Crabbe</span><span class="nrole">Librarian</span><span class="nloc">Drowned Library</span></div>
+            <div class="ndesc">Gaunt, ink-stained, knows more than he admits. Hiding shelf 11.</div>
+            <div class="nvoice"><b>Voice:</b> reedy whisper, never finishes sentences</div>
+          </div>
+        </div>
+        <div class="npc">
+          <div class="portrait">&#128081;</div>
+          <div class="npc-main">
+            <div class="nh"><span class="nname">Lady Ashgrove</span><span class="nrole">Patron</span><span class="nloc">Ashgrove Manor</span></div>
+            <div class="ndesc">Funds the expedition. Owes a debt to the cult; players don't know yet.</div>
+            <div class="nvoice"><b>Voice:</b> clipped aristocratic, mid-Atlantic</div>
+          </div>
+        </div>
+        <div class="npc">
+          <div class="portrait foe">&#128684;</div>
+          <div class="npc-main">
+            <div class="nh"><span class="nname">Brother Maw</span><span class="nrole">Cult Lieut.</span><span class="nloc">Lower Stacks</span></div>
+            <div class="ndesc">Devotee of the Tide-Caller. Wears a brass diving helm welded shut.</div>
+            <div class="nvoice"><b>Voice:</b> muffled, gurgling, too calm</div>
+          </div>
+        </div>
+        <div class="npc">
+          <div class="portrait">&#127881;</div>
+          <div class="npc-main">
+            <div class="nh"><span class="nname">"Lucky" Pernell</span><span class="nrole">Fixer</span><span class="nloc">The Drowned Rat</span></div>
+            <div class="ndesc">Sells maps and lies in equal measure. Knows a back way in.</div>
+            <div class="nvoice"><b>Voice:</b> fast, friendly, always angling</div>
+          </div>
+        </div>
+        <div class="npc">
+          <div class="portrait">&#128118;</div>
+          <div class="npc-main">
+            <div class="nh"><span class="nname">Margaret (the girl)</span><span class="nrole">Witness</span><span class="nloc">Almshouse</span></div>
+            <div class="ndesc">"No longer sleeps." Speaks the eleventh shelf's words in a trance.</div>
+            <div class="nvoice"><b>Voice:</b> flat, sing-song, two voices at once</div>
+          </div>
+        </div>
+        <div class="npc">
+          <div class="portrait">&#9879;</div>
+          <div class="npc-main">
+            <div class="nh"><span class="nname">Dr. Halsey</span><span class="nrole">Alienist</span><span class="nloc">Sanitarium</span></div>
+            <div class="ndesc">Treats the party's madness — for a price, and notes everything.</div>
+            <div class="nvoice"><b>Voice:</b> warm, probing, takes long pauses</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ UTILITY FOOTER ============ -->
+  <footer class="util">
+
+    <!-- AUDIO + SOUNDBOARD -->
+    <div class="ucell">
+      <div class="mhead">
+        <span class="num">06</span><h2>Ambient / Sound</h2>
+        <span class="tag">routed to broadcast</span>
+      </div>
+      <div class="audio-now">
+        <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="track">
+          <div class="tn" id="nowTrack">Tide Beneath the Floor</div>
+          <div class="ts" id="nowScene">Scene: Dungeon · Loop · Crossfade 4s</div>
+        </div>
+        <div class="vol">VOL<b>62%</b></div>
+      </div>
+      <div class="scene-tabs">
+        <button class="on" onclick="sceneTab(this,'Dungeon')">Dungeon</button>
+        <button onclick="sceneTab(this,'Tavern')">Tavern</button>
+        <button onclick="sceneTab(this,'City')">City</button>
+        <button onclick="sceneTab(this,'Boss')">Boss</button>
+      </div>
+      <div class="soundboard">
+        <button><span class="ic">&#9889;</span><span class="sn">Thunder</span></button>
+        <button><span class="ic">&#128682;</span><span class="sn">Door Creak</span></button>
+        <button><span class="ic">&#9876;</span><span class="sn">Blade</span></button>
+        <button><span class="ic">&#128561;</span><span class="sn">Scream</span></button>
+        <button><span class="ic">&#128367;</span><span class="sn">Heartbeat</span></button>
+        <button><span class="ic">&#128012;</span><span class="sn">Whispers</span></button>
+        <button><span class="ic">&#128293;</span><span class="sn">Fire</span></button>
+        <button><span class="ic">&#128276;</span><span class="sn">Bell Toll</span></button>
+      </div>
+    </div>
+
+    <!-- SESSION NOTES -->
+    <div class="ucell">
+      <div class="mhead">
+        <span class="num">07</span><h2>Session Notes</h2>
+        <span class="tag">timestamped</span>
+      </div>
+      <div class="mbody" style="padding:0 12px">
+        <div class="note">
+          <div class="nt"><span class="time">19:38</span><span class="body">Party broke the seal on shelf 11. Margaret's words start to make sense. Marisol failed SAN, picked up water phobia.</span></div>
+          <div class="tags"><span>#horror</span><span>#san-loss</span><span>#shelf-11</span></div>
+        </div>
+        <div class="note">
+          <div class="nt"><span class="time">19:21</span><span class="body">Bribed "Lucky" Pernell 50gp / $40 for the back-stair map. He undersold the Lurker.</span></div>
+          <div class="tags"><span>#npc</span><span>#clue</span></div>
+        </div>
+        <div class="note">
+          <div class="nt"><span class="time">18:55</span><span class="body">Inspector Cole confessed he's seen the diving-helm cultists before — at Ashgrove Manor.</span></div>
+          <div class="tags"><span>#faction</span><span>#twist</span></div>
+        </div>
+        <div class="note">
+          <div class="nt"><span class="time">18:30</span><span class="body">Recap played. Session opens at the library's flooded threshold, tide rising.</span></div>
+          <div class="tags"><span>#recap</span></div>
+        </div>
+      </div>
+      <div class="note-input">
+        <input type="text" placeholder="// type a note — auto-stamps the time…" id="noteIn">
+        <button onclick="addNote()">Log</button>
+      </div>
+    </div>
+
+    <!-- CLUE / QUEST TRACKER -->
+    <div class="ucell">
+      <div class="mhead">
+        <span class="num">08</span><h2>Clues / Quests</h2>
+        <span class="tag rd">3 open</span>
+      </div>
+      <div class="mbody" style="padding:0 12px">
+        <div class="clue">
+          <div class="chk"></div>
+          <div>
+            <div class="ctitle">Who silenced the librarian?<span class="pri">Lead</span></div>
+            <div class="cmeta"><span class="lead">Red string →</span> Brother Maw · Lady Ashgrove's debt · the welded helm</div>
+          </div>
+        </div>
+        <div class="clue">
+          <div class="chk"></div>
+          <div>
+            <div class="ctitle">Translate the eleventh shelf</div>
+            <div class="cmeta">2 of 3 fragments found · Marisol's Occult roll pending · costs SAN to read</div>
+          </div>
+        </div>
+        <div class="clue">
+          <div class="chk"></div>
+          <div>
+            <div class="ctitle">Stop the rising tide<span class="pri">Lead</span></div>
+            <div class="cmeta"><span class="lead">Red string →</span> The Tide-Caller's ritual · 4 rounds to the flood · lair @ init 20</div>
+          </div>
+        </div>
+        <div class="clue done">
+          <div class="chk"></div>
+          <div>
+            <div class="ctitle">Find a way into the lower stacks</div>
+            <div class="cmeta">Resolved — back-stair map from "Lucky" Pernell, session 14</div>
+          </div>
+        </div>
+        <div class="clue done">
+          <div class="chk"></div>
+          <div>
+            <div class="ctitle">Identify the drowned cult</div>
+            <div class="cmeta">Resolved — Church of the Tide-Caller, brass-helm devotees</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // ---- live clock ----
+  function tick(){
+    var d=new Date();
+    var el=document.getElementById('clock');
+    if(el) el.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+  tick(); setInterval(tick,15000);
+
+  // ---- system switcher ----
+  function setSys(sys){
+    var dnd = sys==='dnd';
+    document.querySelectorAll('#seg button').forEach(function(b){
+      var on = b.dataset.sys===sys;
+      b.classList.toggle('on',on);
+      b.classList.toggle('coc',on && sys==='coc');
+    });
+    document.getElementById('sysName').innerHTML = dnd ? 'D&amp;D 5e' : 'Call of Cthulhu';
+    // system widget swap
+    document.getElementById('crWrap').style.display = dnd ? 'block':'none';
+    document.getElementById('sanWrap').style.display = dnd ? 'none':'block';
+    document.getElementById('sysWidgetTitle').textContent = dnd ? 'Encounter / CR' : 'Sanity Tracker';
+    document.getElementById('sysWidgetTag').innerHTML = dnd ? 'D&amp;D · swappable' : 'CoC · swappable';
+    // accent swap on switcher already handled; ticker tweak
+    var tk = document.getElementById('ticker');
+    if(dnd){
+      tk.innerHTML='<b>CAMPAIGN:</b> Crypt of the Sunken Crown &nbsp;·&nbsp; <b>SESSION 14</b> &nbsp;·&nbsp; <span class="rd">3 THREADS OPEN</span> &nbsp;·&nbsp; 6 NPCs ON SCENE &nbsp;·&nbsp; <b>SCENE:</b> The Flooded Vault &nbsp;·&nbsp; autosaved 19:42';
+    } else {
+      tk.innerHTML='<b>CAMPAIGN:</b> The Whispering Vault &nbsp;·&nbsp; <b>SESSION 14</b> &nbsp;·&nbsp; <span class="rd">3 THREADS OPEN</span> &nbsp;·&nbsp; 6 NPCs ON SCENE &nbsp;·&nbsp; <b>SCENE:</b> The Drowned Library &nbsp;·&nbsp; autosaved 19:42';
+    }
+  }
+  // start neutral on D&D (default markup already CoC-flavored text but works both)
+  setSys('dnd');
+
+  // ---- dice ----
+  var advState='adv', hidden=true;
+  function renderDice(name,expr,base){
+    var roll1 = base, roll2 = Math.max(1, base - 8 + Math.floor(Math.random()*6));
+    var kept = base;
+    var exprOut = expr;
+    if(advState==='adv'){ exprOut = expr.replace('1d20','2d20kh1'); }
+    else if(advState==='dis'){ exprOut = expr.replace('1d20','2d20kl1'); }
+    document.getElementById('diceExpr').textContent = exprOut;
+    var total = base;
+    document.getElementById('diceTotal').textContent = total;
+    document.getElementById('diceTotal').classList.toggle('crit', total>=28);
+    document.getElementById('diceBrk').textContent = name+' · '+expr;
+    document.getElementById('advTag').style.display = (advState==='none')?'none':'inline-block';
+    document.getElementById('advTag').textContent = advState==='adv'?'ADVANTAGE':'DISADVANTAGE';
+    document.getElementById('hidTag').style.display = hidden?'inline-block':'none';
+    document.getElementById('diceTag').style.display = hidden?'inline-block':'none';
+  }
+  function rollMacro(name,expr,base){
+    // jitter the base a little for life
+    var b = base + Math.floor(Math.random()*5)-2;
+    if(b<1) b=1;
+    renderDice(name,expr,b);
+  }
+  function toggleOpt(el){
+    hidden = !el.classList.contains('on') ? true : false;
+    el.classList.toggle('on');
+    hidden = el.classList.contains('on');
+    document.getElementById('hidTag').style.display = hidden?'inline-block':'none';
+    document.getElementById('diceTag').style.display = hidden?'inline-block':'none';
+  }
+  function toggleAdv(which){
+    var adv=document.getElementById('optAdv'), dis=document.getElementById('optDis');
+    if(which==='adv'){
+      if(advState==='adv'){advState='none';adv.classList.remove('on');}
+      else{advState='adv';adv.classList.add('on');dis.classList.remove('on');}
+    } else {
+      if(advState==='dis'){advState='none';dis.classList.remove('on');}
+      else{advState='dis';dis.classList.add('on');adv.classList.remove('on');}
+    }
+    document.getElementById('advTag').style.display=(advState==='none')?'none':'inline-block';
+    document.getElementById('advTag').textContent=advState==='adv'?'ADVANTAGE':'DISADVANTAGE';
+  }
+
+  // ---- reveal tray ----
+  function pickReveal(btn){
+    document.querySelectorAll('.reveal-tray button').forEach(function(b){b.classList.remove('on')});
+    btn.classList.add('on');
+  }
+
+  // ---- scene tabs ----
+  function sceneTab(btn,scene){
+    document.querySelectorAll('.scene-tabs button').forEach(function(b){b.classList.remove('on')});
+    btn.classList.add('on');
+    var map={Dungeon:'Tide Beneath the Floor',Tavern:'The Drowned Rat Reel',City:'Rain on Cobbles',Boss:'When the Tide Calls'};
+    document.getElementById('nowTrack').textContent=map[scene]||scene;
+    document.getElementById('nowScene').textContent='Scene: '+scene+' · Loop · Crossfade 4s';
+  }
+
+  // ---- notes ----
+  function addNote(){
+    var inp=document.getElementById('noteIn');
+    if(!inp.value.trim()) return;
+    var d=new Date();
+    var t=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    var box=inp.closest('.ucell').querySelector('.mbody');
+    var n=document.createElement('div');
+    n.className='note';
+    n.innerHTML='<div class="nt"><span class="time">'+t+'</span><span class="body">'+inp.value.replace(/</g,'&lt;')+'</span></div>';
+    box.insertBefore(n,box.firstChild);
+    inp.value='';
+  }
+  document.getElementById('noteIn').addEventListener('keydown',function(e){if(e.key==='Enter')addNote();});
+
+  // ---- clue toggle ----
+  document.querySelectorAll('.clue .chk').forEach(function(c){
+    c.addEventListener('click',function(){c.closest('.clue').classList.toggle('done')});
+  });
+</script>
+</body>
+</html>
