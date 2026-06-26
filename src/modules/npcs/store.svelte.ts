@@ -7,6 +7,8 @@ export interface Npc {
   role: string;
   disposition: Disposition;
   voice?: string;
+  /** asset id of an uploaded portrait image (see lib/db assetPut) */
+  portraitId?: string;
 }
 
 const SEED: Npc[] = [
