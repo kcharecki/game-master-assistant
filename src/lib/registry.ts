@@ -18,6 +18,7 @@ import statblock from '../modules/statblock';
 import notebook from '../modules/notebook';
 import quests from '../modules/quests';
 import beats from '../modules/beats';
+import tables from '../modules/tables';
 
 function stub(
   id: ModuleId,
@@ -47,6 +48,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   notebook,
   quests,
   beats,
+  tables,
   clues,
   sanity,
   skillcheck,

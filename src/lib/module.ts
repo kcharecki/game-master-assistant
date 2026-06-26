@@ -21,6 +21,7 @@ export type ModuleId =
   | 'statblock'
   | 'quests'
   | 'beats'
+  | 'tables'
   | 'reveal';
 
 /**
