@@ -14,6 +14,7 @@ import audio from '../modules/audio';
 import sanity from '../modules/sanity';
 import clues from '../modules/clues';
 import skillcheck from '../modules/skillcheck';
+import statblock from '../modules/statblock';
 
 function stub(
   id: ModuleId,
@@ -44,8 +45,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   clues,
   sanity,
   skillcheck,
-  statblock: stub('statblock', 'Stat Blocks', 340, 320),
-  encounter: stub('encounter', 'Encounter', 320, 300),
+  statblock,
 };
 
 export const moduleList: ModuleManifest[] = Object.values(modules);
