@@ -27,6 +27,7 @@ export type ModuleId =
   | 'archive'
   | 'spotlight'
   | 'rules'
+  | 'dashboard'
   | 'reveal';
 
 /**

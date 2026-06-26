@@ -25,6 +25,7 @@ import palette from '../modules/palette';
 import archive from '../modules/archive';
 import spotlight from '../modules/spotlight';
 import rules from '../modules/rules';
+import dashboard from '../modules/dashboard';
 
 /** The single source of truth: id -> module. Surfaces resolve views from here. */
 export const modules: Record<ModuleId, ModuleManifest> = {
@@ -54,6 +55,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   archive,
   spotlight,
   rules,
+  dashboard,
 };
 
 export const moduleList: ModuleManifest[] = Object.values(modules);
