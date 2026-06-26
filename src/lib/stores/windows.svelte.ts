@@ -61,6 +61,31 @@ class WindowManager {
     this.persist();
   }
 
+  /** Remove every window. */
+  clear(): void {
+    this.windows = [];
+    this.persist();
+  }
+
+  /**
+   * Replace all windows with a saved layout: clear, then re-add each placement
+   * at its saved geometry. New ids/z are minted so windows stay interactive.
+   */
+  restore(layout: { kind: WindowKind; x: number; y: number; w: number; h: number }[]): void {
+    this.windows = layout.map((p) => ({
+      id: crypto.randomUUID(),
+      kind: p.kind,
+      title: getModule(p.kind).title,
+      x: p.x,
+      y: p.y,
+      w: p.w,
+      h: p.h,
+      z: ++this.#z,
+      minimized: false,
+    }));
+    this.persist();
+  }
+
   persist(): void {
     void kvSet('windows', $state.snapshot(this.windows));
   }

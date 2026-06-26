@@ -2,12 +2,29 @@
   import { onMount } from 'svelte';
   import { system } from '../lib/stores/system.svelte';
   import { SYSTEMS, systemConfig } from '../lib/system';
+  import { layouts } from '../lib/stores/layouts.svelte';
 
   let { onOpenBroadcast }: { onOpenBroadcast: () => void } = $props();
 
+  let menuOpen = $state(false);
+  let newName = $state('');
+
   onMount(() => {
-    void system.load();
+    void system.load().then(() => layouts.load());
   });
+
+  // Reload presets whenever the active system changes (presets are per-system).
+  $effect(() => {
+    void system.current;
+    void layouts.load();
+  });
+
+  function saveCurrent() {
+    const name = newName.trim();
+    if (!name) return;
+    void layouts.save(name);
+    newName = '';
+  }
 </script>
 
 <header class="topbar">
@@ -25,6 +42,41 @@
     {/each}
   </div>
   <span class="pill">Session 02:34:17</span>
+  <div class="layouts">
+    <button
+      class="btn"
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      onclick={() => (menuOpen = !menuOpen)}>Layouts ▾</button
+    >
+    {#if menuOpen}
+      <div class="lmenu" role="menu">
+        <div class="lhead">{systemConfig(system.current).label} layouts</div>
+        {#if layouts.presets.length === 0}
+          <div class="lempty">No saved layouts</div>
+        {/if}
+        {#each layouts.presets as p (p.name)}
+          <div class="lrow">
+            <button class="lname" role="menuitem" onclick={() => layouts.restore(p.name)}
+              >{p.name}</button
+            >
+            <button class="ldel" aria-label="Delete {p.name}" onclick={() => layouts.remove(p.name)}
+              >✕</button
+            >
+          </div>
+        {/each}
+        <div class="lsave">
+          <input
+            class="lin"
+            bind:value={newName}
+            placeholder="Save current as…"
+            onkeydown={(e) => e.key === 'Enter' && saveCurrent()}
+          />
+          <button class="lsavebtn" onclick={saveCurrent}>Save</button>
+        </div>
+      </div>
+    {/if}
+  </div>
   <button class="btn" onclick={onOpenBroadcast}>Open Broadcast ↗</button>
 </header>
 
@@ -55,5 +107,90 @@
   .sysbtn.on {
     background: rgba(47, 138, 102, 0.22);
     color: var(--txt);
+  }
+  .layouts {
+    position: relative;
+  }
+  .lmenu {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    z-index: 9500;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid var(--line2);
+    background: rgba(9, 16, 13, 0.98);
+    box-shadow: 0 16px 44px -16px rgba(0, 0, 0, 0.9);
+  }
+  .lhead {
+    color: var(--faint);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 6px 6px;
+  }
+  .lempty {
+    color: var(--faint);
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+  .lrow {
+    display: flex;
+    align-items: center;
+  }
+  .lname {
+    flex: 1;
+    text-align: left;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--txt);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .lname:hover {
+    background: rgba(47, 138, 102, 0.16);
+  }
+  .ldel {
+    border: 0;
+    background: transparent;
+    color: var(--faint);
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .ldel:hover {
+    color: var(--txt);
+  }
+  .lsave {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+  .lin {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--line2);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--txt);
+    font: inherit;
+    font-size: 12px;
+  }
+  .lsavebtn {
+    border: 1px solid var(--line2);
+    border-radius: 8px;
+    background: rgba(47, 138, 102, 0.18);
+    color: var(--txt);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 10px;
   }
 </style>
