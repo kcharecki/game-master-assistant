@@ -12,6 +12,7 @@ import reveal from '../modules/reveal';
 import map from '../modules/map';
 import audio from '../modules/audio';
 import sanity from '../modules/sanity';
+import clues from '../modules/clues';
 
 function stub(
   id: ModuleId,
@@ -39,7 +40,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   audio,
   handouts: stub('handouts', 'Handouts', 318, 236),
   notebook: stub('notebook', 'Notebook', 344, 186),
-  clues: stub('clues', 'Clue Board', 380, 300),
+  clues,
   sanity,
   skillcheck: stub('skillcheck', 'Skill Check', 300, 300),
   statblock: stub('statblock', 'Stat Blocks', 340, 320),
