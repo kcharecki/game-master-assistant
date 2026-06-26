@@ -4,6 +4,9 @@ import { getModule } from '../registry';
 
 /** Reactive desktop window manager. One instance shared across the GM app. */
 class WindowManager {
+  static readonly MIN_W = 200;
+  static readonly MIN_H = 120;
+
   windows = $state<WindowState[]>([]);
   #z = 10;
 
@@ -36,6 +39,15 @@ class WindowManager {
       w.x = x;
       w.y = y;
     }
+  }
+
+  /** Resize a window, clamping to sane minimums. */
+  resize(id: string, w: number, h: number): void {
+    const win = this.windows.find((win) => win.id === id);
+    if (!win) return;
+    win.w = Math.max(WindowManager.MIN_W, Math.round(w));
+    win.h = Math.max(WindowManager.MIN_H, Math.round(h));
+    this.persist();
   }
 
   toggleMin(id: string): void {

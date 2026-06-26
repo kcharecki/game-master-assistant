@@ -39,4 +39,15 @@ describe('WindowManager', () => {
     wm.close(w.id);
     expect(wm.windows).toHaveLength(0);
   });
+
+  it('resizes windows and clamps to minimums', () => {
+    const w = wm.add('roller');
+    wm.resize(w.id, 400, 300);
+    const got = () => wm.windows.find((x) => x.id === w.id)!;
+    expect(got().w).toBe(400);
+    expect(got().h).toBe(300);
+    wm.resize(w.id, 10, 10); // below minimums
+    expect(got().w).toBe(200);
+    expect(got().h).toBe(120);
+  });
 });
