@@ -25,6 +25,11 @@
       }
     }
   });
+
+  // Revoke any object URLs still held when the window unmounts (no leak on close).
+  $effect(() => () => {
+    for (const url of Object.values(urls)) URL.revokeObjectURL(url);
+  });
 </script>
 
 <input class="npcsearch" bind:value={query} placeholder="Search NPCs…" />

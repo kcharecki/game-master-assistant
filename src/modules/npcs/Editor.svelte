@@ -27,6 +27,11 @@
     }
   });
 
+  // Revoke any object URLs still held when the editor unmounts (no leak on close).
+  $effect(() => () => {
+    for (const url of Object.values(urls)) URL.revokeObjectURL(url);
+  });
+
   async function pickPortrait(npcId: string, file: File | undefined) {
     if (!file || !file.type.startsWith('image/')) return;
     const assetId = await assetPut(file, file.type);

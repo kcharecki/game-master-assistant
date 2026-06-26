@@ -33,6 +33,11 @@
     src = url;
   }
 
+  // Revoke the last preview URL when the editor unmounts (no leak on tab close).
+  $effect(() => () => {
+    if (uploadUrl) URL.revokeObjectURL(uploadUrl);
+  });
+
   async function accept(file: File | undefined) {
     if (!file || !file.type.startsWith('image/')) return;
     const id = await assetPut(file, file.type);
