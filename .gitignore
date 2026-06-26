@@ -4,4 +4,8 @@ dist/
 playwright-report/
 test-results/
 *.local
+*.log
+coverage/
 .DS_Store
+.idea/
+.vscode/
