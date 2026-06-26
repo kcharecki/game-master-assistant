@@ -28,6 +28,7 @@ export type ModuleId =
   | 'spotlight'
   | 'rules'
   | 'dashboard'
+  | 'reminders'
   | 'reveal';
 
 /**
