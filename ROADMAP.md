@@ -62,12 +62,12 @@ Live-at-the-table essentials. Commit per row.
 - [x] audio: ambient player (scene playlists, crossfade) + soundboard, routed to broadcast
 - *checkpoint:* `m2-broadcast`
 
-### M3 — NPCs & world
-- [ ] npcs: portraits (asset store), full roster view, search
-- [ ] random NPC generator (name/trait/motivation) + test
-- [ ] lore wiki: cross-linked pages, backlinks + test
-- [ ] in-world calendar & timeline (moon phases, events)
-- [ ] faction & relationship web (SVG graph)
+### M3 — NPCs & world ✅
+- [x] npcs: portraits (asset store), full roster view, search
+- [x] random NPC generator (name/trait/motivation) + test
+- [x] lore wiki: cross-linked pages, backlinks + test
+- [x] in-world calendar & timeline (moon phases, events)
+- [x] faction & relationship web (SVG graph)
 - *checkpoint:* `m3-world`
 
 ### M4 — Investigation & system flexibility
