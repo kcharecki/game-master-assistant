@@ -54,7 +54,11 @@ Built as desktop windows; full list in [gm-assistant-features.md](gm-assistant-f
 - GM **screen-shares only the broadcast tab/window**; control tab stays private. = CLAUDE.md "one broadcast window".
 - Backgrounded GM tab may throttle timers; broadcast tab is visible (shared) so unaffected.
 
+## Status
+All milestones M0–M7 shipped and green (v1.0). See [ROADMAP.md](ROADMAP.md) for the milestone log,
+the 40-feature → module map, and the v1.0 summary.
+
 ## Open questions
-- Tauri wrapper timing (multi-window placement, local SQLite) — defer.
+- Tauri wrapper (multi-window placement, local SQLite) — **deferred post-v1**; web app is the v1 target.
 - Asset import limits / IndexedDB quota strategy for large audio.
 - Campaign archive search: client-side index vs SQLite-on-Tauri later.

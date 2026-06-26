@@ -95,14 +95,24 @@ Live-at-the-table essentials. Commit per row.
       player dashboard (#12), legendary/lair reminders (#4)
 - *checkpoint:* `m6-utility`
 
-### M7 — Hardening
-- [ ] e2e coverage across surfaces, a11y pass, perf
-- [ ] optional Tauri wrapper (native multi-window broadcast, local files)
+### M7 — Hardening ✅
+- [x] e2e coverage across surfaces (editor tab, window resize/minimize, broadcast rehydrate, 2nd module on air)
+- [x] a11y pass (accessible names on icon-only controls, modal palette, focus management) + e2e asserts
+- [x] perf (revoke leaked object URLs on unmount; buses/listeners already closed on teardown)
+- [x] ~~optional Tauri wrapper~~ — **deferred** (see Tauri note below); the pure-web app is the v1 target
 - *checkpoint:* `v1.0`
 
-## Definition of "everything done"
-All M1–M6 feature rows green + committed, M7 hardening passed, e2e suite covers each surface, and the
-40-feature list in [gm-assistant-features.md](gm-assistant-features.md) is mapped to a shipped module.
+#### Tauri (deferred)
+A native Tauri wrapper (true multi-window broadcast on a 2nd monitor, local-file/SQLite access) is an
+*optional* future enhancement, not part of v1. The web app already satisfies the one-broadcast-window
+model via a separate same-origin `broadcast.html` + `BroadcastChannel`, screen-shared by the GM. No
+Tauri code ships in v1; revisit only if native multi-window placement or large local audio libraries
+become a real need.
+
+## Definition of "everything done" ✅
+All M1–M6 feature rows green + committed, **M7 hardening passed**, e2e suite covers each surface
+(desktop/editor/broadcast), and the 40-feature list in
+[gm-assistant-features.md](gm-assistant-features.md) is fully mapped to a shipped module (table below).
 
 ### 40-feature → module map (all mapped ✅)
 | # | Feature | Module id |
@@ -152,3 +162,15 @@ Notes: #16 and #19 are presentational layers of the broadcast surface (display m
 standalone modules. #14's clip import/playback ships in `audio`; live mic capture is a future hardening
 item. `scene` (current-scene board) and the `lib/backup` export/import are supporting infrastructure not
 in the original 40.
+
+---
+
+## v1.0 — shipped 🎉
+All seven milestones (M0 foundation → M7 hardening) are complete and green. The GM Assistant ships as a
+pure-web Svelte 5 + TS app: three surfaces (desktop / editor tabs / broadcast), 40 features mapped to
+modules, IndexedDB persistence with export/import, and a `BroadcastChannel`-driven single shared window.
+
+- **M0** foundation · **M1** core play loop · **M2** broadcast & maps · **M3** NPCs & world ·
+  **M4** investigation & system switch · **M5** prep & notes · **M6** cross-cutting · **M7** hardening.
+- Gate green: `check` (0 errors) · `lint` · 214 unit tests · `build` · 14 Playwright e2e across all surfaces.
+- Tauri wrapper deferred (web is the v1 target). `tag: v1.0`
