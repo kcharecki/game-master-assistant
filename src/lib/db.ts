@@ -33,3 +33,24 @@ export async function kvGet<T>(key: string): Promise<T | undefined> {
 export async function kvSet(key: string, value: unknown): Promise<void> {
   await (await db()).put('kv', value, key);
 }
+
+/** Store a binary asset (image/audio) and return its id. */
+export async function assetPut(blob: Blob, type: string): Promise<string> {
+  const id = crypto.randomUUID();
+  await (await db()).put('assets', { id, blob, type });
+  return id;
+}
+
+/** Fetch an asset's blob; returns undefined if missing. */
+export async function assetGet(id: string): Promise<Blob | undefined> {
+  return (await (await db()).get('assets', id))?.blob;
+}
+
+/**
+ * Fetch an asset and wrap it in an object URL for direct rendering.
+ * Caller is responsible for URL.revokeObjectURL when done.
+ */
+export async function assetUrl(id: string): Promise<string | undefined> {
+  const blob = await assetGet(id);
+  return blob ? URL.createObjectURL(blob) : undefined;
+}
