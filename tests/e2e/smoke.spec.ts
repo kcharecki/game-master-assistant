@@ -25,3 +25,16 @@ test('GM reveal reaches the broadcast window', async ({ context }) => {
   await gm.getByRole('button', { name: 'Send to Broadcast' }).click();
   await expect(view.getByText('A Strange Symbol')).toBeVisible({ timeout: 5000 });
 });
+
+test('GM battle map reaches the broadcast window', async ({ context }) => {
+  const gm = await context.newPage();
+  await gm.goto('/');
+  const view = await context.newPage();
+  await view.goto('/broadcast.html');
+
+  // Spawn the Battle Map window via the ＋ Widget menu, then put it on air.
+  await gm.getByRole('button', { name: '＋ Widget' }).click();
+  await gm.getByRole('menuitem', { name: 'Battle Map' }).click();
+  await gm.getByRole('button', { name: 'On Air' }).click();
+  await expect(view.locator('.mapview svg')).toBeVisible({ timeout: 5000 });
+});
