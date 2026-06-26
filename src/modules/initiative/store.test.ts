@@ -5,7 +5,21 @@ vi.mock('../../lib/db', () => ({
   kvSet: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { InitiativeStore } from './store.svelte';
+import { InitiativeStore, isBloodied, vagueStatus, type Combatant } from './store.svelte';
+
+const make = (over: Partial<Combatant> = {}): Combatant => ({
+  id: 'x',
+  name: 'X',
+  role: '',
+  init: 10,
+  foe: false,
+  hp: 20,
+  maxHp: 20,
+  ac: 12,
+  conditions: [],
+  hidden: false,
+  ...over,
+});
 
 describe('InitiativeStore', () => {
   let s: InitiativeStore;
@@ -69,5 +83,42 @@ describe('InitiativeStore', () => {
     s.reset();
     expect(s.active).toBe(0);
     expect(s.round).toBe(1);
+  });
+
+  it('damages clamped to 0 and heals clamped to maxHp', () => {
+    const c = s.add('Brute', 10, true); // defaults hp/maxHp = 10
+    s.damage(c.id, 25);
+    expect(s.order.find((x) => x.id === c.id)!.hp).toBe(0);
+    s.heal(c.id, 100);
+    expect(s.order.find((x) => x.id === c.id)!.hp).toBe(10);
+  });
+
+  it('toggles conditions and hidden flag', () => {
+    const c = s.add('Cultist', 10, true);
+    s.toggleCondition(c.id, 'poisoned');
+    expect(s.order.find((x) => x.id === c.id)!.conditions).toContain('poisoned');
+    s.toggleCondition(c.id, 'poisoned');
+    expect(s.order.find((x) => x.id === c.id)!.conditions).not.toContain('poisoned');
+    const before = s.order.find((x) => x.id === c.id)!.hidden;
+    s.toggleHidden(c.id);
+    expect(s.order.find((x) => x.id === c.id)!.hidden).toBe(!before);
+  });
+});
+
+describe('isBloodied', () => {
+  it('is true at or below half HP while alive', () => {
+    expect(isBloodied(make({ hp: 10, maxHp: 20 }))).toBe(true);
+    expect(isBloodied(make({ hp: 11, maxHp: 20 }))).toBe(false);
+    expect(isBloodied(make({ hp: 0, maxHp: 20 }))).toBe(false);
+  });
+});
+
+describe('vagueStatus', () => {
+  it('never leaks exact HP, just a tier', () => {
+    expect(vagueStatus(make({ hp: 20, maxHp: 20 }))).toBe('Healthy');
+    expect(vagueStatus(make({ hp: 15, maxHp: 20 }))).toBe('Wounded');
+    expect(vagueStatus(make({ hp: 10, maxHp: 20 }))).toBe('Bloodied');
+    expect(vagueStatus(make({ hp: 5, maxHp: 20 }))).toBe('Near death');
+    expect(vagueStatus(make({ hp: 0, maxHp: 20 }))).toBe('Down');
   });
 });

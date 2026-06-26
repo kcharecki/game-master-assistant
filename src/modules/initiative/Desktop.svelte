@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { initiative } from './store.svelte';
+  import { initiative, isBloodied, vagueStatus } from './store.svelte';
 
   function initials(name: string): string {
     return name
@@ -19,9 +19,30 @@
 {#each initiative.order as c, i (c.id)}
   <div class="combatant" class:active={i === initiative.active} class:foe={c.foe}>
     <span class="av">{initials(c.name)}</span>
-    <span class="cn"><div class="nm">{c.name}</div><div class="rl">{c.role}</div></span>
+    <span class="cn">
+      <div class="nm">
+        {c.name}
+        {#if isBloodied(c)}<span class="blood" title="Bloodied">●</span>{/if}
+        {#if c.hidden}<span class="hid" title="Hidden HP — players see status only">◐</span>{/if}
+      </div>
+      <div class="rl">
+        {#if c.hidden}
+          {vagueStatus(c)}
+        {:else}
+          <span class="hp" class:low={isBloodied(c)}>{c.hp}/{c.maxHp}</span> · AC {c.ac}
+        {/if}
+        {#if c.conditions.length}
+          · <span class="cond">{c.conditions.join(', ')}</span>
+        {/if}
+      </div>
+    </span>
     <span class="iv">{c.init}</span>
     <span class="ord" data-no-drag>
+      <button class="ob" onclick={() => initiative.damage(c.id, 1)} aria-label="Damage 1">−</button>
+      <button class="ob" onclick={() => initiative.heal(c.id, 1)} aria-label="Heal 1">+</button>
+      <button class="ob" onclick={() => initiative.toggleHidden(c.id)} aria-label="Toggle hidden HP"
+        >◐</button
+      >
       <button class="ob" onclick={() => initiative.moveUp(c.id)} aria-label="Move up">▲</button>
       <button class="ob" onclick={() => initiative.moveDown(c.id)} aria-label="Move down">▼</button>
       <button class="ob x" onclick={() => initiative.remove(c.id)} aria-label="Remove">✕</button>
@@ -51,6 +72,21 @@
   }
   .btn.add {
     margin-top: 6px;
+  }
+  .hp.low {
+    color: var(--red);
+    font-weight: 600;
+  }
+  .blood {
+    color: var(--red);
+    font-size: 10px;
+  }
+  .hid {
+    color: var(--gold);
+    font-size: 10px;
+  }
+  .cond {
+    color: var(--gold);
   }
   .ord {
     display: flex;
