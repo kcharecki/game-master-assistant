@@ -5,6 +5,8 @@
   import Sidebar from './components/Sidebar.svelte';
   import Desktop from './surfaces/Desktop.svelte';
   import EditorHost from './surfaces/EditorHost.svelte';
+  import Palette from './modules/palette/Palette.svelte';
+  import { palette } from './modules/palette/store.svelte';
 
   // Surface 1 (desktop) + surface 2 (editor tabs) live here. Surface 3 (broadcast) is a separate page.
   let view = $state<'desktop' | ModuleId>('desktop');
@@ -13,6 +15,17 @@
   function openEditor(id: ModuleId) {
     if (!openEditors.includes(id)) openEditors.push(id);
     view = id;
+  }
+
+  // Let the command palette open editor tabs when a result targets one.
+  palette.onOpenEditor = openEditor;
+
+  // Global Ctrl/Cmd+K toggles the command palette from anywhere.
+  function onGlobalKeydown(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      palette.toggle();
+    }
   }
   function closeEditor(id: ModuleId) {
     openEditors = openEditors.filter((x) => x !== id);
@@ -25,6 +38,10 @@
     window.open('broadcast.html', 'gm-broadcast', 'width=1280,height=720');
   }
 </script>
+
+<svelte:window onkeydown={onGlobalKeydown} />
+
+<Palette />
 
 <div class="app">
   <Topbar onOpenBroadcast={openBroadcast} />

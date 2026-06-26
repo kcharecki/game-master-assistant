@@ -20,6 +20,7 @@ import quests from '../modules/quests';
 import beats from '../modules/beats';
 import tables from '../modules/tables';
 import improv from '../modules/improv';
+import palette from '../modules/palette';
 
 function stub(
   id: ModuleId,
@@ -55,6 +56,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   sanity,
   skillcheck,
   statblock,
+  palette,
 };
 
 export const moduleList: ModuleManifest[] = Object.values(modules);

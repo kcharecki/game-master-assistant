@@ -9,6 +9,9 @@
 
   let menuOpen = $state(false);
 
+  // Only modules with a live desktop view make sense as spawnable windows.
+  const spawnable = moduleList.filter((m) => m.desktop);
+
   function spawn(kind: WindowKind) {
     onAdd(kind);
     menuOpen = false;
@@ -26,7 +29,7 @@
   <div class="widget-wrap">
     {#if menuOpen}
       <div class="menu" role="menu">
-        {#each moduleList as m (m.id)}
+        {#each spawnable as m (m.id)}
           <button class="mi" role="menuitem" onclick={() => spawn(m.id)}>{m.title}</button>
         {/each}
       </div>

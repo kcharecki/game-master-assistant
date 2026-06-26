@@ -23,6 +23,7 @@ export type ModuleId =
   | 'beats'
   | 'tables'
   | 'improv'
+  | 'palette'
   | 'reveal';
 
 /**
