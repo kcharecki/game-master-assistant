@@ -70,12 +70,12 @@ Live-at-the-table essentials. Commit per row.
 - [x] faction & relationship web (SVG graph)
 - *checkpoint:* `m3-world`
 
-### M4 — Investigation & system flexibility
-- [ ] system switch **D&D 5e ⇄ CoC 7e** (swaps system-specific widgets + dice mode)
-- [ ] sanity tracker (per-investigator SAN, quick SAN-loss) + test
-- [ ] clue / investigation board (red-string corkboard) + test
-- [ ] skill-check helper (opposed/threshold, system-tuned) + test
-- [ ] stat block manager + encounter builder w/ CR readout (D&D) + test
+### M4 — Investigation & system flexibility ✅
+- [x] system switch **D&D 5e ⇄ CoC 7e** (swaps system-specific widgets + dice mode)
+- [x] sanity tracker (per-investigator SAN, quick SAN-loss) + test
+- [x] clue / investigation board (red-string corkboard) + test
+- [x] skill-check helper (opposed/threshold, system-tuned) + test
+- [x] stat block manager + encounter builder w/ CR readout (D&D) + test
 - *checkpoint:* `m4-systems`
 
 ### M5 — Prep & notes
