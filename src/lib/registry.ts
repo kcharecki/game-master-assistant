@@ -23,6 +23,7 @@ import tables from '../modules/tables';
 import improv from '../modules/improv';
 import palette from '../modules/palette';
 import archive from '../modules/archive';
+import spotlight from '../modules/spotlight';
 
 /** The single source of truth: id -> module. Surfaces resolve views from here. */
 export const modules: Record<ModuleId, ModuleManifest> = {
@@ -50,6 +51,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   statblock,
   palette,
   archive,
+  spotlight,
 };
 
 export const moduleList: ModuleManifest[] = Object.values(modules);
