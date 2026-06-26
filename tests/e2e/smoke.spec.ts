@@ -36,6 +36,19 @@ test('system switch toggles D&D / CoC', async ({ page }) => {
   await expect(coc).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('command palette opens with Ctrl+K and finds results', async ({ page }) => {
+  await page.goto('/');
+  await page.keyboard.press('Control+k');
+  const dialog = page.getByRole('dialog', { name: 'Command palette' });
+  await expect(dialog).toBeVisible();
+  // Typing surfaces a known seeded NPC.
+  await dialog.getByRole('textbox').fill('Thorne');
+  await expect(page.getByRole('option').first()).toContainText('Thorne');
+  // Escape closes it.
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+});
+
 test('GM battle map reaches the broadcast window', async ({ context }) => {
   const gm = await context.newPage();
   await gm.goto('/');

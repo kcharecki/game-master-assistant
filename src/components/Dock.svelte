@@ -52,6 +52,8 @@
     bottom: 54px;
     right: 0;
     min-width: 160px;
+    max-height: 60vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 1px;
