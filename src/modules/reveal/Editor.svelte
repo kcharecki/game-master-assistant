@@ -23,14 +23,17 @@
   let body = $state('Carved into the warehouse wall, still wet with brine.');
   let src = $state('');
   let caption = $state('');
-  // Local object URL for an uploaded file (revoked when replaced).
+  // Local object URL for an uploaded file (revoked when replaced) — preview only.
   let uploadUrl = $state('');
+  // Asset id of the uploaded file; this is what we broadcast (URLs don't cross tabs).
+  let uploadAssetId = $state('');
   let dragOver = $state(false);
 
-  function setUpload(url: string) {
+  function setUpload(url: string, assetId: string) {
     if (uploadUrl) URL.revokeObjectURL(uploadUrl);
     uploadUrl = url;
-    src = url;
+    uploadAssetId = assetId;
+    src = ''; // an upload, not an external URL
   }
 
   // Revoke the last preview URL when the editor unmounts (no leak on tab close).
@@ -42,7 +45,7 @@
     if (!file || !file.type.startsWith('image/')) return;
     const id = await assetPut(file, file.type);
     const url = await assetUrl(id);
-    if (url) setUpload(url);
+    if (url) setUpload(url, id);
   }
 
   function onFile(e: Event) {
@@ -56,8 +59,16 @@
   }
 
   function send() {
-    const payload: BroadcastPayload =
-      mode === 'text' ? { kind: 'text', title, body } : { kind: 'image', src, caption };
+    let payload: BroadcastPayload;
+    if (mode === 'text') {
+      payload = { kind: 'text', title, body };
+    } else if (src) {
+      // External URL pasted — send it directly (resolves the same in any tab).
+      payload = { kind: 'image', src, caption };
+    } else {
+      // Uploaded file — send the asset id; broadcast tab resolves the blob itself.
+      payload = { kind: 'image', assetId: uploadAssetId, caption };
+    }
     putOnAir(payload);
   }
 </script>
@@ -93,7 +104,12 @@
         <input type="file" accept="image/*" onchange={onFile} hidden />
       </label>
     </div>
-    <input class="in" bind:value={src} placeholder="…or paste an image URL" />
+    <input
+      class="in"
+      bind:value={src}
+      oninput={() => (uploadAssetId = '')}
+      placeholder="…or paste an image URL"
+    />
     <input class="in" bind:value={caption} placeholder="Caption (optional)" />
   {/if}
 

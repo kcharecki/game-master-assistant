@@ -1,4 +1,4 @@
-import { assetPut, assetUrl } from '../../lib/db';
+import { assetPut } from '../../lib/db';
 import { createBus } from '../../lib/bus';
 import type { BroadcastPayload } from '../../lib/types';
 import type { Playlist, Sfx, Track } from './logic';
@@ -44,29 +44,29 @@ class AudioStore {
     return s;
   }
 
-  /** Play the first track of a scene playlist as looping ambience. */
-  async playScene(playlistId: string): Promise<void> {
+  /**
+   * Play the first track of a scene playlist as looping ambience.
+   * Sends the asset id (not an object URL): the broadcast tab resolves the blob
+   * from shared IndexedDB itself, because blob: URLs don't cross tab boundaries.
+   */
+  playScene(playlistId: string): void {
     const pl = this.playlists.find((p) => p.id === playlistId);
     const first = pl?.tracks[0];
     if (!first) return;
-    const url = await assetUrl(first.assetId);
-    if (!url) return;
-    sendAudio({ kind: 'audio', src: url, loop: true, action: 'play', channel: 'ambient' });
+    sendAudio({ kind: 'audio', assetId: first.assetId, loop: true, action: 'play', channel: 'ambient' });
     this.playingScene = playlistId;
   }
 
   stopScene(): void {
-    sendAudio({ kind: 'audio', src: '', loop: true, action: 'stop', channel: 'ambient' });
+    sendAudio({ kind: 'audio', loop: true, action: 'stop', channel: 'ambient' });
     this.playingScene = null;
   }
 
   /** Fire a one-shot sound effect (does not loop, does not stop ambience). */
-  async playSfx(sfxId: string): Promise<void> {
+  playSfx(sfxId: string): void {
     const s = this.sfx.find((x) => x.id === sfxId);
     if (!s) return;
-    const url = await assetUrl(s.assetId);
-    if (!url) return;
-    sendAudio({ kind: 'audio', src: url, loop: false, action: 'play', channel: 'sfx' });
+    sendAudio({ kind: 'audio', assetId: s.assetId, loop: false, action: 'play', channel: 'sfx' });
   }
 }
 

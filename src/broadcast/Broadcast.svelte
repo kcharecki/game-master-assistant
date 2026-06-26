@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { createBus } from '../lib/bus';
-  import { kvGet } from '../lib/db';
+  import { kvGet, assetUrl } from '../lib/db';
   import type { BroadcastPayload, DisplayMode } from '../lib/types';
   import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
   import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
@@ -18,6 +18,40 @@
   // Audio routed here so it plays in the shared tab (not throttled when GM tab hides).
   let ambientEl: HTMLAudioElement;
   let sfxEl: HTMLAudioElement;
+  // Browsers block audio until the user interacts with THIS tab. Until unlocked,
+  // we hold the last cue and replay it once the keeper clicks to enable sound.
+  let audioLocked = $state(false);
+  let pendingCue: Extract<BroadcastPayload, { kind: 'audio' }> | null = null;
+  // Object URLs are created in THIS tab from shared-IndexedDB blobs; revoke on replace.
+  let ambientUrl = '';
+
+  // Resolve an on-air image's asset to a tab-local URL (assetId), or use an
+  // external src directly. blob: URLs from the GM tab never resolve here.
+  let imgSrc = $state('');
+  $effect(() => {
+    const p = payload;
+    if (p.kind !== 'image') {
+      imgSrc = '';
+      return;
+    }
+    if (p.src) {
+      imgSrc = p.src;
+      return;
+    }
+    if (p.assetId) {
+      let url = '';
+      void assetUrl(p.assetId).then((u) => {
+        if (u) {
+          url = u;
+          imgSrc = u;
+        }
+      });
+      return () => {
+        if (url) URL.revokeObjectURL(url);
+      };
+    }
+    imgSrc = '';
+  });
 
   function flashPing(x: number, y: number) {
     ping = { x, y };
@@ -25,16 +59,39 @@
     pingTimer = setTimeout(() => (ping = null), 1500);
   }
 
-  function handleAudio(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
+  async function handleAudio(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
     const el = cue.channel === 'ambient' ? ambientEl : sfxEl;
     if (!el) return;
     if (cue.action === 'stop') {
       el.pause();
+      if (cue.channel === 'ambient' && ambientUrl) {
+        URL.revokeObjectURL(ambientUrl);
+        ambientUrl = '';
+      }
       return;
     }
+    // Resolve the blob locally (assetId), or fall back to an external src.
+    const url = cue.assetId ? await assetUrl(cue.assetId) : cue.src;
+    if (!url) return;
+    if (cue.channel === 'ambient') {
+      if (ambientUrl) URL.revokeObjectURL(ambientUrl);
+      ambientUrl = cue.assetId ? url : '';
+    }
     el.loop = cue.loop;
-    el.src = cue.src;
-    void el.play().catch(() => {});
+    el.src = url;
+    el.play().catch(() => {
+      // Autoplay blocked — surface the unlock prompt and remember the cue.
+      pendingCue = cue;
+      audioLocked = true;
+    });
+  }
+
+  // First user gesture in this tab unlocks audio; replay any held cue.
+  function unlockAudio() {
+    audioLocked = false;
+    const cue = pendingCue;
+    pendingCue = null;
+    if (cue) void handleAudio(cue);
   }
 
   onMount(() => {
@@ -60,6 +117,7 @@
       off();
       bus.close();
       clearTimeout(pingTimer);
+      if (ambientUrl) URL.revokeObjectURL(ambientUrl);
     };
   });
 </script>
@@ -72,7 +130,7 @@
     </div>
   {:else if payload.kind === 'image'}
     <figure>
-      {#if payload.src}<img src={payload.src} alt={payload.caption ?? ''} />{/if}
+      {#if imgSrc}<img src={imgSrc} alt={payload.caption ?? ''} />{/if}
       {#if payload.caption}<figcaption>{payload.caption}</figcaption>{/if}
     </figure>
   {:else if payload.kind === 'map'}
@@ -103,6 +161,10 @@
 
   {#if ping}
     <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
+  {/if}
+
+  {#if audioLocked}
+    <button class="unlock" onclick={unlockAudio}>🔊 Click to enable audio</button>
   {/if}
 
   <!-- Audio routed through this shared tab; hidden, GM-controlled via the bus. -->
@@ -174,6 +236,25 @@
     pointer-events: none;
     transition: background 0.8s ease;
     z-index: 1;
+  }
+
+  .unlock {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--green);
+    background: rgba(9, 16, 13, 0.92);
+    color: var(--green);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .unlock:hover {
+    background: rgba(47, 138, 102, 0.2);
   }
 
   .ping {

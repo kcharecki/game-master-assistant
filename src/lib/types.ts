@@ -18,15 +18,25 @@ export interface WindowState {
 // What the GM pushes to the shared broadcast window.
 // `ping` is a transient overlay marker (normalized 0..1 coords) drawn over
 // whatever is currently on air — it does not replace the on-air content.
+// NOTE: blob: object URLs are document-scoped and DO NOT resolve in another tab.
+// For uploaded assets send `assetId`; the broadcast tab loads the blob from the
+// shared IndexedDB and makes its own URL. `src` is only for external (http) URLs.
 export type BroadcastPayload =
   | { kind: 'clear' }
-  | { kind: 'image'; src: string; caption?: string }
+  | { kind: 'image'; src?: string; assetId?: string; caption?: string }
   | { kind: 'text'; title?: string; body: string }
-  | { kind: 'map'; src: string; reveal: number[][] }
+  | { kind: 'map'; src?: string; assetId?: string; reveal: number[][] }
   | { kind: 'ping'; x: number; y: number }
   // Audio cue routed through the broadcast tab's <audio> element. `channel`
   // separates looping ambience from one-shot SFX so they don't cut each other.
-  | { kind: 'audio'; src: string; loop: boolean; action: 'play' | 'stop'; channel: 'ambient' | 'sfx' };
+  | {
+      kind: 'audio';
+      src?: string;
+      assetId?: string;
+      loop: boolean;
+      action: 'play' | 'stop';
+      channel: 'ambient' | 'sfx';
+    };
 
 export type DisplayMode = 'cinematic' | 'plain';
 
