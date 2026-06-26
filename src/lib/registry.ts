@@ -13,6 +13,7 @@ import map from '../modules/map';
 import audio from '../modules/audio';
 import sanity from '../modules/sanity';
 import clues from '../modules/clues';
+import skillcheck from '../modules/skillcheck';
 
 function stub(
   id: ModuleId,
@@ -42,7 +43,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   notebook: stub('notebook', 'Notebook', 344, 186),
   clues,
   sanity,
-  skillcheck: stub('skillcheck', 'Skill Check', 300, 300),
+  skillcheck,
   statblock: stub('statblock', 'Stat Blocks', 340, 320),
   encounter: stub('encounter', 'Encounter', 320, 300),
 };
