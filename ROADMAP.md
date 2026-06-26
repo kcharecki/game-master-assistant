@@ -78,12 +78,12 @@ Live-at-the-table essentials. Commit per row.
 - [x] stat block manager + encounter builder w/ CR readout (D&D) + test
 - *checkpoint:* `m4-systems`
 
-### M5 — Prep & notes
-- [ ] session notes (timestamped, taggable, searchable) + test
-- [ ] quest & plot-thread tracker + test
-- [ ] scene/beat planner (movable cards)
-- [ ] rulings log, custom random tables, loot generator + tests
-- [ ] recap generator, improv prompt button
+### M5 — Prep & notes ✅
+- [x] session notes (timestamped, taggable, searchable) + test
+- [x] quest & plot-thread tracker + test
+- [x] scene/beat planner (movable cards)
+- [x] rulings log, custom random tables, loot generator + tests
+- [x] recap generator, improv prompt button
 - *checkpoint:* `m5-prep`
 
 ### M6 — Cross-cutting
