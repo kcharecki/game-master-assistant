@@ -6,6 +6,9 @@ import { notebook } from '../notebook/store.svelte';
 import { quests } from '../quests/store.svelte';
 import { tables } from '../tables/store.svelte';
 import { handouts } from '../handouts/store.svelte';
+import { rulesEntries } from '../rules/data';
+import { forSystem } from '../rules/logic';
+import { system } from '../../lib/stores/system.svelte';
 
 /**
  * Gather every searchable thing across the app's stores into one flat list.
@@ -49,6 +52,10 @@ export function collectSources(): PaletteItem[] {
   // Handouts
   for (const h of handouts.list) {
     out.push({ id: `handout-${h.id}`, label: h.title, detail: 'Handout', module: 'handouts', kind: 'open' });
+  }
+  // Rules reference (filtered to the active system)
+  for (const e of forSystem(rulesEntries, system.current)) {
+    out.push({ id: `rule-${e.id}`, label: e.term, detail: 'Rule', module: 'rules', kind: 'open' });
   }
   // "Spawn <module> window" actions — every module that has a desktop view.
   for (const m of moduleList) {

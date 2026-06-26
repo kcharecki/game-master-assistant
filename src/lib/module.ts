@@ -26,6 +26,7 @@ export type ModuleId =
   | 'palette'
   | 'archive'
   | 'spotlight'
+  | 'rules'
   | 'reveal';
 
 /**
