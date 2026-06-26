@@ -20,6 +20,7 @@ export type ModuleId =
   | 'skillcheck'
   | 'statblock'
   | 'quests'
+  | 'beats'
   | 'reveal';
 
 /**
