@@ -16,6 +16,10 @@ export type ModuleId =
   | 'map'
   | 'audio'
   | 'clues'
+  | 'sanity'
+  | 'skillcheck'
+  | 'statblock'
+  | 'encounter'
   | 'reveal';
 
 /**

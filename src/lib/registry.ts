@@ -39,6 +39,10 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   handouts: stub('handouts', 'Handouts', 318, 236),
   notebook: stub('notebook', 'Notebook', 344, 186),
   clues: stub('clues', 'Clue Board', 380, 300),
+  sanity: stub('sanity', 'Sanity', 300, 280),
+  skillcheck: stub('skillcheck', 'Skill Check', 300, 300),
+  statblock: stub('statblock', 'Stat Blocks', 340, 320),
+  encounter: stub('encounter', 'Encounter', 320, 300),
 };
 
 export const moduleList: ModuleManifest[] = Object.values(modules);
