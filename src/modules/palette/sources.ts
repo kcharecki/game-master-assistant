@@ -5,6 +5,7 @@ import { lore } from '../lore/store.svelte';
 import { notebook } from '../notebook/store.svelte';
 import { quests } from '../quests/store.svelte';
 import { tables } from '../tables/store.svelte';
+import { handouts } from '../handouts/store.svelte';
 
 /**
  * Gather every searchable thing across the app's stores into one flat list.
@@ -44,6 +45,10 @@ export function collectSources(): PaletteItem[] {
   // Rulings
   for (const r of tables.rulings) {
     out.push({ id: `ruling-${r.id}`, label: r.question, detail: 'Ruling', module: 'tables', kind: 'open' });
+  }
+  // Handouts
+  for (const h of handouts.list) {
+    out.push({ id: `handout-${h.id}`, label: h.title, detail: 'Handout', module: 'handouts', kind: 'open' });
   }
   // "Spawn <module> window" actions — every module that has a desktop view.
   for (const m of moduleList) {

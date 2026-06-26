@@ -1,4 +1,5 @@
 import type { ModuleId, ModuleManifest } from './module';
+import handouts from '../modules/handouts';
 import scene from '../modules/scene';
 import initiative from '../modules/initiative';
 import conditions from '../modules/conditions';
@@ -23,16 +24,6 @@ import improv from '../modules/improv';
 import palette from '../modules/palette';
 import archive from '../modules/archive';
 
-function stub(
-  id: ModuleId,
-  title: string,
-  w: number,
-  h: number,
-  extra: Partial<ModuleManifest> = {}
-): ModuleManifest {
-  return { id, title, size: { w, h }, ...extra };
-}
-
 /** The single source of truth: id -> module. Surfaces resolve views from here. */
 export const modules: Record<ModuleId, ModuleManifest> = {
   scene,
@@ -47,7 +38,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   reveal,
   map,
   audio,
-  handouts: stub('handouts', 'Handouts', 318, 236),
+  handouts,
   notebook,
   quests,
   beats,
