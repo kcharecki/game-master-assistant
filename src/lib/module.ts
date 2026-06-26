@@ -19,6 +19,7 @@ export type ModuleId =
   | 'sanity'
   | 'skillcheck'
   | 'statblock'
+  | 'quests'
   | 'reveal';
 
 /**
