@@ -4,6 +4,7 @@ import type { Component } from 'svelte';
 export type ModuleId =
   | 'scene'
   | 'initiative'
+  | 'conditions'
   | 'roller'
   | 'npcs'
   | 'handouts'

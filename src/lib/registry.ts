@@ -1,6 +1,7 @@
 import type { ModuleId, ModuleManifest } from './module';
 import scene from '../modules/scene';
 import initiative from '../modules/initiative';
+import conditions from '../modules/conditions';
 import roller from '../modules/roller';
 import npcs from '../modules/npcs';
 import reveal from '../modules/reveal';
@@ -19,6 +20,7 @@ function stub(
 export const modules: Record<ModuleId, ModuleManifest> = {
   scene,
   initiative,
+  conditions,
   roller,
   npcs,
   reveal,
