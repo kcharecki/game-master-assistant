@@ -27,11 +27,11 @@ Built as desktop windows; full list in [gm-assistant-features.md](gm-assistant-f
 - Next: Reveal/broadcast window, Battle map + tokens + fog, Ambient audio + soundboard, Clue board, Calendar/timeline.
 
 ## Window system — to implement
-- [ ] Drag (done in mockup) + **resize** handles
-- [ ] **Minimize / close**, restore from dock
-- [ ] **＋ Widget** menu → spawn any module window
+- [x] Drag (done in mockup) + **resize** handles
+- [x] **Minimize / close**, restore from dock
+- [x] **＋ Widget** menu → spawn any module window
 - [ ] Snap-to-grid + saved **layout presets** per system (D&D vs CoC)
-- [ ] Persist window positions/state
+- [x] Persist window positions/state
 
 ## System flexibility
 - Keep modules genre-neutral where possible (fits D&D + Call of Cthulhu).

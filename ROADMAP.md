@@ -45,12 +45,12 @@ initiative (static), roller, npcs (editor), reveal. `tag: m0-foundation`
 
 ### M1 — Core play loop
 Live-at-the-table essentials. Commit per row.
-- [ ] initiative: real store (add/remove/reorder, **next turn**, round counter) + test
-- [ ] initiative: HP / AC / conditions per combatant + hidden HP & "bloodied"
-- [ ] conditions & duration tracker (auto-expire countdown) + test
-- [ ] roller: macros, advantage/disadvantage, **hidden GM roll** + test
-- [ ] session timer & pacing bar + break reminder
-- [ ] window system: **resize** handles, **minimize-to-dock**, real ＋Widget menu + e2e
+- [x] initiative: real store (add/remove/reorder, **next turn**, round counter) + test
+- [x] initiative: HP / AC / conditions per combatant + hidden HP & "bloodied"
+- [x] conditions & duration tracker (auto-expire countdown) + test
+- [x] roller: macros, advantage/disadvantage, **hidden GM roll** + test
+- [x] session timer & pacing bar + break reminder
+- [x] window system: **resize** handles, **minimize-to-dock**, real ＋Widget menu + e2e
 - *checkpoint:* `m1-core`
 
 ### M2 — Broadcast & maps (the shared surface)
