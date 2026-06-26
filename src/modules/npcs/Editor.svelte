@@ -37,7 +37,10 @@
 <div class="editor">
   <header class="ehead">
     <h2>NPC Roster</h2>
-    <button class="btn solid" onclick={() => npcs.add()}>＋ New NPC</button>
+    <div class="hbtns">
+      <button class="btn" onclick={() => npcs.addGenerated()}>🎲 Generate</button>
+      <button class="btn solid" onclick={() => npcs.add()}>＋ New NPC</button>
+    </div>
   </header>
 
   <input class="in search" bind:value={query} placeholder="Search name / role / disposition…" />
@@ -112,6 +115,10 @@
     font-family: Georgia, serif;
     font-size: 22px;
     color: #e9f3ed;
+  }
+  .hbtns {
+    display: flex;
+    gap: 8px;
   }
   .search {
     margin-bottom: 16px;

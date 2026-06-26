@@ -32,4 +32,13 @@ describe('NpcStore', () => {
     npcs.remove(n.id);
     expect(npcs.list).toHaveLength(0);
   });
+
+  it('adds a generated NPC (deterministic via injected rng)', () => {
+    const n = npcs.addGenerated(() => 0);
+    expect(npcs.list).toHaveLength(1);
+    expect(n.name).toBe('Bram Calloway');
+    expect(n.disposition).toBe('neutral');
+    expect(n.role.length).toBeGreaterThan(0);
+    expect(n.voice).toContain(';');
+  });
 });

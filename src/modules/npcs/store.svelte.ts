@@ -1,4 +1,5 @@
 import { kvSet, kvGet } from '../../lib/db';
+import { generateNpc, type Rng } from './generator';
 
 export type Disposition = 'ally' | 'neutral' | 'hostile';
 export interface Npc {
@@ -23,6 +24,21 @@ class NpcStore {
 
   add(name = 'New NPC'): Npc {
     const npc: Npc = { id: crypto.randomUUID(), name, role: '', disposition: 'neutral' };
+    this.list.push(npc);
+    this.persist();
+    return npc;
+  }
+
+  /** Roll a random NPC and add it to the roster. Rng injectable for tests. */
+  addGenerated(rng?: Rng): Npc {
+    const g = generateNpc(rng);
+    const npc: Npc = {
+      id: crypto.randomUUID(),
+      name: g.name,
+      role: g.motivation,
+      disposition: 'neutral',
+      voice: `${g.trait}; ${g.mannerism}`,
+    };
     this.list.push(npc);
     this.persist();
     return npc;
