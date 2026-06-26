@@ -4,7 +4,7 @@ import Desktop from './Desktop.svelte';
 const roller: ModuleManifest = {
   id: 'roller',
   title: 'Quick Roller',
-  size: { w: 300, h: 318 },
+  size: { w: 300, h: 360 },
   desktop: Desktop,
 };
 
