@@ -23,8 +23,9 @@ Explore alternates: [mockups/index.html](mockups/index.html).
 
 ## Windows / modules (initial set)
 Built as desktop windows; full list in [gm-assistant-features.md](gm-assistant-features.md).
-- Live now in mockup: Current Scene, Initiative Tracker, Quick Roller (d100 + Chaos/Sanity), NPCs, Handouts, Notebook.
-- Next: Reveal/broadcast window, Battle map + tokens + fog, Ambient audio + soundboard, Clue board, Calendar/timeline.
+- Live now: Current Scene, Initiative Tracker, Quick Roller (d100 + Chaos/Sanity), NPCs, Handouts, Notebook,
+  Reveal/broadcast (image upload + display mode), Battle map (pan/zoom, tokens, fog, ping), Ambient audio + soundboard.
+- Next: Clue board, Calendar/timeline, lore wiki, faction web (M3).
 
 ## Window system — to implement
 - [x] Drag (done in mockup) + **resize** handles
@@ -47,6 +48,7 @@ Built as desktop windows; full list in [gm-assistant-features.md](gm-assistant-f
 ## Broadcast architecture (locked)
 - Two pages, same origin: **GM app** (`index.html`, private desktop) and **Broadcast renderer** (`broadcast.html`, the shared one).
 - GM → Broadcast control via **BroadcastChannel** (`gm-assistant` channel). Live, pub/sub, no handle needed.
+  Payload kinds: `clear | text | image | map | ping | audio`, plus a separate `display` message (cinematic/plain framing).
 - Broadcast state mirrored in IndexedDB `kv` so the broadcast tab **rehydrates** on open/refresh.
 - GM spawns broadcast window with `window.open` (user gesture) → place on shared screen / 2nd monitor.
 - GM **screen-shares only the broadcast tab/window**; control tab stays private. = CLAUDE.md "one broadcast window".

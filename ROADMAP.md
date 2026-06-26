@@ -53,13 +53,13 @@ Live-at-the-table essentials. Commit per row.
 - [x] window system: **resize** handles, **minimize-to-dock**, real ＋Widget menu + e2e
 - *checkpoint:* `m1-core`
 
-### M2 — Broadcast & maps (the shared surface)
-- [ ] reveal: image upload to IndexedDB assets (not just URL) + test
-- [ ] player-facing display mode (clean broadcast theme)
-- [ ] battle map: grid + pan/zoom; tokens (drag, snap, HP/conditions) + test
-- [ ] fog of war reveal (paint/erase) → broadcast `map` payload + test
-- [ ] ping/pointer tool
-- [ ] audio: ambient player (scene playlists, crossfade) + soundboard, routed to broadcast
+### M2 — Broadcast & maps (the shared surface) ✅
+- [x] reveal: image upload to IndexedDB assets (not just URL) + test
+- [x] player-facing display mode (clean broadcast theme)
+- [x] battle map: grid + pan/zoom; tokens (drag, snap, HP/conditions) + test
+- [x] fog of war reveal (paint/erase) → broadcast `map` payload + test
+- [x] ping/pointer tool
+- [x] audio: ambient player (scene playlists, crossfade) + soundboard, routed to broadcast
 - *checkpoint:* `m2-broadcast`
 
 ### M3 — NPCs & world
