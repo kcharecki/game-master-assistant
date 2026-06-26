@@ -11,6 +11,7 @@ import factions from '../modules/factions';
 import reveal from '../modules/reveal';
 import map from '../modules/map';
 import audio from '../modules/audio';
+import sanity from '../modules/sanity';
 
 function stub(
   id: ModuleId,
@@ -39,7 +40,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   handouts: stub('handouts', 'Handouts', 318, 236),
   notebook: stub('notebook', 'Notebook', 344, 186),
   clues: stub('clues', 'Clue Board', 380, 300),
-  sanity: stub('sanity', 'Sanity', 300, 280),
+  sanity,
   skillcheck: stub('skillcheck', 'Skill Check', 300, 300),
   statblock: stub('statblock', 'Stat Blocks', 340, 320),
   encounter: stub('encounter', 'Encounter', 320, 300),
