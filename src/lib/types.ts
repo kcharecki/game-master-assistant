@@ -23,7 +23,10 @@ export type BroadcastPayload =
   | { kind: 'image'; src: string; caption?: string }
   | { kind: 'text'; title?: string; body: string }
   | { kind: 'map'; src: string; reveal: number[][] }
-  | { kind: 'ping'; x: number; y: number };
+  | { kind: 'ping'; x: number; y: number }
+  // Audio cue routed through the broadcast tab's <audio> element. `channel`
+  // separates looping ambience from one-shot SFX so they don't cut each other.
+  | { kind: 'audio'; src: string; loop: boolean; action: 'play' | 'stop'; channel: 'ambient' | 'sfx' };
 
 export type DisplayMode = 'cinematic' | 'plain';
 

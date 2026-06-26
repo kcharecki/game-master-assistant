@@ -12,10 +12,26 @@
   let pingTimer: ReturnType<typeof setTimeout> | undefined;
   const CELL = 48; // viewBox cell size; aspect-ratio only, scales to fit
 
+  // Audio routed here so it plays in the shared tab (not throttled when GM tab hides).
+  let ambientEl: HTMLAudioElement;
+  let sfxEl: HTMLAudioElement;
+
   function flashPing(x: number, y: number) {
     ping = { x, y };
     clearTimeout(pingTimer);
     pingTimer = setTimeout(() => (ping = null), 1500);
+  }
+
+  function handleAudio(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
+    const el = cue.channel === 'ambient' ? ambientEl : sfxEl;
+    if (!el) return;
+    if (cue.action === 'stop') {
+      el.pause();
+      return;
+    }
+    el.loop = cue.loop;
+    el.src = cue.src;
+    void el.play().catch(() => {});
   }
 
   onMount(() => {
@@ -30,6 +46,7 @@
     const off = bus.on((m) => {
       if (m.type === 'display') mode = m.mode;
       else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
+      else if (m.payload.kind === 'audio') handleAudio(m.payload);
       else payload = m.payload;
     });
     return () => {
@@ -77,6 +94,10 @@
   {#if ping}
     <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
   {/if}
+
+  <!-- Audio routed through this shared tab; hidden, GM-controlled via the bus. -->
+  <audio bind:this={ambientEl}></audio>
+  <audio bind:this={sfxEl}></audio>
 </div>
 
 <style>
