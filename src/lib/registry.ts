@@ -6,6 +6,7 @@ import timer from '../modules/timer';
 import roller from '../modules/roller';
 import npcs from '../modules/npcs';
 import reveal from '../modules/reveal';
+import map from '../modules/map';
 
 function stub(
   id: ModuleId,
@@ -26,9 +27,9 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   roller,
   npcs,
   reveal,
+  map,
   handouts: stub('handouts', 'Handouts', 318, 236),
   notebook: stub('notebook', 'Notebook', 344, 186),
-  map: stub('map', 'Battle Map', 520, 420, { broadcastable: true }),
   audio: stub('audio', 'Audio', 320, 280),
   clues: stub('clues', 'Clue Board', 380, 300),
 };
