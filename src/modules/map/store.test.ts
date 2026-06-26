@@ -5,7 +5,7 @@ vi.mock('../../lib/db', () => ({
   kvSet: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { map, snapToCell, clampZoom, GRID_SIZE } from './store.svelte';
+import { map, snapToCell, clampZoom, GRID_SIZE, makeFog, serializeFog } from './store.svelte';
 
 describe('grid math', () => {
   it('snaps a pixel coordinate to the nearest cell index', () => {
@@ -74,5 +74,35 @@ describe('MapStore', () => {
     expect(map.transform.zoom).toBe(2);
     map.zoomBy(100); // clamped
     expect(map.transform.zoom).toBe(4);
+  });
+});
+
+describe('fog of war', () => {
+  beforeEach(() => map.clearFog());
+
+  it('starts fully hidden', () => {
+    const fog = makeFog(3, 2);
+    expect(fog).toEqual([
+      [false, false, false],
+      [false, false, false],
+    ]);
+  });
+
+  it('paints and erases a single cell', () => {
+    map.setFog(2, 1, true);
+    expect(map.fog[1][2]).toBe(true);
+    map.setFog(2, 1, false);
+    expect(map.fog[1][2]).toBe(false);
+  });
+
+  it('ignores out-of-bounds cells', () => {
+    expect(() => map.setFog(-1, 0, true)).not.toThrow();
+    expect(() => map.setFog(0, 9999, true)).not.toThrow();
+  });
+
+  it('serializes to a 0/1 grid for broadcast', () => {
+    expect(serializeFog([[true, false]])).toEqual([[1, 0]]);
+    map.setFog(0, 0, true);
+    expect(map.fogPayload()[0][0]).toBe(1);
   });
 });

@@ -1,13 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { map, GRID_SIZE, snapToCell, type Token } from './store.svelte';
+  import { broadcastMap } from './bus-actions';
 
   let selected = $state<string | null>(null);
   let dragId: string | null = null;
-  // Where the pointer grabbed the token, in cell units, so dragging feels anchored.
   let panning = false;
   let lastX = 0;
   let lastY = 0;
+  // Fog tool: 'off' = normal drag/pan; 'reveal'/'hide' paint fog cells.
+  let fogTool = $state<'off' | 'reveal' | 'hide'>('off');
 
   onMount(() => {
     void map.load();
@@ -29,9 +31,25 @@
     selected = id;
   }
 
+  // Pointer -> fog cell index (floor, since fog cells are area-based).
+  function toFogCell(svg: SVGSVGElement, clientX: number, clientY: number) {
+    const r = svg.getBoundingClientRect();
+    const { panX, panY, zoom } = map.transform;
+    const col = Math.floor((clientX - r.left - panX) / zoom / GRID_SIZE);
+    const row = Math.floor((clientY - r.top - panY) / zoom / GRID_SIZE);
+    return { col, row };
+  }
+
+  function paintAt(svg: SVGSVGElement, clientX: number, clientY: number) {
+    const { col, row } = toFogCell(svg, clientX, clientY);
+    map.setFog(col, row, fogTool === 'reveal');
+  }
+
   function onMove(e: PointerEvent) {
     const svg = e.currentTarget as SVGSVGElement;
-    if (dragId) {
+    if (fogTool !== 'off' && panning) {
+      paintAt(svg, e.clientX, e.clientY);
+    } else if (dragId) {
       const { gx, gy } = toCell(svg, e.clientX, e.clientY);
       map.moveToken(dragId, gx, gy);
     } else if (panning) {
@@ -46,6 +64,11 @@
     lastX = e.clientX;
     lastY = e.clientY;
     selected = null;
+    if (fogTool !== 'off') paintAt(e.currentTarget as SVGSVGElement, e.clientX, e.clientY);
+  }
+
+  function putMapOnAir() {
+    broadcastMap('', map.fogPayload());
   }
 
   function onUp() {
@@ -88,6 +111,21 @@
       </defs>
       <rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#grid)" />
 
+      <!-- Fog: hidden cells dimmed on the GM view (players see them opaque). -->
+      {#each map.fog as fogRow, row (row)}
+        {#each fogRow as revealed, col (col)}
+          {#if !revealed}
+            <rect
+              class="fog"
+              x={col * GRID_SIZE}
+              y={row * GRID_SIZE}
+              width={GRID_SIZE}
+              height={GRID_SIZE}
+            />
+          {/if}
+        {/each}
+      {/each}
+
       {#each map.tokens as t (t.id)}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <g
@@ -114,6 +152,19 @@
     </button>
     <button class="btn sm" onclick={() => map.zoomBy(1.1)}>＋</button>
     <button class="btn sm" onclick={() => map.zoomBy(0.9)}>－</button>
+    <button
+      class="btn sm"
+      class:on={fogTool === 'reveal'}
+      onclick={() => (fogTool = fogTool === 'reveal' ? 'off' : 'reveal')}
+      title="Reveal fog">Reveal</button
+    >
+    <button
+      class="btn sm"
+      class:on={fogTool === 'hide'}
+      onclick={() => (fogTool = fogTool === 'hide' ? 'off' : 'hide')}
+      title="Hide (re-fog)">Hide</button
+    >
+    <button class="btn sm solid" onclick={putMapOnAir} title="Send map to broadcast">On Air</button>
   </div>
 
   {#if sel}
@@ -162,6 +213,10 @@
     font-weight: 700;
     pointer-events: none;
   }
+  .fog {
+    fill: rgba(4, 9, 8, 0.62);
+    pointer-events: none;
+  }
   .toolbar {
     position: absolute;
     top: 8px;
@@ -200,6 +255,12 @@
   .btn.sm.on {
     background: rgba(199, 164, 78, 0.2);
     border-color: var(--gold);
+  }
+  .btn.sm.solid {
+    background: var(--green-dim);
+    border-color: var(--green-dim);
+    color: #06120c;
+    font-weight: 700;
   }
   .btn.sm.danger:hover {
     border-color: var(--red);

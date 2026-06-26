@@ -7,6 +7,7 @@
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
+  const CELL = 48; // viewBox cell size; aspect-ratio only, scales to fit
 
   onMount(() => {
     // Rehydrate last shared state + display mode, then listen for live GM pushes.
@@ -39,6 +40,25 @@
       {#if payload.src}<img src={payload.src} alt={payload.caption ?? ''} />{/if}
       {#if payload.caption}<figcaption>{payload.caption}</figcaption>{/if}
     </figure>
+  {:else if payload.kind === 'map'}
+    <div class="mapview">
+      <svg
+        viewBox="0 0 {(payload.reveal[0]?.length ?? 0) * CELL} {payload.reveal.length * CELL}"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {#if payload.src}
+          <image href={payload.src} x="0" y="0" width="100%" height="100%" />
+        {/if}
+        {#each payload.reveal as fogRow, row (row)}
+          {#each fogRow as cell, col (col)}
+            {#if cell === 0}
+              <!-- Hidden: fully opaque so players never see beyond the fog. -->
+              <rect x={col * CELL} y={row * CELL} width={CELL} height={CELL} fill="#05090a" />
+            {/if}
+          {/each}
+        {/each}
+      </svg>
+    </div>
   {:else}
     <div class="idle">Awaiting the Keeper…</div>
   {/if}
@@ -81,6 +101,19 @@
     max-width: 80vw;
     max-height: 70vh;
     border-radius: 12px;
+    border: 1px solid var(--line2);
+  }
+  .mapview {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+  }
+  .mapview svg {
+    max-width: 86vw;
+    max-height: 82vh;
+    background: #0a1611;
+    border-radius: 10px;
     border: 1px solid var(--line2);
   }
   figcaption {

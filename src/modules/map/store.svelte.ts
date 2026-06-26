@@ -24,9 +24,23 @@ export const GRID_SIZE = 48; // pixels per cell at zoom 1
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 4;
 
+/** Default fog grid dimensions (cells). */
+export const FOG_COLS = 20;
+export const FOG_ROWS = 14;
+
 /** Snap a pixel coordinate to the nearest grid cell index. */
 export function snapToCell(px: number, gridSize = GRID_SIZE): number {
   return Math.round(px / gridSize);
+}
+
+/** A fresh fog grid: every cell hidden (false = not yet revealed). */
+export function makeFog(cols = FOG_COLS, rows = FOG_ROWS): boolean[][] {
+  return Array.from({ length: rows }, () => Array.from({ length: cols }, () => false));
+}
+
+/** Serialize a boolean fog grid to the 0/1 number grid the broadcast payload carries. */
+export function serializeFog(fog: boolean[][]): number[][] {
+  return fog.map((row) => row.map((cell) => (cell ? 1 : 0)));
 }
 
 /** Clamp a zoom value into the allowed range. */
@@ -52,6 +66,23 @@ class MapStore {
     },
   ]);
   transform = $state<Transform>({ panX: 0, panY: 0, zoom: 1 });
+  /** Fog of war: true = revealed to players. */
+  fog = $state<boolean[][]>(makeFog());
+
+  /** Paint (reveal) or erase (re-hide) a single cell; ignores out-of-bounds. */
+  setFog(col: number, row: number, revealed: boolean): void {
+    if (row < 0 || row >= this.fog.length || col < 0 || col >= this.fog[0].length) return;
+    this.fog[row][col] = revealed;
+  }
+
+  clearFog(): void {
+    this.fog = makeFog(this.fog[0]?.length ?? FOG_COLS, this.fog.length || FOG_ROWS);
+  }
+
+  /** Snapshot for the broadcast payload (0/1 grid). */
+  fogPayload(): number[][] {
+    return serializeFog($state.snapshot(this.fog));
+  }
 
   addToken(gx = 0, gy = 0, label = 'New'): Token {
     const t: Token = {
