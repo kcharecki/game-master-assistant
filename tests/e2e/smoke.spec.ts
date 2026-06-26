@@ -26,6 +26,16 @@ test('GM reveal reaches the broadcast window', async ({ context }) => {
   await expect(view.getByText('A Strange Symbol')).toBeVisible({ timeout: 5000 });
 });
 
+test('system switch toggles D&D / CoC', async ({ page }) => {
+  await page.goto('/');
+  const coc = page.getByRole('button', { name: 'CoC 7e' });
+  const dnd = page.getByRole('button', { name: 'D&D 5e' });
+  await dnd.click();
+  await expect(dnd).toHaveAttribute('aria-pressed', 'true');
+  await coc.click();
+  await expect(coc).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('GM battle map reaches the broadcast window', async ({ context }) => {
   const gm = await context.newPage();
   await gm.goto('/');
