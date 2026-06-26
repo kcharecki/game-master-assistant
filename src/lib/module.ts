@@ -5,6 +5,7 @@ export type ModuleId =
   | 'scene'
   | 'initiative'
   | 'conditions'
+  | 'timer'
   | 'roller'
   | 'npcs'
   | 'handouts'
