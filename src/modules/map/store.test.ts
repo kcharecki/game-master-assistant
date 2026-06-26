@@ -5,7 +5,15 @@ vi.mock('../../lib/db', () => ({
   kvSet: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { map, snapToCell, clampZoom, GRID_SIZE, makeFog, serializeFog } from './store.svelte';
+import {
+  map,
+  snapToCell,
+  clampZoom,
+  GRID_SIZE,
+  makeFog,
+  serializeFog,
+  normPing,
+} from './store.svelte';
 
 describe('grid math', () => {
   it('snaps a pixel coordinate to the nearest cell index', () => {
@@ -104,5 +112,23 @@ describe('fog of war', () => {
     expect(serializeFog([[true, false]])).toEqual([[1, 0]]);
     map.setFog(0, 0, true);
     expect(map.fogPayload()[0][0]).toBe(1);
+  });
+});
+
+describe('normPing', () => {
+  const rect = { left: 100, top: 50, width: 200, height: 400 };
+
+  it('normalizes a point to 0..1 relative to bounds', () => {
+    expect(normPing(200, 250, rect)).toEqual({ x: 0.5, y: 0.5 });
+    expect(normPing(100, 50, rect)).toEqual({ x: 0, y: 0 });
+  });
+
+  it('clamps points outside the bounds', () => {
+    expect(normPing(0, 0, rect)).toEqual({ x: 0, y: 0 });
+    expect(normPing(9999, 9999, rect)).toEqual({ x: 1, y: 1 });
+  });
+
+  it('avoids divide-by-zero on a zero-size rect', () => {
+    expect(normPing(5, 5, { left: 0, top: 0, width: 0, height: 0 })).toEqual({ x: 0, y: 0 });
   });
 });

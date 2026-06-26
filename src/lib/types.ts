@@ -16,11 +16,14 @@ export interface WindowState {
 }
 
 // What the GM pushes to the shared broadcast window.
+// `ping` is a transient overlay marker (normalized 0..1 coords) drawn over
+// whatever is currently on air — it does not replace the on-air content.
 export type BroadcastPayload =
   | { kind: 'clear' }
   | { kind: 'image'; src: string; caption?: string }
   | { kind: 'text'; title?: string; body: string }
-  | { kind: 'map'; src: string; reveal: number[][] };
+  | { kind: 'map'; src: string; reveal: number[][] }
+  | { kind: 'ping'; x: number; y: number };
 
 export type DisplayMode = 'cinematic' | 'plain';
 

@@ -10,3 +10,15 @@ export function broadcastMap(src: string, reveal: number[][]): void {
   bus.close();
   void kvSet('broadcastState', payload);
 }
+
+/**
+ * Flash a transient ping at normalized (x,y). Sent over the bus and mirrored to
+ * its OWN kv key — never `broadcastState`, so it can't clobber the on-air view.
+ */
+export function broadcastPing(x: number, y: number): void {
+  const payload: BroadcastPayload = { kind: 'ping', x, y };
+  const bus = createBus();
+  bus.send(payload);
+  bus.close();
+  void kvSet('broadcastPing', payload);
+}

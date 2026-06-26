@@ -7,7 +7,16 @@
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
+  // Transient ping marker (normalized 0..1) that overlays current content.
+  let ping = $state<{ x: number; y: number } | null>(null);
+  let pingTimer: ReturnType<typeof setTimeout> | undefined;
   const CELL = 48; // viewBox cell size; aspect-ratio only, scales to fit
+
+  function flashPing(x: number, y: number) {
+    ping = { x, y };
+    clearTimeout(pingTimer);
+    pingTimer = setTimeout(() => (ping = null), 1500);
+  }
 
   onMount(() => {
     // Rehydrate last shared state + display mode, then listen for live GM pushes.
@@ -19,12 +28,14 @@
     });
     const bus = createBus();
     const off = bus.on((m) => {
-      if (m.type === 'broadcast') payload = m.payload;
-      else mode = m.mode;
+      if (m.type === 'display') mode = m.mode;
+      else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
+      else payload = m.payload;
     });
     return () => {
       off();
       bus.close();
+      clearTimeout(pingTimer);
     };
   });
 </script>
@@ -61,6 +72,10 @@
     </div>
   {:else}
     <div class="idle">Awaiting the Keeper…</div>
+  {/if}
+
+  {#if ping}
+    <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
   {/if}
 </div>
 
@@ -120,6 +135,32 @@
     margin-top: 14px;
     color: var(--muted);
     font-style: italic;
+  }
+
+  .ping {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    border-radius: 50%;
+    border: 3px solid var(--green);
+    box-shadow: 0 0 18px var(--green);
+    pointer-events: none;
+    animation: pingpulse 1.5s ease-out forwards;
+  }
+  @keyframes pingpulse {
+    0% {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+    25% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.6);
+      opacity: 0;
+    }
   }
 
   /* Plain mode: flat, high-contrast framing for legibility over atmosphere. */

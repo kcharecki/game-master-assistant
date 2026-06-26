@@ -1,15 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { map, GRID_SIZE, snapToCell, type Token } from './store.svelte';
-  import { broadcastMap } from './bus-actions';
+  import { map, GRID_SIZE, snapToCell, normPing, type Token } from './store.svelte';
+  import { broadcastMap, broadcastPing } from './bus-actions';
 
   let selected = $state<string | null>(null);
   let dragId: string | null = null;
   let panning = false;
   let lastX = 0;
   let lastY = 0;
-  // Fog tool: 'off' = normal drag/pan; 'reveal'/'hide' paint fog cells.
-  let fogTool = $state<'off' | 'reveal' | 'hide'>('off');
+  // Tool: 'off' = normal drag/pan; 'reveal'/'hide' paint fog cells; 'ping' flashes a marker.
+  let fogTool = $state<'off' | 'reveal' | 'hide' | 'ping'>('off');
 
   onMount(() => {
     void map.load();
@@ -47,7 +47,7 @@
 
   function onMove(e: PointerEvent) {
     const svg = e.currentTarget as SVGSVGElement;
-    if (fogTool !== 'off' && panning) {
+    if ((fogTool === 'reveal' || fogTool === 'hide') && panning) {
       paintAt(svg, e.clientX, e.clientY);
     } else if (dragId) {
       const { gx, gy } = toCell(svg, e.clientX, e.clientY);
@@ -64,7 +64,13 @@
     lastX = e.clientX;
     lastY = e.clientY;
     selected = null;
-    if (fogTool !== 'off') paintAt(e.currentTarget as SVGSVGElement, e.clientX, e.clientY);
+    const svg = e.currentTarget as SVGSVGElement;
+    if (fogTool === 'reveal' || fogTool === 'hide') {
+      paintAt(svg, e.clientX, e.clientY);
+    } else if (fogTool === 'ping') {
+      const { x, y } = normPing(e.clientX, e.clientY, svg.getBoundingClientRect());
+      broadcastPing(x, y);
+    }
   }
 
   function putMapOnAir() {
@@ -163,6 +169,12 @@
       class:on={fogTool === 'hide'}
       onclick={() => (fogTool = fogTool === 'hide' ? 'off' : 'hide')}
       title="Hide (re-fog)">Hide</button
+    >
+    <button
+      class="btn sm"
+      class:on={fogTool === 'ping'}
+      onclick={() => (fogTool = fogTool === 'ping' ? 'off' : 'ping')}
+      title="Ping a spot for players">Ping</button
     >
     <button class="btn sm solid" onclick={putMapOnAir} title="Send map to broadcast">On Air</button>
   </div>

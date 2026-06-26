@@ -43,6 +43,23 @@ export function serializeFog(fog: boolean[][]): number[][] {
   return fog.map((row) => row.map((cell) => (cell ? 1 : 0)));
 }
 
+/**
+ * Normalize a pointer position within an element's bounds to 0..1 coords,
+ * clamped, so a ping lands at the same relative spot on the broadcast view
+ * regardless of each surface's pixel size.
+ */
+export function normPing(
+  clientX: number,
+  clientY: number,
+  rect: { left: number; top: number; width: number; height: number }
+): { x: number; y: number } {
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
+  return {
+    x: clamp(rect.width ? (clientX - rect.left) / rect.width : 0),
+    y: clamp(rect.height ? (clientY - rect.top) / rect.height : 0),
+  };
+}
+
 /** Clamp a zoom value into the allowed range. */
 export function clampZoom(z: number): number {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
