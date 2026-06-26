@@ -86,11 +86,13 @@ Live-at-the-table essentials. Commit per row.
 - [x] recap generator, improv prompt button
 - *checkpoint:* `m5-prep`
 
-### M6 — Cross-cutting
-- [ ] command palette / global search (⌘K over all modules) + test
-- [ ] layout presets per system (save/restore window arrangement)
-- [ ] campaign archive (cross-session search)
-- [ ] persistence polish: export/import campaign file, IndexedDB quota handling
+### M6 — Cross-cutting ✅
+- [x] command palette / global search (⌘K over all modules) + test
+- [x] layout presets per system (save/restore window arrangement)
+- [x] campaign archive (cross-session search)
+- [x] persistence polish: export/import campaign file, IndexedDB quota handling
+- [x] stragglers: handouts, spotlight (#15), mood/lighting (#19), rules (#21),
+      player dashboard (#12), legendary/lair reminders (#4)
 - *checkpoint:* `m6-utility`
 
 ### M7 — Hardening
@@ -101,3 +103,52 @@ Live-at-the-table essentials. Commit per row.
 ## Definition of "everything done"
 All M1–M6 feature rows green + committed, M7 hardening passed, e2e suite covers each surface, and the
 40-feature list in [gm-assistant-features.md](gm-assistant-features.md) is mapped to a shipped module.
+
+### 40-feature → module map (all mapped ✅)
+| # | Feature | Module id |
+|---|---------|-----------|
+| 1 | Initiative tracker | `initiative` |
+| 2 | Stat block manager | `statblock` |
+| 3 | Condition & duration tracker | `conditions` |
+| 4 | Legendary/lair action reminders | `reminders` |
+| 5 | Encounter builder (CR readout) | `statblock` |
+| 6 | Hidden HP & "bloodied" flags | `initiative` |
+| 7 | NPC roster | `npcs` |
+| 8 | Random NPC generator | `npcs` |
+| 9 | Faction & relationship web | `factions` |
+| 10 | Lore wiki | `lore` |
+| 11 | In-world calendar & timeline | `calendar` |
+| 12 | Player dashboard | `dashboard` |
+| 13 | Reveal window | `reveal` + `handouts` |
+| 14 | Recording & playback | `audio` |
+| 15 | Spotlight tracker | `spotlight` |
+| 16 | Player-facing display mode | `reveal` (broadcast display) |
+| 17 | Ambient music player | `audio` |
+| 18 | Sound effect soundboard | `audio` |
+| 19 | Mood/lighting presets | `mood` (broadcast) |
+| 20 | Dice roller with macros | `roller` |
+| 21 | Searchable rules reference | `rules` |
+| 22 | Rulings log | `tables` |
+| 23 | Custom random tables | `tables` |
+| 24 | Session notes | `notebook` |
+| 25 | Scene/beat planner | `beats` |
+| 26 | Quest & plot-thread tracker | `quests` |
+| 27 | Recap generator | `notebook` |
+| 28 | Improv prompt button | `improv` |
+| 29 | Battle map with fog of war | `map` |
+| 30 | Token management | `map` |
+| 31 | Ping/pointer tool | `map` |
+| 32 | Session timer & pacing bar | `timer` |
+| 33 | Break reminder | `timer` |
+| 34 | Sanity tracker | `sanity` |
+| 35 | Clue/investigation board | `clues` |
+| 36 | Skill-check helper | `skillcheck` |
+| 37 | Command palette / global search | `palette` |
+| 38 | Loot & treasure generator | `tables` |
+| 39 | Layout presets | `lib/layouts` + Topbar |
+| 40 | Campaign archive | `archive` |
+
+Notes: #16 and #19 are presentational layers of the broadcast surface (display mode / mood) rather than
+standalone modules. #14's clip import/playback ships in `audio`; live mic capture is a future hardening
+item. `scene` (current-scene board) and the `lib/backup` export/import are supporting infrastructure not
+in the original 40.
