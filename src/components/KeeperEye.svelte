@@ -2,7 +2,7 @@
 <div class="keeper">
   <div class="kt">KEEPER PANEL</div>
   <div class="ks">The truth is<br />not for them.</div>
-  <svg class="eye" viewBox="0 0 120 120" fill="none" width="100" height="100">
+  <svg class="eye" viewBox="0 0 120 120" fill="none" width="74" height="74">
     <defs>
       <radialGradient id="ig" cx="50%" cy="50%" r="50%">
         <stop offset="0%" stop-color="#d8ffe9" />

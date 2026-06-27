@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Assistant — Keeper Edition · Compact Command Deck</title>
+<style>
+  :root{
+    --bg:#080d0b;
+    --bg2:#0b1411;
+    --panel:#0f1815;
+    --panel2:#13201b;
+    --line:rgba(95,150,120,.18);
+    --line2:rgba(95,150,120,.32);
+    --txt:#dbeae1;
+    /* AA-contrast bumps: lighter muted/faint so they pass on the dark bg */
+    --muted:#a7bcb0;      /* was #7f9489 — now ~7:1 on --bg */
+    --faint:#8a9d93;      /* was #5c6f66 — now passes AA for non-essential */
+    --green:#6fd0a0;
+    --green-dim:#4fa37b;
+    --green-glow:#1f7a4f;
+    --eye:#46e89a;
+    --red:#d97a7a;
+    --red-dim:#8a4a4a;
+    --gold:#d6b65e;
+    --focus:#7dffc0;
+    --r:9px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--txt);font-size:14px;line-height:1.4;
+    background:
+      radial-gradient(1100px 700px at 80% -8%, rgba(31,122,79,.15), transparent 60%),
+      radial-gradient(900px 600px at -6% 108%, rgba(31,122,79,.09), transparent 60%),
+      var(--bg);
+    overflow:hidden;
+  }
+  /* tabular numerals everywhere stats appear */
+  .num,.iv,.val,.mv,.dn-big,.rep,.hp,.badge,.diebox .dn{font-variant-numeric:tabular-nums}
+
+  /* ---------- accessible focus ---------- */
+  :where(a,button,[tabindex],.win,.di,.combatant,.npcrow,.doc,.ico,.w,.nav-link){outline:none}
+  :where(a,button,[tabindex],.win,.di,.combatant,.npcrow,.doc,.ico,.w,.nav-link):focus-visible{
+    outline:2px solid var(--focus);outline-offset:2px;border-radius:6px;
+  }
+
+  .app{display:flex;flex-direction:column;height:100vh;width:100vw}
+
+  /* ---------- top bar (denser, 50px) ---------- */
+  .topbar{
+    flex:0 0 auto;height:50px;display:flex;align-items:center;gap:0;
+    padding:0 10px 0 14px;
+    background:linear-gradient(180deg,#0e1815,#0a110e);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:9px;min-width:178px}
+  .brand .logo{filter:drop-shadow(0 0 7px rgba(70,232,154,.45))}
+  .brand .bt{font-size:15px;font-weight:700;letter-spacing:.01em;line-height:1}
+  .brand .bs{font-size:9px;letter-spacing:.28em;color:var(--green);font-weight:700;margin-top:2px}
+  .tb-sep{width:1px;height:28px;background:var(--line);margin:0 3px}
+  .moon{display:flex;align-items:center;gap:9px;padding:0 12px}
+  .moon .mph{width:24px;height:24px;border-radius:50%;
+    background:radial-gradient(circle at 68% 38%, #2a3a33 0 48%, #cfded5 49%);
+    box-shadow:0 0 10px rgba(180,200,190,.18);flex:0 0 auto}
+  .moon .lbl{font-size:10px;color:var(--muted);line-height:1.15}
+  .moon .val{font-size:13px;font-weight:600;line-height:1.2}
+  .stat{display:flex;align-items:center;gap:7px;padding:0 11px}
+  .stat svg{opacity:.85;color:var(--green-dim)}
+  .stat .lbl{font-size:10px;color:var(--muted);line-height:1.15}
+  .stat .val{font-size:13px;font-weight:600}
+  .spacer{flex:1}
+  .ico{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);cursor:pointer;border:none;background:transparent;font-size:15px}
+  .ico:hover{color:var(--green);background:rgba(111,208,160,.10)}
+  .search{display:flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:8px;
+    border:1px solid var(--line2);background:rgba(0,0,0,.22);color:var(--muted);font-size:12px;cursor:text;min-width:190px}
+  .search kbd{margin-left:auto;font-size:10px;font-family:inherit;border:1px solid var(--line2);
+    border-radius:4px;padding:1px 5px;color:var(--faint)}
+  .winbtns{display:flex;gap:2px;margin-left:6px}
+  .winbtns .w{width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--faint);
+    border-radius:6px;cursor:pointer;border:none;background:transparent;font-size:13px}
+  .winbtns .w:hover{color:var(--txt);background:rgba(255,255,255,.06)}
+  .winbtns .w.x:hover{background:#8a2f2f;color:#fff}
+
+  /* ---------- layout ---------- */
+  .shell{flex:1;display:flex;min-height:0}
+  .sidebar{flex:0 0 196px;display:flex;flex-direction:column;padding:10px 9px;gap:8px;
+    background:linear-gradient(180deg,#0b1310,#080e0c);
+    border-right:1px solid var(--line)}
+  .nav-sec{font-size:9px;letter-spacing:.22em;color:var(--faint);font-weight:700;
+    text-transform:uppercase;padding:4px 10px 2px}
+  .nav{display:flex;flex-direction:column;gap:1px}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:7px 11px;border-radius:8px;
+    color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;letter-spacing:.01em}
+  .nav-link svg{opacity:.9;flex:0 0 auto;color:var(--green-dim)}
+  .nav-link:hover{color:var(--txt);background:rgba(111,208,160,.07)}
+  .nav-link:hover svg{color:var(--green)}
+  .nav-link.active{color:#eafaf2;background:linear-gradient(90deg,rgba(79,163,123,.30),rgba(79,163,123,.08));
+    box-shadow:inset 2px 0 0 var(--green)}
+  .nav-link.active svg{opacity:1;color:var(--green)}
+
+  /* Keeper panel / EYE (compact) */
+  .keeper{margin-top:auto;border:1px solid var(--line2);border-radius:12px;padding:12px 10px 11px;
+    text-align:center;position:relative;overflow:hidden;
+    background:
+      radial-gradient(120% 80% at 50% 120%, rgba(20,110,70,.30), transparent 60%),
+      linear-gradient(180deg,#0c1714,#0a120f)}
+  .keeper .kt{font-size:10px;letter-spacing:.3em;color:var(--green);font-weight:700;text-shadow:0 0 9px rgba(70,232,154,.4)}
+  .keeper .ks{font-size:12px;color:var(--muted);font-style:italic;margin:6px 0 9px;line-height:1.4}
+  .eye{width:74px;height:74px;margin:0 auto;display:block}
+  .eye .glow{transform-origin:center;animation:eyePulse 4.6s ease-in-out infinite}
+  .eye .iris{transform-origin:center;animation:irisPulse 4.6s ease-in-out infinite}
+  .eye .pupil{transform-origin:center;animation:pupil 7s ease-in-out infinite}
+  @keyframes eyePulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+  @keyframes irisPulse{0%,100%{opacity:.85}50%{opacity:1}}
+  @keyframes pupil{0%,100%{transform:scaleY(1)}46%,54%{transform:scaleY(.18)}}
+
+  /* ---------- desktop canvas ---------- */
+  .desktop{flex:1;min-width:0;position:relative;overflow:hidden;
+    background:
+      radial-gradient(900px 620px at 74% 6%, rgba(31,122,79,.15), transparent 60%),
+      radial-gradient(760px 520px at 12% 98%, rgba(31,122,79,.09), transparent 60%),
+      var(--bg)}
+  .wp{position:absolute;inset:0;pointer-events:none}
+  .wp.grid{opacity:.5;
+    background:
+      linear-gradient(rgba(95,150,120,.05) 1px,transparent 1px) 0 0/100% 30px,
+      linear-gradient(90deg,rgba(95,150,120,.05) 1px,transparent 1px) 0 0/30px 100%;
+    -webkit-mask:radial-gradient(120% 100% at 50% 38%, #000 50%, transparent);
+            mask:radial-gradient(120% 100% at 50% 38%, #000 50%, transparent)}
+  .wp.vig{box-shadow:inset 0 0 160px rgba(0,0,0,.7)}
+
+  /* windows (tighter chrome, smaller radius) */
+  .win{position:absolute;display:flex;flex-direction:column;border-radius:10px;overflow:hidden;
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);
+    box-shadow:0 18px 40px -22px rgba(0,0,0,.85)}
+  .win.focus{border-color:var(--line2);
+    box-shadow:0 24px 56px -20px rgba(0,0,0,.92), 0 0 20px rgba(79,163,123,.14)}
+  .bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:5px 9px;cursor:grab;user-select:none;
+    background:linear-gradient(180deg,rgba(34,62,50,.5),rgba(15,24,21,.25));
+    border-bottom:1px solid var(--line)}
+  .bar:active{cursor:grabbing}
+  .bar .dots{display:flex;gap:5px}
+  .bar .dots i{width:8px;height:8px;border-radius:50%;display:block;background:#24332c;border:1px solid rgba(95,150,120,.3)}
+  .bar .dots i.on{background:#2f8a66;border-color:#46e89a;box-shadow:0 0 5px rgba(70,232,154,.5)}
+  .bar .t{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .bar .barbtns{margin-left:auto;display:flex;gap:1px}
+  .bar .bb{width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--faint);
+    border:none;background:transparent;border-radius:5px;cursor:pointer;font-size:12px}
+  .bar .bb:hover{color:var(--txt);background:rgba(255,255,255,.06)}
+  .win .content{flex:1;min-height:0;overflow:auto;padding:9px 10px;display:flex;flex-direction:column}
+
+  /* window positions — denser packing, more on screen */
+  #w-scene{left:14px;top:12px;width:300px;height:438px}
+  #w-init{left:326px;top:12px;width:282px;height:300px}
+  #w-roller{left:620px;top:12px;width:272px;height:332px}
+  #w-party{left:904px;top:12px;width:268px;height:236px}
+  #w-npc{left:326px;top:324px;width:282px;height:262px}
+  #w-handouts{left:620px;top:356px;width:272px;height:230px}
+  #w-party2{left:904px;top:260px;width:268px;height:326px}
+  #w-notebook{left:14px;top:462px;width:300px;height:124px}
+
+  /* dock (compact) */
+  .dock{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);z-index:9000;
+    display:flex;align-items:center;gap:4px;padding:6px 8px;border-radius:14px;
+    border:1px solid var(--line2);background:rgba(9,16,13,.8);backdrop-filter:blur(9px);
+    box-shadow:0 14px 40px -16px rgba(0,0,0,.9)}
+  .dock .di{width:48px;height:40px;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    color:var(--muted);cursor:pointer;border:1px solid transparent;background:transparent}
+  .dock .di:hover{color:var(--txt);background:rgba(79,163,123,.16);border-color:var(--green-dim)}
+  .dock .di svg{color:var(--green-dim)}
+  .dock .di:hover svg{color:var(--green)}
+  .dock .di b{font-size:8px;font-weight:600;letter-spacing:.01em;text-align:center;line-height:1}
+  .dock .sep{width:1px;height:26px;background:var(--line2);margin:0 2px}
+  .dock .di.add,.dock .di.add svg{color:var(--green)}
+
+  /* shared section heads */
+  .foot{margin-top:8px;border-top:1px solid var(--line);padding-top:7px;display:flex;justify-content:space-between;align-items:center}
+  .foot .lk{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);font-weight:700;cursor:pointer;
+    background:none;border:none;padding:0}
+  .foot .lk:hover{color:var(--eye);text-decoration:underline}
+  .foot .cnt{font-size:11px;color:var(--muted)}
+
+  /* current scene (compact) */
+  .scene-img{height:108px;border-radius:8px;margin-bottom:9px;position:relative;overflow:hidden;
+    border:1px solid var(--line);
+    background:
+      radial-gradient(120% 100% at 30% 0%, rgba(60,90,80,.5), transparent 55%),
+      radial-gradient(80% 90% at 80% 100%, rgba(20,40,34,.9), transparent),
+      linear-gradient(160deg,#16241f 0%,#0c1612 60%,#0a120f 100%)}
+  .scene-img::after{content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(transparent 65%, rgba(0,0,0,.55)),
+      repeating-linear-gradient(95deg, rgba(255,255,255,.018) 0 2px, transparent 2px 7px)}
+  .scene-img .tag{position:absolute;left:9px;bottom:7px;z-index:2;font-size:10px;color:#c2d0c7;letter-spacing:.07em;text-shadow:0 1px 3px #000}
+  .scene-img .moonlet{position:absolute;right:13px;top:11px;width:20px;height:20px;border-radius:50%;
+    background:radial-gradient(circle at 60% 40%,#d6e0d8 0 55%,#3a4842 56%);opacity:.45}
+  .scene h2{font-family:Georgia,"Times New Roman",serif;font-size:17px;font-weight:600;letter-spacing:.01em;margin-bottom:5px;color:#ecf6f0}
+  .scene p{color:var(--muted);font-size:12.5px;line-height:1.4;margin-bottom:9px}
+  .scene .keyhdr{font-size:9px;letter-spacing:.18em;color:var(--green);font-weight:700;margin-bottom:5px}
+  .scene ul{list-style:none;display:grid;gap:3px;margin-bottom:10px}
+  .scene li{font-size:12.5px;color:#c2d2c8;padding-left:14px;position:relative}
+  .scene li::before{content:"";position:absolute;left:2px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--green-dim)}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:7px;font-size:12.5px;font-weight:600;
+    border:1px solid var(--line2);color:var(--txt);background:rgba(79,163,123,.10);cursor:pointer;width:fit-content;font-family:inherit}
+  .btn:hover{background:rgba(79,163,123,.2);border-color:var(--green-dim)}
+  .btn.solid{background:linear-gradient(180deg,#36996f,#256f52);border-color:#36996f;color:#eafff3;
+    box-shadow:0 0 12px rgba(79,163,123,.3)}
+  .btn.solid:hover{filter:brightness(1.1)}
+  .btn.sm{padding:5px 10px;font-size:11.5px}
+
+  /* initiative — compact rows w/ HP, more combatants visible */
+  .combatant{display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:7px;margin-bottom:4px;
+    background:rgba(40,70,58,.16);border:1px solid var(--line)}
+  .combatant.active{background:linear-gradient(90deg,rgba(79,163,123,.24),rgba(79,163,123,.06));border-color:var(--green-dim);box-shadow:0 0 10px rgba(79,163,123,.15)}
+  .combatant.foe{background:linear-gradient(90deg,rgba(150,60,60,.2),rgba(120,50,50,.05));border-color:var(--red-dim)}
+  .av{width:26px;height:26px;border-radius:6px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:#0a120f;
+    background:radial-gradient(circle at 40% 30%, #74b294, #355c4a)}
+  .combatant.foe .av{background:radial-gradient(circle at 40% 30%, #c07a7a, #5a2f2f);color:#f3e3e3}
+  .cn{flex:1;min-width:0}
+  .cn .nm{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+  .cn .rl{font-size:10.5px;color:var(--muted);display:flex;gap:5px;align-items:center}
+  .combatant.foe .rl{color:#d8a8a8}
+  .cond{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:4px;
+    background:rgba(214,182,94,.16);color:var(--gold);border:1px solid rgba(214,182,94,.3)}
+  .cond.bad{background:rgba(214,122,122,.16);color:var(--red);border-color:rgba(214,122,122,.32)}
+  .hp{font-size:11px;color:var(--muted);font-weight:600;text-align:right;min-width:48px}
+  .hp b{color:var(--green);font-size:12px}
+  .combatant.foe .hp b{color:var(--red)}
+  .iv{font-family:Georgia,serif;font-size:17px;font-weight:600;color:var(--green);min-width:24px;text-align:right}
+  .combatant.foe .iv{color:var(--red)}
+  .init-row{display:flex;gap:6px;margin-top:7px}
+  .init-row .btn{flex:1;justify-content:center}
+
+  /* roller (compact) */
+  .select{display:flex;align-items:center;justify-content:space-between;padding:6px 11px;border-radius:7px;
+    border:1px solid var(--line2);background:rgba(0,0,0,.2);font-size:12px;color:#d3e3d9;margin-bottom:9px;cursor:pointer}
+  .select .chev{color:var(--muted)}
+  .diebox{text-align:center;border:1px solid var(--line);border-radius:9px;padding:8px 0 10px;margin-bottom:9px;
+    background:radial-gradient(120% 120% at 50% 0%, rgba(79,163,123,.14), transparent 60%)}
+  .diebox .dt{font-size:10px;letter-spacing:.2em;color:var(--muted)}
+  .diebox .dn{font-family:Georgia,serif;font-size:46px;font-weight:600;line-height:1;color:#eafff3;
+    text-shadow:0 0 20px rgba(70,232,154,.35)}
+  .diebox .ds{font-size:12.5px;font-weight:700;color:var(--green)}
+  .chk{display:flex;align-items:center;gap:8px;margin-bottom:9px;color:var(--muted);font-size:12px;letter-spacing:.04em;cursor:pointer}
+  .chk .box{width:15px;height:15px;border-radius:4px;border:1px solid var(--line2);flex:0 0 auto}
+  .chk.on .box{background:var(--green);border-color:var(--green);box-shadow:0 0 6px rgba(70,232,154,.4)}
+  .roller-row{display:flex;gap:7px}
+  .roller-row .btn{flex:1;justify-content:center}
+  .meters{display:flex;gap:8px;margin-top:9px;border-top:1px solid var(--line);padding-top:9px}
+  .meter{flex:1;display:flex;align-items:center;gap:8px}
+  .meter .mi{width:24px;height:24px;flex:0 0 auto;color:var(--green);opacity:.9}
+  .meter .ml{font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+  .meter .mv{font-family:Georgia,serif;font-size:15px;font-weight:600}
+  .meter.san .mi{color:var(--red)}
+
+  /* party dashboard (new dense table) */
+  .ptable{width:100%;border-collapse:collapse;font-size:11.5px}
+  .ptable caption{text-align:left;font-size:9px;letter-spacing:.18em;color:var(--green);font-weight:700;text-transform:uppercase;padding-bottom:6px}
+  .ptable th{font-size:9px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;font-weight:700;
+    text-align:right;padding:3px 4px;border-bottom:1px solid var(--line)}
+  .ptable th:first-child{text-align:left}
+  .ptable td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:right;color:var(--txt);font-weight:600}
+  .ptable td:first-child{text-align:left;color:var(--txt)}
+  .ptable tr:hover td{background:rgba(79,163,123,.06)}
+  .ptable .pname{display:flex;align-items:center;gap:7px}
+  .ptable .av{width:22px;height:22px;font-size:10px}
+  .san-bar{display:inline-flex;width:42px;height:6px;border-radius:3px;background:rgba(214,122,122,.18);overflow:hidden;vertical-align:middle}
+  .san-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--green-dim))}
+
+  /* npc rows (compact) */
+  .npcrow{display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:7px;margin-bottom:4px;
+    border:1px solid var(--line);background:rgba(40,70,58,.12)}
+  .npcrow:hover{border-color:var(--line2);background:rgba(79,163,123,.08)}
+  .npcrow.foe{border-color:var(--red-dim);background:rgba(150,60,60,.12)}
+  .npcrow .av{width:24px;height:24px;font-size:10px}
+  .npcrow .nm{font-size:12.5px;font-weight:600;line-height:1.25}
+  .npcrow .sub{font-size:10.5px;color:var(--muted)}
+  .npcrow.foe .sub{color:#d8a8a8}
+  .rep{margin-left:auto;font-family:Georgia,serif;font-size:14px;font-weight:600;color:var(--green)}
+  .rep.neu{color:var(--muted)}.rep.bad{color:var(--red)}
+
+  /* handouts (compact) */
+  .doc{display:flex;gap:9px;padding:5px 8px;border-radius:7px;margin-bottom:4px;align-items:flex-start;
+    border:1px solid var(--line);background:rgba(40,70,58,.10)}
+  .doc:hover{border-color:var(--line2);background:rgba(79,163,123,.08)}
+  .doc .docico{color:var(--green-dim);flex:0 0 auto;margin-top:1px}
+  .doc .dn{font-size:12.5px;font-weight:600;line-height:1.3}
+  .doc .dd{font-size:10.5px;color:var(--muted);line-height:1.3}
+
+  /* notebook (compact) */
+  .note{font-size:12px;color:var(--muted);line-height:1.5;flex:1;overflow:auto}
+  .note p{margin-bottom:6px}
+  .note .hl{color:var(--gold)}
+  .note .mono{font-family:ui-monospace,"Cascadia Code",monospace;font-size:11.5px;color:#d3e3d9}
+
+  /* scrollbars */
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(95,150,120,.26);border-radius:6px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(95,150,120,.4)}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  /* accessibility: respect reduced motion — kill eye animation */
+  @media (prefers-reduced-motion: reduce){
+    .eye .glow,.eye .iris,.eye .pupil{animation:none !important}
+    *{scroll-behavior:auto !important}
+  }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M16 3c5 0 9 4 9 9 0 3-1 4-1 6 0 2 2 2 2 4s-2 3-3 1c0-2-1-2-2 0-1 1-2 1-2-1 0-2-1-2-2 0 0 2-1 3-2 1-1-2-2-2-2 0 0 2-2 3-3 1-1-2-1-3-1-5 0-5 4-9 7-9z" stroke="#46e89a" stroke-width="1.4" stroke-linejoin="round"/>
+        <circle cx="13" cy="12" r="1.4" fill="#46e89a"/><circle cx="19" cy="12" r="1.4" fill="#46e89a"/>
+      </svg>
+      <div>
+        <div class="bt">GM Assistant</div>
+        <div class="bs">KEEPER EDITION</div>
+      </div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="moon">
+      <div class="mph" aria-hidden="true"></div>
+      <div><div class="lbl">Campaign</div><div class="val">The Haunting of Blackwater Creek</div></div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="stat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <div><div class="lbl">Session</div><div class="val num">02:34:17</div></div>
+    </div>
+    <div class="stat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"/><circle cx="9" cy="8" r="3"/><path d="M22 19v-1a4 4 0 0 0-3-3.8"/></svg>
+      <div><div class="lbl">Players</div><div class="val num">5</div></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="search" aria-label="Global search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      Search anything… <kbd>⌘K</kbd>
+    </button>
+    <button class="ico" aria-label="Ambient music">♪</button>
+    <button class="ico" aria-label="Soundboard">🔊</button>
+    <button class="ico" aria-label="Calendar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+    </button>
+    <button class="ico" aria-label="Settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L15.7 2h-3.4l-.3 2.6a7 7 0 0 0-2.3 1.3l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.3 2.6h3.4l.3-2.6a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3Z"/></svg>
+    </button>
+    <div class="winbtns">
+      <button class="w" aria-label="Minimize">─</button><button class="w" aria-label="Maximize">▢</button><button class="w x" aria-label="Close">✕</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" aria-label="Primary">
+      <div class="nav-sec">Run</div>
+      <div class="nav">
+        <a class="nav-link active" href="#" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Dashboard</a>
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 14l5-4 4 3 4-4 5 4"/></svg>Scenes</a>
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>NPCs</a>
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4h13l3 3v13H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Handouts</a>
+      </div>
+      <div class="nav-sec">Reference</div>
+      <div class="nav">
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Calendar</a>
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="16" cy="8" r="1.3" fill="currentColor"/><circle cx="8" cy="16" r="1.3" fill="currentColor"/></svg>Randomizer</a>
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 3h14v18l-7-3-7 3z"/><path d="M9 7h6"/></svg>Notebook</a>
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4h7v16H4zM13 4h7v16h-7z"/></svg>Library</a>
+        <a class="nav-link" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L15.7 2h-3.4l-.3 2.6a7 7 0 0 0-2.3 1.3l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.3 2.6h3.4l.3-2.6a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3Z"/></svg>Settings</a>
+      </div>
+
+      <!-- KEEPER PANEL — the eye -->
+      <div class="keeper">
+        <div class="kt">KEEPER PANEL</div>
+        <div class="ks">The truth is not for them.</div>
+        <svg class="eye" viewBox="0 0 120 120" fill="none" role="img" aria-label="The all-seeing Keeper eye">
+          <defs>
+            <radialGradient id="ig" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#d8ffe9"/>
+              <stop offset="30%" stop-color="#5ff0a8"/>
+              <stop offset="70%" stop-color="#1f9c63"/>
+              <stop offset="100%" stop-color="#0a3a26"/>
+            </radialGradient>
+            <radialGradient id="gg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#46e89a" stop-opacity=".55"/>
+              <stop offset="60%" stop-color="#1f7a4f" stop-opacity=".18"/>
+              <stop offset="100%" stop-color="#1f7a4f" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle class="glow" cx="60" cy="60" r="56" fill="url(#gg)"/>
+          <path d="M12 60 C 32 30, 88 30, 108 60 C 88 90, 32 90, 12 60 Z" fill="#06120d" stroke="#2f8a66" stroke-width="1.4"/>
+          <g stroke="#1f7a4f" stroke-width="1" opacity=".4">
+            <path d="M60 38 L60 30"/><path d="M44 42 L38 35"/><path d="M76 42 L82 35"/>
+            <path d="M44 78 L38 85"/><path d="M76 78 L82 85"/><path d="M60 82 L60 90"/>
+          </g>
+          <circle class="iris" cx="60" cy="60" r="22" fill="url(#ig)" stroke="#7dffc0" stroke-width="1" stroke-opacity=".5"/>
+          <g class="iris" stroke="#0a3a26" stroke-width="1" opacity=".55">
+            <path d="M60 40 L60 50"/><path d="M60 70 L60 80"/><path d="M40 60 L50 60"/><path d="M70 60 L80 60"/>
+            <path d="M46 46 L52 52"/><path d="M74 46 L68 52"/><path d="M46 74 L52 68"/><path d="M74 74 L68 68"/>
+          </g>
+          <ellipse class="pupil" cx="60" cy="60" rx="6.5" ry="17" fill="#03150d"/>
+          <ellipse cx="60" cy="60" rx="2" ry="10" fill="#0a3a26"/>
+          <circle cx="53" cy="52" r="3" fill="#eafff3" opacity=".8"/>
+        </svg>
+      </div>
+    </nav>
+
+    <!-- DESKTOP -->
+    <main class="desktop" aria-label="Workspace">
+      <div class="wp grid" aria-hidden="true"></div>
+      <div class="wp vig" aria-hidden="true"></div>
+
+      <!-- CURRENT SCENE -->
+      <section class="win" id="w-scene" tabindex="0" aria-label="Current Scene">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">Current Scene</span><span class="barbtns"><button class="bb" aria-label="Collapse Current Scene">▾</button><button class="bb" aria-label="Close Current Scene">✕</button></span></div>
+        <div class="content scene">
+          <div class="scene-img" aria-hidden="true"><span class="moonlet"></span><span class="tag">DOCKS · NIGHT · RAIN</span></div>
+          <h2>2. The Derelict Warehouse</h2>
+          <p>Investigators have followed the trail to the abandoned warehouse on the docks. A foul smell of brine and decay fills the air.</p>
+          <div class="keyhdr">KEY ELEMENTS</div>
+          <ul>
+            <li>Broken door, unlocked</li>
+            <li>Strange symbols on the walls</li>
+            <li>Crate covered in seaweed</li>
+            <li>Sound of dripping water</li>
+          </ul>
+          <button class="btn solid"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M12 5v14"/></svg>OPEN SCENE</button>
+        </div>
+      </section>
+
+      <!-- INITIATIVE -->
+      <section class="win" id="w-init" tabindex="0" aria-label="Initiative Tracker">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">Initiative Tracker</span><span class="barbtns"><button class="bb" aria-label="Collapse Initiative">▾</button><button class="bb" aria-label="Close Initiative">✕</button></span></div>
+        <div class="content init">
+          <div class="combatant active"><span class="av">WH</span><span class="cn"><span class="nm">William Harcourt</span><span class="rl">Investigator <span class="cond">prone</span></span></span><span class="hp">HP <b>11</b>/14</span><span class="iv num">65</span></div>
+          <div class="combatant"><span class="av">ER</span><span class="cn"><span class="nm">Dr. Evelyn Reed</span><span class="rl">Investigator</span></span><span class="hp">HP <b>13</b>/13</span><span class="iv num">48</span></div>
+          <div class="combatant"><span class="av">FM</span><span class="cn"><span class="nm">Father Mateo</span><span class="rl">Investigator <span class="cond bad">stunned 1</span></span></span><span class="hp">HP <b>9</b>/12</span><span class="iv num">37</span></div>
+          <div class="combatant"><span class="av">SM</span><span class="cn"><span class="nm">Silas Marsh</span><span class="rl">Investigator</span></span><span class="hp">HP <b>10</b>/10</span><span class="iv num">22</span></div>
+          <div class="combatant foe"><span class="av">DO</span><span class="cn"><span class="nm">Deep One Hybrid</span><span class="rl">Monster</span></span><span class="hp">HP <b>??</b></span><span class="iv num">12</span></div>
+          <div class="combatant foe"><span class="av">CT</span><span class="cn"><span class="nm">Cultist Thrall</span><span class="rl">Monster</span></span><span class="hp">HP <b>8</b>/8</span><span class="iv num">9</span></div>
+          <div class="init-row">
+            <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4l5 8-5 8M14 4h5v16h-5z"/></svg>Roll Initiative</button>
+            <button class="btn sm">Next Turn ›</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- QUICK ROLLER -->
+      <section class="win" id="w-roller" tabindex="0" aria-label="Quick Roller">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">Quick Roller</span><span class="barbtns"><button class="bb" aria-label="Collapse Roller">▾</button><button class="bb" aria-label="Close Roller">✕</button></span></div>
+        <div class="content roller">
+          <button class="select" aria-label="Game system: Call of Cthulhu 7th Edition">Call of Cthulhu 7th Ed. <span class="chev" aria-hidden="true">▾</span></button>
+          <div class="diebox" role="status" aria-label="d100 result: 37, Regular Success">
+            <div class="dt">d100</div>
+            <div class="dn num">37</div>
+            <div class="ds">Regular Success</div>
+          </div>
+          <button class="chk" id="push" aria-pressed="false"><span class="box" aria-hidden="true"></span>Push Roll</button>
+          <div class="roller-row">
+            <button class="btn solid">ROLL</button>
+            <button class="btn">Hidden</button>
+          </div>
+          <div class="meters">
+            <div class="meter">
+              <svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>
+              <div><div class="ml">Luck</div><div class="mv num">47</div></div>
+            </div>
+            <div class="meter san">
+              <svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 18a5 5 0 0 1-2-9 4 4 0 0 1 8-1 3.5 3.5 0 0 1 1 7"/><path d="M9 18v3M13 16v5"/></svg>
+              <div><div class="ml">Sanity Loss</div><div class="mv num">0 / 1d6</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PARTY DASHBOARD (new dense table) -->
+      <section class="win" id="w-party" tabindex="0" aria-label="Party Dashboard">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">Party · Quick Stats</span><span class="barbtns"><button class="bb" aria-label="Collapse Party">▾</button><button class="bb" aria-label="Close Party">✕</button></span></div>
+        <div class="content">
+          <table class="ptable">
+            <caption>Investigators (GM reference)</caption>
+            <thead><tr><th scope="col">Name</th><th scope="col">SAN</th><th scope="col">HP</th><th scope="col">Per</th><th scope="col">MOV</th></tr></thead>
+            <tbody>
+              <tr><td><span class="pname"><span class="av">WH</span>Harcourt</span></td><td class="num">52</td><td class="num">11/14</td><td class="num">60</td><td class="num">8</td></tr>
+              <tr><td><span class="pname"><span class="av">ER</span>Reed</span></td><td class="num">68</td><td class="num">13/13</td><td class="num">75</td><td class="num">7</td></tr>
+              <tr><td><span class="pname"><span class="av">FM</span>Mateo</span></td><td class="num">41</td><td class="num">9/12</td><td class="num">50</td><td class="num">8</td></tr>
+              <tr><td><span class="pname"><span class="av">SM</span>Marsh</span></td><td class="num">73</td><td class="num">10/10</td><td class="num">65</td><td class="num">9</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- NPC QUICK ACCESS -->
+      <section class="win" id="w-npc" tabindex="0" aria-label="NPCs Quick Access">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">NPCs · Quick Access</span><span class="barbtns"><button class="bb" aria-label="Collapse NPCs">▾</button><button class="bb" aria-label="Close NPCs">✕</button></span></div>
+        <div class="content npc">
+          <div class="npcrow"><span class="av">ET</span><span><div class="nm">Captain Eli Thorne</div><div class="sub">Human · Ally · Docks</div></span><span class="rep num">+4</span></div>
+          <div class="npcrow"><span class="av">MW</span><span><div class="nm">Mara Whitlock</div><div class="sub">Human · Ally · Library</div></span><span class="rep num">+10</span></div>
+          <div class="npcrow"><span class="av">DW</span><span><div class="nm">Dock Worker</div><div class="sub">Human · Neutral</div></span><span class="rep neu num">+0</span></div>
+          <div class="npcrow"><span class="av">SG</span><span><div class="nm">Sgt. Halloway</div><div class="sub">Human · Neutral · Police</div></span><span class="rep neu num">+1</span></div>
+          <div class="npcrow foe"><span class="av">DO</span><span><div class="nm">Deep One Hybrid</div><div class="sub">Monster · Hostile</div></span><span class="rep bad num">–</span></div>
+          <div class="foot"><button class="lk">View All NPCs</button><span class="cnt num">14 total</span></div>
+        </div>
+      </section>
+
+      <!-- HANDOUTS -->
+      <section class="win" id="w-handouts" tabindex="0" aria-label="Handouts">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">Handouts</span><span class="barbtns"><button class="bb" aria-label="Collapse Handouts">▾</button><button class="bb" aria-label="Close Handouts">✕</button></span></div>
+        <div class="content handouts">
+          <div class="doc"><svg class="docico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span><div class="dn">Newspaper Article (May 18, 1927)</div><div class="dd">Local report on the missing sailors.</div></span></div>
+          <div class="doc"><svg class="docico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span><div class="dn">Strange Symbol Sketch</div><div class="dd">Rough sketch from the wall.</div></span></div>
+          <div class="doc"><svg class="docico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span><div class="dn">Warehouse Map</div><div class="dd">Docks and interior layout.</div></span></div>
+          <div class="foot"><button class="lk">Manage Handouts</button><span class="cnt num">9 total</span></div>
+        </div>
+      </section>
+
+      <!-- THREADS / CLUES (second column, dense) -->
+      <section class="win" id="w-party2" tabindex="0" aria-label="Plot Threads and Clues">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">Threads &amp; Clues</span><span class="barbtns"><button class="bb" aria-label="Collapse Threads">▾</button><button class="bb" aria-label="Close Threads">✕</button></span></div>
+        <div class="content">
+          <div class="npcrow"><span class="av" style="background:radial-gradient(circle at 40% 30%,#d6b65e,#7a611f)">●</span><span><div class="nm">The Missing Sailors</div><div class="sub">Open · 3 clues planted</div></span></div>
+          <div class="npcrow"><span class="av" style="background:radial-gradient(circle at 40% 30%,#d6b65e,#7a611f)">●</span><span><div class="nm">Marsh Family Secret</div><div class="sub">Open · 1 clue planted</div></span></div>
+          <div class="npcrow"><span class="av" style="background:radial-gradient(circle at 40% 30%,#74b294,#355c4a)">✓</span><span><div class="nm">The Symbol's Origin</div><div class="sub">Resolved · session 2</div></span></div>
+          <div class="npcrow foe"><span class="av">!</span><span><div class="nm">The Tide Ritual</div><div class="sub">Urgent · timer running</div></span></div>
+          <div class="foot"><button class="lk">Open Board</button><span class="cnt num">4 active</span></div>
+          <div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
+            <div class="keyhdr" style="font-size:9px;letter-spacing:.18em;color:var(--green);font-weight:700;margin-bottom:5px">SPOTLIGHT NUDGE</div>
+            <div class="note" style="flex:none"><p>Silas Marsh hasn't had a meaningful moment in <span class="hl">2 scenes</span>. Consider giving him the crate discovery.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NOTEBOOK -->
+      <section class="win" id="w-notebook" tabindex="0" aria-label="Notebook">
+        <div class="bar"><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="t">Notebook</span><span class="barbtns"><button class="bb" aria-label="Collapse Notebook">▾</button><button class="bb" aria-label="Close Notebook">✕</button></span></div>
+        <div class="content notebook">
+          <div class="note">
+            <p>Investigators suspect Captain Thorne. Good.</p>
+            <p class="hl">Describe the wet sound when they open the crate.</p>
+            <p>Possible Mythos entity → check <span class="mono">"The King in Yellow"</span>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCK -->
+      <nav class="dock" aria-label="Quick tools">
+        <button class="di" aria-label="Narrate"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4h7l-2 4 2 4H4zM4 4v17"/></svg><b>Narrate</b></button>
+        <button class="di" aria-label="Reveal to players"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 9h6M9 13h4"/></svg><b>Reveal</b></button>
+        <button class="di" aria-label="Add NPC"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21v-1a5 5 0 0 1 5-5h2"/><path d="M17 14v6M14 17h6"/></svg><b>Add NPC</b></button>
+        <button class="di" aria-label="Add item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7l8-4 8 4-8 4z"/><path d="M4 7v10l8 4 8-4V7"/></svg><b>Add Item</b></button>
+        <button class="di" aria-label="Roll on a table"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.3" fill="currentColor"/><circle cx="15" cy="15" r="1.3" fill="currentColor"/><circle cx="15" cy="9" r="1.3" fill="currentColor"/></svg><b>Roll Table</b></button>
+        <button class="di" aria-label="Session timer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/></svg><b>Timer</b></button>
+        <button class="di" aria-label="Conditions"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/></svg><b>Conditions</b></button>
+        <button class="di" aria-label="Sanity tracker"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 18a5 5 0 0 1-2-9 4 4 0 0 1 8-1 3.5 3.5 0 0 1 1 7"/><path d="M9 18v3"/></svg><b>Sanity</b></button>
+        <div class="sep" aria-hidden="true"></div>
+        <button class="di add" aria-label="Add widget"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg><b>Widget</b></button>
+      </nav>
+
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  var z=20, desk=document.querySelector('.desktop');
+  function bring(w){
+    document.querySelectorAll('.win').forEach(function(x){x.classList.remove('focus');});
+    w.classList.add('focus'); w.style.zIndex=++z;
+  }
+  document.querySelectorAll('.win').forEach(function(w){
+    w.addEventListener('mousedown', function(){ bring(w); });
+    w.addEventListener('focus', function(){ bring(w); });
+    var bar=w.querySelector('.bar');
+    bar.addEventListener('mousedown', function(e){
+      if(e.target.closest('.bb')) return; // don't drag from bar buttons
+      var d=desk.getBoundingClientRect(), r=w.getBoundingClientRect();
+      var ox=e.clientX-r.left, oy=e.clientY-r.top;
+      function mv(ev){
+        var x=Math.max(0, Math.min(ev.clientX-d.left-ox, d.width-r.width));
+        var y=Math.max(0, Math.min(ev.clientY-d.top-oy,  d.height-r.height));
+        w.style.left=x+'px'; w.style.top=y+'px';
+      }
+      function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); }
+      document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+      e.preventDefault();
+    });
+    // keyboard: arrow-move focused window for accessibility
+    w.addEventListener('keydown', function(e){
+      if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].indexOf(e.key)===-1) return;
+      if(e.target!==w) return;
+      var d=desk.getBoundingClientRect(), r=w.getBoundingClientRect();
+      var step=e.shiftKey?40:12;
+      var x=r.left-d.left, y=r.top-d.top;
+      if(e.key==='ArrowLeft')x-=step; if(e.key==='ArrowRight')x+=step;
+      if(e.key==='ArrowUp')y-=step; if(e.key==='ArrowDown')y+=step;
+      x=Math.max(0,Math.min(x,d.width-r.width)); y=Math.max(0,Math.min(y,d.height-r.height));
+      w.style.left=x+'px'; w.style.top=y+'px'; e.preventDefault();
+    });
+  });
+  // push-roll checkbox toggle
+  var push=document.getElementById('push');
+  if(push){push.addEventListener('click',function(){
+    var on=this.classList.toggle('on');
+    this.setAttribute('aria-pressed', on?'true':'false');
+  });}
+})();
+</script>
+</body>
+</html>

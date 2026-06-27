@@ -99,11 +99,12 @@
   .section p{margin-top:8px;color:var(--muted);font-size:14px;max-width:720px;line-height:1.55}
   .section.b h2 .tag2{color:var(--accent)}
   .section.c h2 .tag2{color:#5fbf8f}
+  .section.d h2 .tag2{color:#39d98a}
 </style>
 </head>
 <body>
 <header>
-  <div class="kicker">Design Exploration · 11 Directions</div>
+  <div class="kicker">Design Exploration · 16 Directions</div>
   <h1>GM Assistant <span>— Mockup Explorer</span></h1>
   <p class="sub">Eleven independent designers each interpreted the same brief: a GM-only virtual desktop for running online tabletop sessions. Hover a card to preview the live mockup; click to open it full-screen.</p>
   <div class="meta">
@@ -130,6 +131,12 @@
   <p>A full dashboard in deep occult greens, anchored by a glowing animated all-seeing eye.</p>
 </section>
 <main class="grid" id="grid-c"></main>
+
+<section class="section d">
+  <h2>Keeper · Refined <span class="tag2">5 variants · compact + accessible</span></h2>
+  <p>Five evolutions of the Keeper Edition, each tuned for higher information density and WCAG-AA+ accessibility while holding the Cthulhu séance-green mood — including a dark-neumorphism take.</p>
+</section>
+<main class="grid" id="grid-d"></main>
 
 <footer>All mockups are self-contained HTML — no build, no network. Open any file directly in a browser.</footer>
 
@@ -198,6 +205,34 @@ const mocksC = [
   },
 ];
 
+const mocksD = [
+  {
+    file:"mockup-12.html", n:"12", name:"Command Deck", style:"Keeper · Compact Density",
+    desc:"Denser evolution of Keeper Edition — 50px topbar, grouped 196px nav, 8 tightly-packed draggable windows (adds Party stat-table + Threads/Clues). Lighter muted text for AA contrast, focus-visible rings, aria-labels, semantic landmarks, tabular numerals, keyboard-movable windows.",
+    tags:["Dark Green","High-density","WCAG-AA","Desktop"]
+  },
+  {
+    file:"mockup-13.html", n:"13", name:"Neumorphic", style:"Keeper · Dark Neumorphism",
+    desc:"Séance-green Cthulhu theme rebuilt with dual-shadow extruded/inset surfaces — soft molded panels and pressed-state toggles, denser lists (6+ combatants, 5 NPCs). Brightened AA-contrast text so labels stay crisp on the soft surfaces, focus rings, reduced-motion guard.",
+    tags:["Neumorphism","Dark Green","Soft UI","WCAG-AA"]
+  },
+  {
+    file:"mockup-14.html", n:"14", name:"Lucid", style:"Keeper · Accessibility-First",
+    desc:"AAA-leaning contrast with color-blind-safe shape + icon cues (◆ ally / ▲ foe / ● neutral), 44px primary targets, focus-visible glow rings, skip-link, live-region dice result, and prefers-contrast / reduced-motion support — tightened to fit all six modules.",
+    tags:["A11y-first","AAA contrast","Color-safe","Keyboard"]
+  },
+  {
+    file:"mockup-15.html", n:"15", name:"Console", style:"Keeper · Tiled Command",
+    desc:"Command-driven layout: a ⌘K palette over a snapped 3-column tiled panel grid that wastes zero space, with compact stat chips, mini HP/SAN meters and a collapsible right inspector strip. One panel stays draggable. AA contrast, full keyboard nav.",
+    tags:["⌘K","Tiling","High-density","WCAG-AA"]
+  },
+  {
+    file:"mockup-16.html", n:"16", name:"Rail", style:"Keeper · Collapsible Rail",
+    desc:"Most space-efficient variant — slim icon-only left rail plus a stacked accordion where modules collapse to one-line headers, so the GM packs many modules and expands only what's live. Slim status strip + dock, two draggable spotlight windows. aria-expanded keyboard collapse.",
+    tags:["Compact","Accordion","Icon-rail","WCAG-AA"]
+  },
+];
+
 const cardHTML = m=>`
   <article class="card">
     <div class="frame">
@@ -225,6 +260,7 @@ const cardHTML = m=>`
 document.getElementById("grid-a").innerHTML = mocks.map(cardHTML).join("");
 document.getElementById("grid-b").innerHTML = mocksB.map(cardHTML).join("");
 document.getElementById("grid-c").innerHTML = mocksC.map(cardHTML).join("");
+document.getElementById("grid-d").innerHTML = mocksD.map(cardHTML).join("");
 </script>
 </body>
 </html>

@@ -1,20 +1,24 @@
-/* ---- Keeper design tokens (from mockup-11) ---- */
+/* ---- Keeper design tokens (Command Deck — from mockup-12) ---- */
 :root {
   --bg: #080d0b;
   --bg2: #0b1411;
   --panel: #0f1815;
   --panel2: #13201b;
-  --line: rgba(95, 150, 120, 0.16);
-  --line2: rgba(95, 150, 120, 0.28);
-  --txt: #d4e3da;
-  --muted: #7f9489;
-  --faint: #5c6f66;
-  --green: #5fbf8f;
-  --green-dim: #3f8a66;
+  --line: rgba(95, 150, 120, 0.18);
+  --line2: rgba(95, 150, 120, 0.32);
+  --txt: #dbeae1;
+  /* AA-contrast bumps: lighter muted/faint so they pass on the dark bg */
+  --muted: #a7bcb0;
+  --faint: #8a9d93;
+  --green: #6fd0a0;
+  --green-dim: #4fa37b;
   --green-glow: #1f7a4f;
-  --eye: #39d98a;
-  --red: #c05b5b;
-  --gold: #c7a44e;
+  --eye: #46e89a;
+  --red: #d97a7a;
+  --red-dim: #8a4a4a;
+  --gold: #d6b65e;
+  --focus: #7dffc0;
+  --r: 9px;
 }
 
 * {
@@ -31,13 +35,57 @@ body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--txt);
   font-size: 14px;
-  line-height: 1.45;
+  line-height: 1.4;
   background: var(--bg);
   overflow: hidden;
 }
 button {
   font: inherit;
   color: inherit;
+}
+
+/* ---- accessibility ---- */
+/* tabular numerals wherever stats appear */
+.num,
+.iv,
+.val,
+.mv,
+.rep,
+.hp,
+.diebox .dn {
+  font-variant-numeric: tabular-nums;
+}
+/* visible keyboard focus on all interactive surfaces */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible,
+.win:focus-visible,
+.di:focus-visible,
+.combatant:focus-visible,
+.npcrow:focus-visible,
+.doc:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eye .glow,
+  .eye .iris,
+  .eye .pupil {
+    animation: none !important;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
 }
 
 .app {
@@ -69,13 +117,13 @@ button {
 .wp.grid {
   opacity: 0.5;
   background:
-    linear-gradient(rgba(95, 150, 120, 0.05) 1px, transparent 1px) 0 0 / 100% 36px,
-    linear-gradient(90deg, rgba(95, 150, 120, 0.05) 1px, transparent 1px) 0 0 / 36px 100%;
+    linear-gradient(rgba(95, 150, 120, 0.05) 1px, transparent 1px) 0 0 / 100% 30px,
+    linear-gradient(90deg, rgba(95, 150, 120, 0.05) 1px, transparent 1px) 0 0 / 30px 100%;
   -webkit-mask: radial-gradient(120% 100% at 50% 38%, #000 50%, transparent);
   mask: radial-gradient(120% 100% at 50% 38%, #000 50%, transparent);
 }
 .wp.vig {
-  box-shadow: inset 0 0 170px rgba(0, 0, 0, 0.72);
+  box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.7);
 }
 .hint {
   position: absolute;
@@ -94,24 +142,24 @@ button {
   position: absolute;
   display: flex;
   flex-direction: column;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   background: linear-gradient(180deg, var(--panel2), var(--panel));
   border: 1px solid var(--line);
-  box-shadow: 0 22px 48px -22px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.85);
 }
 .win:focus-within {
   border-color: var(--line2);
   box-shadow:
-    0 28px 64px -20px rgba(0, 0, 0, 0.92),
-    0 0 24px rgba(47, 138, 102, 0.13);
+    0 24px 56px -20px rgba(0, 0, 0, 0.92),
+    0 0 20px rgba(79, 163, 123, 0.14);
 }
 .bar {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 11px;
+  gap: 8px;
+  padding: 5px 9px;
   cursor: grab;
   user-select: none;
   background: linear-gradient(180deg, rgba(34, 62, 50, 0.55), rgba(15, 24, 21, 0.25));
@@ -122,11 +170,11 @@ button {
 }
 .bar .dots {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 .bar .dots i {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: block;
   background: #24332c;
@@ -135,11 +183,11 @@ button {
 .bar .dots i.on {
   background: var(--green-dim);
   border-color: var(--eye);
-  box-shadow: 0 0 6px rgba(57, 217, 138, 0.5);
+  box-shadow: 0 0 5px rgba(70, 232, 154, 0.5);
 }
 .bar .t {
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--muted);
   font-weight: 700;
@@ -147,12 +195,12 @@ button {
 .bar .ctrl {
   margin-left: auto;
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 .bar .ctrl .b {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--faint);
@@ -171,7 +219,7 @@ button {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 14px 15px;
+  padding: 9px 10px;
   display: flex;
   flex-direction: column;
 }
@@ -180,62 +228,63 @@ button {
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 7px;
+  font-size: 12.5px;
   font-weight: 600;
   border: 1px solid var(--line2);
   color: var(--txt);
-  background: rgba(47, 138, 102, 0.1);
+  background: rgba(79, 163, 123, 0.1);
   cursor: pointer;
   width: fit-content;
 }
 .btn:hover {
-  background: rgba(47, 138, 102, 0.2);
+  background: rgba(79, 163, 123, 0.2);
   border-color: var(--green-dim);
 }
 .btn.solid {
-  background: linear-gradient(180deg, #2f8a66, #236b4e);
-  border-color: #2f8a66;
+  background: linear-gradient(180deg, #36996f, #256f52);
+  border-color: #36996f;
   color: #eafff3;
-  box-shadow: 0 0 14px rgba(47, 138, 102, 0.3);
+  box-shadow: 0 0 12px rgba(79, 163, 123, 0.3);
 }
 
 /* ---- window content bits ---- */
 .combatant {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 9px 11px;
-  border-radius: 9px;
-  margin-bottom: 7px;
-  background: rgba(40, 70, 58, 0.18);
+  gap: 9px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  margin-bottom: 4px;
+  background: rgba(40, 70, 58, 0.16);
   border: 1px solid var(--line);
 }
 .combatant.active {
-  background: linear-gradient(90deg, rgba(47, 138, 102, 0.22), rgba(47, 138, 102, 0.06));
+  background: linear-gradient(90deg, rgba(79, 163, 123, 0.24), rgba(79, 163, 123, 0.06));
   border-color: var(--green-dim);
+  box-shadow: 0 0 10px rgba(79, 163, 123, 0.15);
 }
 .combatant.foe {
   background: linear-gradient(90deg, rgba(150, 60, 60, 0.2), rgba(120, 50, 50, 0.05));
-  border-color: rgba(122, 63, 63, 0.6);
+  border-color: var(--red-dim);
 }
 .av {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #0a120f;
-  background: radial-gradient(circle at 40% 30%, #6aa789, #355c4a);
+  background: radial-gradient(circle at 40% 30%, #74b294, #355c4a);
 }
 .combatant.foe .av {
-  background: radial-gradient(circle at 40% 30%, #b06a6a, #5a2f2f);
+  background: radial-gradient(circle at 40% 30%, #c07a7a, #5a2f2f);
   color: #f3e3e3;
 }
 .cn {
@@ -243,16 +292,20 @@ button {
   min-width: 0;
 }
 .cn .nm {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
 }
 .cn .rl {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--muted);
 }
 .iv {
   font-family: Georgia, serif;
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--green);
 }
@@ -263,34 +316,34 @@ button {
 .diebox {
   text-align: center;
   border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 14px 0 16px;
-  margin-bottom: 14px;
-  background: radial-gradient(120% 120% at 50% 0%, rgba(47, 138, 102, 0.14), transparent 60%);
+  border-radius: 9px;
+  padding: 8px 0 10px;
+  margin-bottom: 9px;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(79, 163, 123, 0.14), transparent 60%);
 }
 .diebox .dt {
-  font-size: 12px;
-  letter-spacing: 0.22em;
+  font-size: 10px;
+  letter-spacing: 0.2em;
   color: var(--muted);
 }
 .diebox .dn {
   font-family: Georgia, serif;
-  font-size: 56px;
+  font-size: 46px;
   font-weight: 600;
-  line-height: 1.05;
+  line-height: 1;
   color: #eafff3;
-  text-shadow: 0 0 22px rgba(57, 217, 138, 0.35);
+  text-shadow: 0 0 20px rgba(70, 232, 154, 0.35);
 }
 .diebox .ds {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--green);
 }
 
 .scene-img {
-  height: 130px;
-  border-radius: 10px;
-  margin-bottom: 12px;
+  height: 108px;
+  border-radius: 8px;
+  margin-bottom: 9px;
   border: 1px solid var(--line);
   background:
     radial-gradient(120% 100% at 30% 0%, rgba(60, 90, 80, 0.5), transparent 55%),
@@ -301,8 +354,8 @@ button {
 }
 .row {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 7px;
+  margin-top: 9px;
 }
 .row .btn {
   flex: 1;
@@ -313,23 +366,23 @@ button {
 .dock {
   position: absolute;
   left: 50%;
-  bottom: 13px;
+  bottom: 9px;
   transform: translateX(-50%);
   z-index: 9000;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 16px;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 14px;
   border: 1px solid var(--line2);
-  background: rgba(9, 16, 13, 0.78);
+  background: rgba(9, 16, 13, 0.8);
   backdrop-filter: blur(9px);
-  box-shadow: 0 16px 44px -16px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 14px 40px -16px rgba(0, 0, 0, 0.9);
 }
 .dock .di {
-  width: 46px;
-  height: 46px;
-  border-radius: 11px;
+  width: 48px;
+  height: 40px;
+  border-radius: 9px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -342,7 +395,7 @@ button {
 }
 .dock .di:hover {
   color: var(--txt);
-  background: rgba(47, 138, 102, 0.14);
+  background: rgba(79, 163, 123, 0.16);
   border-color: var(--green-dim);
 }
 .dock .di b {
@@ -354,53 +407,53 @@ button {
 }
 .dock .sep {
   width: 1px;
-  height: 30px;
+  height: 26px;
   background: var(--line2);
-  margin: 0 3px;
+  margin: 0 2px;
 }
 
 /* ---- sidebar + topbar ---- */
 .sidebar {
-  flex: 0 0 220px;
+  flex: 0 0 196px;
   display: flex;
   flex-direction: column;
-  padding: 14px 12px;
+  padding: 10px 9px;
   background: linear-gradient(180deg, #0b1310, #080e0c);
   border-right: 1px solid var(--line);
 }
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 .nav a {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 13px;
-  border-radius: 9px;
+  gap: 10px;
+  padding: 7px 11px;
+  border-radius: 8px;
   color: var(--muted);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 .nav a:hover {
   color: var(--txt);
-  background: rgba(95, 191, 143, 0.06);
+  background: rgba(111, 208, 160, 0.07);
 }
 .nav a.active {
-  color: #e7f4ec;
-  background: linear-gradient(90deg, rgba(47, 138, 102, 0.28), rgba(47, 138, 102, 0.1));
+  color: #eafaf2;
+  background: linear-gradient(90deg, rgba(79, 163, 123, 0.3), rgba(79, 163, 123, 0.08));
   box-shadow: inset 2px 0 0 var(--green);
 }
 .topbar {
   flex: 0 0 auto;
-  height: 56px;
+  height: 50px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 0 16px;
-  background: linear-gradient(180deg, #0d1714, #0a110e);
+  gap: 12px;
+  padding: 0 14px;
+  background: linear-gradient(180deg, #0e1815, #0a110e);
   border-bottom: 1px solid var(--line);
 }
 .topbar .brand {
@@ -410,8 +463,9 @@ button {
 .topbar .brand small {
   display: block;
   font-size: 9px;
-  letter-spacing: 0.3em;
-  color: var(--green-dim);
+  letter-spacing: 0.28em;
+  color: var(--green);
+  font-weight: 700;
 }
 .topbar .spacer {
   flex: 1;
@@ -425,24 +479,26 @@ button {
 .keeper {
   margin-top: auto;
   border: 1px solid var(--line2);
-  border-radius: 14px;
-  padding: 16px 14px;
+  border-radius: 12px;
+  padding: 12px 10px 11px;
   text-align: center;
   background:
     radial-gradient(120% 80% at 50% 120%, rgba(20, 110, 70, 0.3), transparent 60%),
     linear-gradient(180deg, #0c1714, #0a120f);
 }
 .keeper .kt {
-  font-size: 11px;
-  letter-spacing: 0.34em;
+  font-size: 10px;
+  letter-spacing: 0.3em;
   color: var(--green);
   font-weight: 700;
+  text-shadow: 0 0 9px rgba(70, 232, 154, 0.4);
 }
 .keeper .ks {
-  font-size: 13px;
-  color: #9fb3a8;
+  font-size: 12px;
+  color: var(--muted);
   font-style: italic;
-  margin: 10px 0 12px;
+  margin: 6px 0 9px;
+  line-height: 1.4;
 }
 
 ::-webkit-scrollbar {

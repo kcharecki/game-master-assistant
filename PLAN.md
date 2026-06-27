@@ -1,13 +1,14 @@
 # GM Assistant — Build Plan
 
 ## Chosen Design
-**[mockup-11.html](mockups/mockup-11.html) — "Keeper" / séance-green desktop.** All UI work follows this direction.
-Explore alternates: [mockups/index.html](mockups/index.html).
+**[mockup-12.html](mockups/mockup-12.html) — "Keeper · Command Deck" / séance-green desktop.** All UI work follows this direction.
+(Evolution of mockup-11: denser layout + AA-accessibility, same séance-green Cthulhu vibe.) Explore alternates: [mockups/index.html](mockups/index.html).
 
-### Locked design tokens (from mockup-11)
-- Palette: deep desaturated greens. bg `#080d0b`, panels `#0f1815`/`#13201b`, accent green `#5fbf8f` / glow `#39d98a`, danger red `#c05b5b`, gold note `#c7a44e`.
-- Type: system-ui body; Georgia serif for big numerals (dice, initiative) + scene titles.
-- Borders hairline green `rgba(95,150,120,.16)`; soft shadows; 12px radius.
+### Locked design tokens (from mockup-12, live in `src/app.css`)
+- Palette: deep desaturated greens. bg `#080d0b`, panels `#0f1815`/`#13201b`, accent green `#6fd0a0` / glow `#46e89a`, danger red `#d97a7a`, gold note `#d6b65e`. AA-bumped muted `#a7bcb0` / faint `#8a9d93`. Focus ring `#7dffc0`.
+- Type: system-ui body; Georgia serif for big numerals (dice, initiative) + scene titles. Tabular numerals on stats.
+- Borders hairline green `rgba(95,150,120,.18)`; soft shadows; 10px radius. Compact density: 50px topbar, 196px sidebar, tight window chrome.
+- A11y: `:focus-visible` outlines, `prefers-reduced-motion` kills eye animation.
 
 ### Core UX model
 - **Desktop canvas**: components are draggable floating **windows** on a grid+vignette wallpaper. Click = focus/raise (z-index). Position clamped to canvas.
