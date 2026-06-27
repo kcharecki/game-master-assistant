@@ -1,9 +1,10 @@
 <script lang="ts">
   import { clearBroadcast } from './bus-actions';
+  import { t } from '../../lib/i18n';
 </script>
 
 <p class="muted" style="font-size:13px; margin-bottom:12px">
-  Compose what players see in the <strong style="color:var(--green)">Reveal</strong> editor tab, then
-  push it on air. This widget controls the live broadcast.
+  {t('reveal.widgetIntroPre')}<strong style="color:var(--green)">{t('reveal.widgetIntroLink')}</strong
+  >{t('reveal.widgetIntroPost')}
 </p>
-<button class="btn" onclick={clearBroadcast}>Clear Broadcast</button>
+<button class="btn" onclick={clearBroadcast}>{t('reveal.clearBroadcast')}</button>

@@ -2,6 +2,8 @@
   // A silent, scaled-down mirror of the screen-shared broadcast page. Uses the
   // real broadcast renderer (?preview=1 → visuals only, no audio) so it always
   // matches exactly what players see, including grids, maps, mood and YT video.
+  import { t } from '../../lib/i18n';
+
   const SRCW = 1280;
   const SRCH = 800;
 
@@ -12,11 +14,11 @@
 <div class="pvwrap" bind:clientWidth={w} style="aspect-ratio:{SRCW}/{SRCH}">
   <iframe
     class="pvframe"
-    title="Broadcast preview"
+    title={t('preview.title')}
     src="broadcast.html?preview=1"
     style="width:{SRCW}px;height:{SRCH}px;transform:scale({scale})"
   ></iframe>
-  <span class="pvtag">● LIVE</span>
+  <span class="pvtag">{t('preview.live')}</span>
 </div>
 
 <style>

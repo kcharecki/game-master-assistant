@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { map, GRID_SIZE, snapToCell, normPing, type Token } from './store.svelte';
   import { broadcastMap, broadcastPing } from './bus-actions';
+  import { t } from '../../lib/i18n';
 
   let selected = $state<string | null>(null);
   let dragId: string | null = null;
@@ -97,7 +98,7 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <svg
     class="canvas"
-    aria-label="Battle map"
+    aria-label={t('map.canvas')}
     onpointerdown={onCanvasDown}
     onpointermove={onMove}
     onpointerup={onUp}
@@ -154,29 +155,29 @@
 
   <div class="toolbar">
     <button class="btn sm" onclick={() => map.addToken(snapToCell(-map.transform.panX), 0, 'New')}>
-      + Token
+      {t('map.addToken')}
     </button>
-    <button class="btn sm" aria-label="Zoom in" onclick={() => map.zoomBy(1.1)}>＋</button>
-    <button class="btn sm" aria-label="Zoom out" onclick={() => map.zoomBy(0.9)}>－</button>
+    <button class="btn sm" aria-label={t('map.zoomIn')} onclick={() => map.zoomBy(1.1)}>＋</button>
+    <button class="btn sm" aria-label={t('map.zoomOut')} onclick={() => map.zoomBy(0.9)}>－</button>
     <button
       class="btn sm"
       class:on={fogTool === 'reveal'}
       onclick={() => (fogTool = fogTool === 'reveal' ? 'off' : 'reveal')}
-      title="Reveal fog">Reveal</button
+      title={t('map.revealTitle')}>{t('map.reveal')}</button
     >
     <button
       class="btn sm"
       class:on={fogTool === 'hide'}
       onclick={() => (fogTool = fogTool === 'hide' ? 'off' : 'hide')}
-      title="Hide (re-fog)">Hide</button
+      title={t('map.hideTitle')}>{t('map.hide')}</button
     >
     <button
       class="btn sm"
       class:on={fogTool === 'ping'}
       onclick={() => (fogTool = fogTool === 'ping' ? 'off' : 'ping')}
-      title="Ping a spot for players">Ping</button
+      title={t('map.pingTitle')}>{t('map.ping')}</button
     >
-    <button class="btn sm solid" onclick={putMapOnAir} title="Send map to broadcast">On Air</button>
+    <button class="btn sm solid" onclick={putMapOnAir} title={t('map.onAirTitle')}>{t('map.onAir')}</button>
   </div>
 
   {#if sel}
@@ -188,9 +189,9 @@
       <button
         class="btn sm"
         class:on={sel.conditions.includes('prone')}
-        onclick={() => map.toggleCondition(sel.id, 'prone')}>prone</button
+        onclick={() => map.toggleCondition(sel.id, 'prone')}>{t('map.prone')}</button
       >
-      <button class="btn sm danger" aria-label="Remove token" onclick={() => map.removeToken(sel.id)}>✕</button>
+      <button class="btn sm danger" aria-label={t('map.removeToken')} onclick={() => map.removeToken(sel.id)}>✕</button>
     </div>
   {/if}
 </div>

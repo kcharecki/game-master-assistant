@@ -5,6 +5,7 @@
   import { assetPut, assetUrl } from '../../lib/db';
   import { putOnAir } from '../reveal/bus-actions';
   import { clampCols, gridAssetIds } from '../../broadcast/grid';
+  import { t } from '../../lib/i18n';
   import type { GraphNode } from './graph';
   import type { GridCell } from '../../lib/types';
 
@@ -231,23 +232,24 @@
     editingId = null;
   }
 
-  const TITLES: Record<string, string> = {
-    npc: 'NPC',
-    image: 'Image',
-    text: 'Text',
-    grid: 'Grid (sink)',
-  };
+  function nodeTitle(kind: string): string {
+    if (kind === 'npc') return t('composer.kindNpc');
+    if (kind === 'image') return t('composer.kindImage');
+    if (kind === 'text') return t('composer.kindText');
+    if (kind === 'grid') return t('composer.kindGrid');
+    return kind;
+  }
 </script>
 
 <div class="cbar">
-  <button class="btn sm" onclick={() => composer.add('npc', 40, 40)}>＋ NPC</button>
-  <button class="btn sm" onclick={() => composer.add('image', 40, 120)}>＋ Image</button>
-  <button class="btn sm" onclick={() => composer.add('text', 40, 200)}>＋ Text</button>
-  <button class="btn sm" onclick={() => extraSlots++}>＋ Slot</button>
-  <button class="btn sm air" onclick={onAir} disabled={!preview}>Broadcast</button>
+  <button class="btn sm" onclick={() => composer.add('npc', 40, 40)}>{t('composer.addNpc')}</button>
+  <button class="btn sm" onclick={() => composer.add('image', 40, 120)}>{t('composer.addImage')}</button>
+  <button class="btn sm" onclick={() => composer.add('text', 40, 200)}>{t('composer.addText')}</button>
+  <button class="btn sm" onclick={() => extraSlots++}>{t('composer.addSlot')}</button>
+  <button class="btn sm air" onclick={onAir} disabled={!preview}>{t('composer.broadcast')}</button>
 </div>
 
-<div class="tabstrip" role="tablist" aria-label="Composer views">
+<div class="tabstrip" role="tablist" aria-label={t('composer.views')}>
   {#each composer.views as v (v.id)}
     <div class="tab" class:active={v.id === composer.activeId}>
       {#if editingId === v.id}
@@ -261,7 +263,7 @@
             if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur();
             else if (e.key === 'Escape') (editingId = null);
           }}
-          aria-label="View name"
+          aria-label={t('composer.viewName')}
         />
       {:else}
         <button
@@ -275,14 +277,14 @@
           class="tabx"
           onclick={() => composer.removeView(v.id)}
           disabled={composer.views.length <= 1}
-          aria-label={`Close ${v.name}`}
-          title="Close view"
+          aria-label={`${t('composer.closePre')}${v.name}`}
+          title={t('composer.closeView')}
         >✕</button>
       {/if}
     </div>
   {/each}
-  <button class="tabadd" onclick={() => composer.addView()} aria-label="Add view" title="Add view">＋</button>
-  <button class="tabadd" onclick={() => composer.duplicateView()} aria-label="Duplicate view" title="Duplicate view">⧉</button>
+  <button class="tabadd" onclick={() => composer.addView()} aria-label={t('composer.addView')} title={t('composer.addView')}>＋</button>
+  <button class="tabadd" onclick={() => composer.duplicateView()} aria-label={t('composer.duplicateView')} title={t('composer.duplicateView')}>⧉</button>
 </div>
 
 <div
@@ -290,7 +292,7 @@
   bind:this={canvas}
   data-no-drag
   role="application"
-  aria-label="Node graph canvas"
+  aria-label={t('composer.canvas')}
   onpointermove={onMove}
   onpointerup={endWire}
 >
@@ -319,9 +321,9 @@
         role="button"
         tabindex="0"
       >
-        <span class="ntitle">{TITLES[n.kind]}</span>
+        <span class="ntitle">{nodeTitle(n.kind)}</span>
         {#if n.kind !== 'grid'}
-          <button class="nx" onpointerdown={(e) => e.stopPropagation()} onclick={() => composer.remove(n.id)} aria-label="Remove node">✕</button>
+          <button class="nx" onpointerdown={(e) => e.stopPropagation()} onclick={() => composer.remove(n.id)} aria-label={t('composer.removeNode')}>✕</button>
         {/if}
       </div>
 
@@ -330,9 +332,9 @@
           <select
             value={n.npcId ?? ''}
             onchange={(e) => composer.patch(n.id, { npcId: (e.currentTarget as HTMLSelectElement).value || undefined })}
-            aria-label="NPC"
+            aria-label={t('composer.npc')}
           >
-            <option value="">— pick NPC —</option>
+            <option value="">{t('composer.pickNpc')}</option>
             {#each npcs.list as npc (npc.id)}
               <option value={npc.id}>{npc.name}</option>
             {/each}
@@ -347,43 +349,43 @@
         {:else if n.kind === 'image'}
           <input
             type="url"
-            placeholder="image URL"
+            placeholder={t('composer.imageUrlPlaceholder')}
             value={n.src ?? ''}
             oninput={(e) => composer.patch(n.id, { src: (e.currentTarget as HTMLInputElement).value || undefined })}
-            aria-label="Image URL"
+            aria-label={t('composer.imageUrl')}
           />
-          <input type="file" accept="image/*" onchange={(e) => pickImage(e, n.id)} aria-label="Upload image" />
+          <input type="file" accept="image/*" onchange={(e) => pickImage(e, n.id)} aria-label={t('composer.uploadImage')} />
           <input
             type="text"
-            placeholder="caption"
+            placeholder={t('composer.captionPlaceholder')}
             value={n.caption ?? ''}
             oninput={(e) => composer.patch(n.id, { caption: (e.currentTarget as HTMLInputElement).value || undefined })}
-            aria-label="Caption"
+            aria-label={t('composer.caption')}
           />
         {:else if n.kind === 'text'}
           <input
             type="text"
-            placeholder="title"
+            placeholder={t('composer.titlePlaceholder')}
             value={n.title ?? ''}
             oninput={(e) => composer.patch(n.id, { title: (e.currentTarget as HTMLInputElement).value || undefined })}
-            aria-label="Title"
+            aria-label={t('composer.titleField')}
           />
           <textarea
-            placeholder="body"
+            placeholder={t('composer.bodyPlaceholder')}
             value={n.body ?? ''}
             oninput={(e) => composer.patch(n.id, { body: (e.currentTarget as HTMLTextAreaElement).value || undefined })}
-            aria-label="Body"
+            aria-label={t('composer.body')}
           ></textarea>
         {:else if n.kind === 'grid'}
           <label class="cols">
-            cols
+            {t('composer.cols')}
             <input
               type="number"
               min="1"
               max="6"
               value={n.cols ?? 2}
               oninput={(e) => composer.patch(n.id, { cols: Number((e.currentTarget as HTMLInputElement).value) })}
-              aria-label="Columns"
+              aria-label={t('composer.columns')}
             />
           </label>
           <div class="slotlist">
@@ -394,10 +396,10 @@
                 onpointerup={(e) => dropOnSlot(e, s)}
                 role="button"
                 tabindex="0"
-                aria-label={`Slot ${s}`}
+                aria-label={`${t('composer.slotPre')}${s}`}
               >
                 <span class="port in" use:registerPort={`in:${s}`}></span>
-                <span class="slotlbl">slot {s}</span>
+                <span class="slotlbl">{t('composer.slotLbl')}{s}</span>
               </div>
             {/each}
           </div>
@@ -411,7 +413,7 @@
           onpointerdown={(e) => startWire(e, n.id)}
           role="button"
           tabindex="0"
-          aria-label="Output port"
+          aria-label={t('composer.outputPort')}
         ></span>
       {/if}
     </div>
@@ -419,7 +421,7 @@
 </div>
 
 <div class="pvwrap" data-no-drag>
-  <span class="pvlbl">Live preview</span>
+  <span class="pvlbl">{t('composer.livePreview')}</span>
   {#if preview}
     <div class="pvgrid" style="grid-template-columns: repeat({clampCols(preview.cols, preview.cells.length)}, 1fr)">
       {#each preview.cells as cell, i (i)}
@@ -438,7 +440,7 @@
       {/each}
     </div>
   {:else}
-    <div class="pvempty">Wire a source into the grid to preview.</div>
+    <div class="pvempty">{t('composer.previewEmpty')}</div>
   {/if}
 </div>
 

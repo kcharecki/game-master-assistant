@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { handouts } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void handouts.load());
 
@@ -21,13 +22,13 @@
   <div class="list">
     {#each handouts.list as h (h.id)}
       <button class="row" class:on={h.id === selectedId} onclick={() => (selectedId = h.id)}>
-        <span class="t">{h.title || 'Untitled'}</span>
-        {#if h.assetId}<span class="img">img</span>{/if}
+        <span class="t">{h.title || t('handouts.untitled')}</span>
+        {#if h.assetId}<span class="img">{t('handouts.img')}</span>{/if}
       </button>
     {:else}
-      <p class="muted">No handouts yet.</p>
+      <p class="muted">{t('handouts.none')}</p>
     {/each}
-    <button class="btn add" onclick={add}>＋ New</button>
+    <button class="btn add" onclick={add}>{t('handouts.new')}</button>
   </div>
 
   {#if selected}
@@ -36,22 +37,22 @@
         class="in"
         value={selected.title}
         oninput={(e) => handouts.update(selected.id, { title: (e.currentTarget as HTMLInputElement).value })}
-        placeholder="Title"
+        placeholder={t('handouts.titlePlaceholder')}
       />
       <textarea
         class="in body"
         value={selected.body}
         oninput={(e) => handouts.update(selected.id, { body: (e.currentTarget as HTMLTextAreaElement).value })}
-        placeholder="Letter text…"
+        placeholder={t('handouts.bodyPlaceholder')}
       ></textarea>
       <div class="actions">
         <label class="btn file">
-          Image
+          {t('handouts.image')}
           <input type="file" accept="image/*" onchange={onFile} />
         </label>
-        <button class="btn send" onclick={() => handouts.send(selected.id)}>Send to Broadcast</button>
+        <button class="btn send" onclick={() => handouts.send(selected.id)}>{t('handouts.send')}</button>
         <button class="btn del" onclick={() => { handouts.remove(selected.id); selectedId = null; }}>
-          Delete
+          {t('handouts.delete')}
         </button>
       </div>
     </div>

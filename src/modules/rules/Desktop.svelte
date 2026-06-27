@@ -2,23 +2,24 @@
   import { rules } from './store.svelte';
   import { system } from '../../lib/stores/system.svelte';
   import { systemConfig } from '../../lib/system';
+  import { t } from '../../lib/i18n';
 </script>
 
 <div class="rl">
-  <input class="in" placeholder="Look up a rule…" bind:value={rules.query} />
-  <div class="sys muted">{systemConfig(system.current).label} rules</div>
+  <input class="in" placeholder={t('rules.lookup')} bind:value={rules.query} />
+  <div class="sys muted">{systemConfig(system.current).label}{t('rules.rulesSuffix')}</div>
 
   <ul class="list">
     {#each rules.results as r (r.id)}
       <li class="row">
         <div class="term">
           {r.term}
-          {#if r.system === 'both'}<span class="tag">core</span>{/if}
+          {#if r.system === 'both'}<span class="tag">{t('rules.core')}</span>{/if}
         </div>
         <p class="body">{r.body}</p>
       </li>
     {:else}
-      <li class="muted">No matching rules.</li>
+      <li class="muted">{t('rules.noMatch')}</li>
     {/each}
   </ul>
 </div>

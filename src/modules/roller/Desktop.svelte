@@ -1,5 +1,6 @@
 <script lang="ts">
   import { roll, DEFAULT_MACROS, type RollMode, type RollResult } from './logic';
+  import { t } from '../../lib/i18n';
 
   let expr = $state('1d20');
   let mode = $state<RollMode>('normal');
@@ -22,18 +23,20 @@
 </script>
 
 <div class="diebox">
-  <div class="dt">{expr}{mode !== 'normal' ? ` · ${mode === 'advantage' ? 'adv' : 'dis'}` : ''}</div>
+  <div class="dt">{expr}{mode !== 'normal'
+      ? ` · ${mode === 'advantage' ? t('roller.adv') : t('roller.dis')}`
+      : ''}</div>
   <div class="dn">{result ? result.total : '—'}</div>
   <div class="ds">
     {#if error}
-      <span class="err">bad expression</span>
+      <span class="err">{t('roller.badExpr')}</span>
     {:else if result}
       [{result.kept.join(', ')}]{result.modifier
         ? (result.modifier > 0 ? ' +' : ' ') + result.modifier
         : ''}
-      {#if result.hidden}<span class="hid">· hidden</span>{/if}
+      {#if result.hidden}<span class="hid">{t('roller.hiddenTag')}</span>{/if}
     {:else}
-      enter a roll
+      {t('roller.enterRoll')}
     {/if}
   </div>
 </div>
@@ -45,18 +48,18 @@
 </div>
 
 <form class="add-row" data-no-drag onsubmit={(ev) => (ev.preventDefault(), doRoll())}>
-  <input class="in" bind:value={expr} aria-label="Dice expression" placeholder="NdM+K" />
-  <button class="btn solid sm" type="submit">Roll</button>
+  <input class="in" bind:value={expr} aria-label={t('roller.expr')} placeholder={t('roller.exprPlaceholder')} />
+  <button class="btn solid sm" type="submit">{t('roller.roll')}</button>
 </form>
 
 <div class="opts" data-no-drag>
-  <select class="in sel" bind:value={mode} aria-label="Roll mode">
-    <option value="normal">Normal</option>
-    <option value="advantage">Advantage</option>
-    <option value="disadvantage">Disadvantage</option>
+  <select class="in sel" bind:value={mode} aria-label={t('roller.mode')}>
+    <option value="normal">{t('roller.normal')}</option>
+    <option value="advantage">{t('roller.advantage')}</option>
+    <option value="disadvantage">{t('roller.disadvantage')}</option>
   </select>
   <label class="hidchk">
-    <input type="checkbox" bind:checked={hidden} /> Hidden (GM)
+    <input type="checkbox" bind:checked={hidden} /> {t('roller.hidden')}
   </label>
 </div>
 

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { tables } from './store.svelte';
   import { system } from '../../lib/stores/system.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void tables.load());
 
@@ -27,56 +28,56 @@
 
 <div class="tb">
   <div class="tabs">
-    <button class:on={tab === 'tables'} onclick={() => (tab = 'tables')}>Tables</button>
-    <button class:on={tab === 'loot'} onclick={() => (tab = 'loot')}>Loot</button>
-    <button class:on={tab === 'rulings'} onclick={() => (tab = 'rulings')}>Rulings</button>
+    <button class:on={tab === 'tables'} onclick={() => (tab = 'tables')}>{t('tables.tables')}</button>
+    <button class:on={tab === 'loot'} onclick={() => (tab = 'loot')}>{t('tables.loot')}</button>
+    <button class:on={tab === 'rulings'} onclick={() => (tab = 'rulings')}>{t('tables.rulings')}</button>
   </div>
 
   {#if tables.lastRoll}<div class="result">{tables.lastRoll}</div>{/if}
 
   {#if tab === 'tables'}
     <div class="head">
-      <span class="lbl">Random tables</span>
-      <button class="btn" onclick={() => tables.addTable()}>+ Table</button>
+      <span class="lbl">{t('tables.randomTables')}</span>
+      <button class="btn" onclick={() => tables.addTable()}>{t('tables.addTable')}</button>
     </div>
-    {#each tables.tables as t (t.id)}
+    {#each tables.tables as tbl (tbl.id)}
       <div class="card">
         <div class="top">
-          <b>{t.name}</b>
+          <b>{tbl.name}</b>
           <span class="actions">
-            <button class="lnk" disabled={!t.entries.length} onclick={() => tables.roll(t.id)}>Roll</button>
-            <button class="del" aria-label="Delete table" onclick={() => tables.removeTable(t.id)}>×</button>
+            <button class="lnk" disabled={!tbl.entries.length} onclick={() => tables.roll(tbl.id)}>{t('tables.roll')}</button>
+            <button class="del" aria-label={t('tables.deleteTable')} onclick={() => tables.removeTable(tbl.id)}>×</button>
           </span>
         </div>
-        <div class="small">{t.entries.length} entries</div>
+        <div class="small">{tbl.entries.length}{t('tables.entriesSuffix')}</div>
         <div class="row">
           <input
             class="in"
-            placeholder="Add entry…"
-            bind:value={entryDraft[t.id]}
-            onkeydown={(e) => e.key === 'Enter' && addEntry(t.id)}
+            placeholder={t('tables.addEntry')}
+            bind:value={entryDraft[tbl.id]}
+            onkeydown={(e) => e.key === 'Enter' && addEntry(tbl.id)}
           />
         </div>
       </div>
     {/each}
   {:else if tab === 'loot'}
-    <p class="lbl">Loot generator ({system.current === 'coc7e' ? 'CoC' : 'D&D'})</p>
-    <button class="btn wide" onclick={() => tables.rollLoot(system.current)}>Generate loot</button>
+    <p class="lbl">{t('tables.lootGenPre')}{system.current === 'coc7e' ? t('tables.lootCoc') : t('tables.lootDnd')}{t('tables.lootGenPost')}</p>
+    <button class="btn wide" onclick={() => tables.rollLoot(system.current)}>{t('tables.generateLoot')}</button>
   {:else}
-    <div class="head"><span class="lbl">Rulings log</span></div>
+    <div class="head"><span class="lbl">{t('tables.rulingsLog')}</span></div>
     <div class="form">
-      <input class="in" placeholder="Question / situation" bind:value={q} />
-      <input class="in" placeholder="Ruling" bind:value={r} />
-      <button class="btn" onclick={addRuling}>Log</button>
+      <input class="in" placeholder={t('tables.questionPlaceholder')} bind:value={q} />
+      <input class="in" placeholder={t('tables.rulingPlaceholder')} bind:value={r} />
+      <button class="btn" onclick={addRuling}>{t('tables.log')}</button>
     </div>
     <ul class="list">
       {#each tables.rulings as rl (rl.id)}
         <li class="card">
-          <div class="top"><b>{rl.question}</b><button class="del" aria-label="Delete ruling" onclick={() => tables.removeRuling(rl.id)}>×</button></div>
+          <div class="top"><b>{rl.question}</b><button class="del" aria-label={t('tables.deleteRuling')} onclick={() => tables.removeRuling(rl.id)}>×</button></div>
           <div class="small ans">{rl.ruling}</div>
         </li>
       {:else}
-        <li class="small">No rulings logged.</li>
+        <li class="small">{t('tables.noRulings')}</li>
       {/each}
     </ul>
   {/if}

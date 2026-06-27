@@ -4,6 +4,7 @@
   import { DEFAULT_DISPLAY_MODE } from '../../broadcast/display';
   import { MOODS, DEFAULT_MOOD } from '../../broadcast/mood';
   import { putOnAir, clearBroadcast, setDisplayMode, setMood } from './bus-actions';
+  import { t } from '../../lib/i18n';
 
   let display = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
   let moodId = $state(DEFAULT_MOOD.id);
@@ -75,16 +76,16 @@
 
 <div class="editor">
   <header class="ehead">
-    <h2>Reveal</h2>
+    <h2>{t('reveal.title')}</h2>
     <div class="seg">
-      <button class:on={mode === 'text'} onclick={() => (mode = 'text')}>Text</button>
-      <button class:on={mode === 'image'} onclick={() => (mode = 'image')}>Image</button>
+      <button class:on={mode === 'text'} onclick={() => (mode = 'text')}>{t('reveal.text')}</button>
+      <button class:on={mode === 'image'} onclick={() => (mode = 'image')}>{t('reveal.image')}</button>
     </div>
   </header>
 
   {#if mode === 'text'}
-    <input class="in" bind:value={title} placeholder="Title (optional)" />
-    <textarea class="in" rows="5" bind:value={body} placeholder="Body text"></textarea>
+    <input class="in" bind:value={title} placeholder={t('reveal.titlePlaceholder')} />
+    <textarea class="in" rows="5" bind:value={body} placeholder={t('reveal.bodyPlaceholder')}></textarea>
   {:else}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
@@ -95,12 +96,12 @@
       ondrop={onDrop}
     >
       {#if uploadUrl}
-        <img class="thumb" src={uploadUrl} alt="upload preview" />
+        <img class="thumb" src={uploadUrl} alt={t('reveal.uploadPreview')} />
       {:else}
-        <span class="muted">Drop an image here</span>
+        <span class="muted">{t('reveal.dropImage')}</span>
       {/if}
       <label class="btn sm">
-        Choose file
+        {t('reveal.chooseFile')}
         <input type="file" accept="image/*" onchange={onFile} hidden />
       </label>
     </div>
@@ -108,28 +109,28 @@
       class="in"
       bind:value={src}
       oninput={() => (uploadAssetId = '')}
-      placeholder="…or paste an image URL"
+      placeholder={t('reveal.urlPlaceholder')}
     />
-    <input class="in" bind:value={caption} placeholder="Caption (optional)" />
+    <input class="in" bind:value={caption} placeholder={t('reveal.captionPlaceholder')} />
   {/if}
 
   <div class="actions">
-    <button class="btn solid" onclick={send}>Send to Broadcast</button>
-    <button class="btn" onclick={clearBroadcast}>Clear</button>
+    <button class="btn solid" onclick={send}>{t('reveal.send')}</button>
+    <button class="btn" onclick={clearBroadcast}>{t('reveal.clear')}</button>
   </div>
 
   <div class="display">
-    <span class="muted">Display:</span>
+    <span class="muted">{t('reveal.display')}</span>
     <div class="seg">
       <button class:on={display === 'cinematic'} onclick={() => pickDisplay('cinematic')}>
-        Cinematic
+        {t('reveal.cinematic')}
       </button>
-      <button class:on={display === 'plain'} onclick={() => pickDisplay('plain')}>Plain</button>
+      <button class:on={display === 'plain'} onclick={() => pickDisplay('plain')}>{t('reveal.plain')}</button>
     </div>
   </div>
 
   <div class="display">
-    <span class="muted">Mood:</span>
+    <span class="muted">{t('reveal.mood')}</span>
     <div class="moods">
       {#each MOODS as m (m.id)}
         <button class="moodbtn" class:on={moodId === m.id} onclick={() => pickMood(m.id)}>
@@ -138,7 +139,7 @@
       {/each}
     </div>
   </div>
-  <p class="muted hint">Screen-share the broadcast window; players see only what you send here.</p>
+  <p class="muted hint">{t('reveal.hint')}</p>
 </div>
 
 <style>
