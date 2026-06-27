@@ -2,6 +2,20 @@ import { kvSet, kvGet } from '../../lib/db';
 import { generateNpc, type Rng } from './generator';
 
 export type Disposition = 'ally' | 'neutral' | 'hostile';
+
+export interface EquipItem {
+  id: string;
+  name: string;
+  qty?: number;
+  notes?: string;
+}
+
+export interface StatRow {
+  id: string;
+  key: string;
+  val: string;
+}
+
 export interface Npc {
   id: string;
   name: string;
@@ -10,6 +24,15 @@ export interface Npc {
   voice?: string;
   /** asset id of an uploaded portrait image (see lib/db assetPut) */
   portraitId?: string;
+  /** extra photo asset ids (portraitId stays the primary) */
+  gallery?: string[];
+  equipment?: EquipItem[];
+  /** PRIVATE — never broadcast */
+  gmNotes?: string;
+  /** what players may see */
+  publicBlurb?: string;
+  /** system-neutral key/value rows */
+  stats?: StatRow[];
 }
 
 const SEED: Npc[] = [
@@ -52,6 +75,83 @@ class NpcStore {
 
   remove(id: string): void {
     this.list = this.list.filter((n) => n.id !== id);
+    this.persist();
+  }
+
+  // --- Equipment -----------------------------------------------------------
+
+  addEquip(npcId: string, name = ''): EquipItem | undefined {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return undefined;
+    const item: EquipItem = { id: crypto.randomUUID(), name };
+    if (!npc.equipment) npc.equipment = [];
+    npc.equipment.push(item);
+    this.persist();
+    return item;
+  }
+
+  updateEquip(npcId: string, equipId: string, patch: Partial<Omit<EquipItem, 'id'>>): void {
+    const item = this.list.find((n) => n.id === npcId)?.equipment?.find((e) => e.id === equipId);
+    if (item) Object.assign(item, patch);
+    this.persist();
+  }
+
+  removeEquip(npcId: string, equipId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (npc?.equipment) npc.equipment = npc.equipment.filter((e) => e.id !== equipId);
+    this.persist();
+  }
+
+  // --- Photos / gallery ----------------------------------------------------
+
+  addPhoto(npcId: string, assetId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return;
+    if (!npc.gallery) npc.gallery = [];
+    if (!npc.gallery.includes(assetId)) npc.gallery.push(assetId);
+    // First photo on an NPC with no portrait becomes the primary.
+    if (!npc.portraitId) npc.portraitId = assetId;
+    this.persist();
+  }
+
+  removePhoto(npcId: string, assetId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return;
+    if (npc.gallery) npc.gallery = npc.gallery.filter((id) => id !== assetId);
+    if (npc.portraitId === assetId) npc.portraitId = npc.gallery?.[0];
+    this.persist();
+  }
+
+  setPrimaryPhoto(npcId: string, assetId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return;
+    if (!npc.gallery) npc.gallery = [];
+    if (!npc.gallery.includes(assetId)) npc.gallery.push(assetId);
+    npc.portraitId = assetId;
+    this.persist();
+  }
+
+  // --- Stat rows -----------------------------------------------------------
+
+  addStat(npcId: string): StatRow | undefined {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return undefined;
+    const row: StatRow = { id: crypto.randomUUID(), key: '', val: '' };
+    if (!npc.stats) npc.stats = [];
+    npc.stats.push(row);
+    this.persist();
+    return row;
+  }
+
+  updateStat(npcId: string, statId: string, patch: Partial<Omit<StatRow, 'id'>>): void {
+    const row = this.list.find((n) => n.id === npcId)?.stats?.find((s) => s.id === statId);
+    if (row) Object.assign(row, patch);
+    this.persist();
+  }
+
+  removeStat(npcId: string, statId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (npc?.stats) npc.stats = npc.stats.filter((s) => s.id !== statId);
     this.persist();
   }
 
