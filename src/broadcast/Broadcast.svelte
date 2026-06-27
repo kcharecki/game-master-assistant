@@ -32,6 +32,11 @@
   // Sound-only mode: keep the iframe playing but hidden offscreen (players see
   // only the normal broadcast content). Unmuted so it's actually audible.
   let youtubeAudioOnly = $state(false);
+  // The video covers the whole surface, so on-air content must win: push the
+  // iframe offscreen whenever there's real content (anything but a clear stage)
+  // OR when the keeper chose audio-only. It only shows full when nothing else
+  // is on air.
+  const ytBackground = $derived(youtubeAudioOnly || payload.kind !== 'clear');
   // Reverse status channel back to the GM tab; opened in onMount (no import-time bus).
   let statusBus: ReturnType<typeof createBus> | null = null;
   let lastStatusAt = 0;
@@ -251,7 +256,7 @@
         {/if}
       {/each}
     </div>
-  {:else}
+  {:else if !youtubeId}
     <div class="idle">Awaiting the Keeper…</div>
   {/if}
 
@@ -274,7 +279,7 @@
            muted so autoplay isn't blocked; the keeper unmutes via YT controls. -->
       <iframe
         class="ytplayer"
-        class:audioonly={youtubeAudioOnly}
+        class:audioonly={ytBackground}
         title="Ambient YouTube"
         src="https://www.youtube-nocookie.com/embed/{youtubeId}?autoplay=1&loop=1&playlist={youtubeId}{youtubeAudioOnly
           ? ''
