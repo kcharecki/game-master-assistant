@@ -32,11 +32,14 @@
   // Sound-only mode: keep the iframe playing but hidden offscreen (players see
   // only the normal broadcast content). Unmuted so it's actually audible.
   let youtubeAudioOnly = $state(false);
-  // The video covers the whole surface, so on-air content must win: push the
-  // iframe offscreen whenever there's real content (anything but a clear stage)
-  // OR when the keeper chose audio-only. It only shows full when nothing else
-  // is on air.
-  const ytBackground = $derived(youtubeAudioOnly || payload.kind !== 'clear');
+  // Foreground arbitration: the most recent action wins the screen. Playing a
+  // video-mode YT track foregrounds the video; pushing any on-air content
+  // foregrounds that content (and backgrounds the video). The video also shows
+  // when the stage is clear. Audio-only is always hidden in the background.
+  let ytVideoFg = $state(false);
+  const ytBackground = $derived(
+    youtubeAudioOnly || (!ytVideoFg && payload.kind !== 'clear')
+  );
   // Reverse status channel back to the GM tab; opened in onMount (no import-time bus).
   let statusBus: ReturnType<typeof createBus> | null = null;
   let lastStatusAt = 0;
@@ -147,6 +150,7 @@
       }
       youtubeId = cue.youtubeId;
       youtubeAudioOnly = !!cue.audioOnly;
+      ytVideoFg = !cue.audioOnly; // video mode → the video takes the foreground
       youtubeNonce += 1;
       return;
     }
@@ -194,7 +198,10 @@
       else if (m.type === 'mood') mood = moodById(m.moodId);
       else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
       else if (m.payload.kind === 'audio') handleAudio(m.payload);
-      else payload = m.payload;
+      else {
+        payload = m.payload;
+        ytVideoFg = false; // new on-air content takes the foreground from the video
+      }
     });
     return () => {
       off();
