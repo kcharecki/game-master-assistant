@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { createBus } from '../lib/bus';
   import { kvGet, assetUrl } from '../lib/db';
+  import { lang, t } from '../lib/i18n';
   import type { BroadcastPayload, DisplayMode } from '../lib/types';
   import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
   import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
@@ -203,6 +204,7 @@
   }
 
   onMount(() => {
+    void lang.load();
     // Rehydrate last shared state + display mode, then listen for live GM pushes.
     void kvGet<BroadcastPayload>('broadcastState').then((saved) => {
       if (saved) payload = saved;
@@ -287,7 +289,7 @@
       {/each}
     </div>
   {:else if !youtubeId}
-    <div class="idle">Awaiting the Keeper…</div>
+    <div class="idle">{t('broadcast.idle')}</div>
   {/if}
 
   <!-- Mood/lighting wash, layered over content but under transient markers. -->
@@ -298,7 +300,7 @@
   {/if}
 
   {#if audioLocked}
-    <button class="unlock" onclick={unlockAudio}>🔊 Click to enable audio</button>
+    <button class="unlock" onclick={unlockAudio}>{t('broadcast.enableAudio')}</button>
   {/if}
 
   <!-- YouTube ambient embed (autoplay + loop). Muted fallback eases autoplay

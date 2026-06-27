@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { ModuleId } from './lib/module';
-  import { getModule } from './lib/registry';
+  import { lang } from './lib/stores/lang.svelte';
+  import { t } from './lib/i18n';
   import Topbar from './components/Topbar.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import Desktop from './surfaces/Desktop.svelte';
@@ -16,6 +18,10 @@
     if (!openEditors.includes(id)) openEditors.push(id);
     view = id;
   }
+
+  onMount(() => {
+    void lang.load();
+  });
 
   // Let the command palette open editor tabs when a result targets one.
   palette.onOpenEditor = openEditor;
@@ -52,7 +58,7 @@
         <button class="tab" class:on={view === 'desktop'} onclick={showDesktop}>Desktop</button>
         {#each openEditors as id (id)}
           <span class="tab" class:on={view === id}>
-            <button class="tlabel" onclick={() => (view = id)}>{getModule(id).title}</button>
+            <button class="tlabel" onclick={() => (view = id)}>{t('mod.' + id + '.title')}</button>
             <button class="tx" onclick={() => closeEditor(id)} aria-label="Close tab">✕</button>
           </span>
         {/each}

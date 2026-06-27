@@ -2,6 +2,7 @@
   import type { WindowKind } from '../lib/types';
   import { moduleList } from '../lib/registry';
   import { categorized, infoFor } from '../lib/categories';
+  import { t } from '../lib/i18n';
 
   let {
     onReveal,
@@ -21,29 +22,29 @@
 </script>
 
 <div class="dock">
-  <button class="di"><b>Narrate</b></button>
-  <button class="di" onclick={onReveal}><b>Reveal</b></button>
-  <button class="di" onclick={() => onAdd('npcs')}><b>Add NPC</b></button>
-  <button class="di" onclick={() => onAdd('roller')}><b>Roll</b></button>
-  <button class="di" onclick={() => onAdd('timer')}><b>Timer</b></button>
-  <button class="di" onclick={() => onAdd('conditions')}><b>Conditions</b></button>
+  <button class="di"><b>{t('dock.narrate')}</b></button>
+  <button class="di" onclick={onReveal}><b>{t('dock.reveal')}</b></button>
+  <button class="di" onclick={() => onAdd('npcs')}><b>{t('dock.addNpc')}</b></button>
+  <button class="di" onclick={() => onAdd('roller')}><b>{t('dock.roll')}</b></button>
+  <button class="di" onclick={() => onAdd('timer')}><b>{t('dock.timer')}</b></button>
+  <button class="di" onclick={() => onAdd('conditions')}><b>{t('dock.conditions')}</b></button>
   <div class="sep"></div>
   <div class="widget-wrap">
     {#if menuOpen}
       <div class="menu" role="menu" aria-label="Add widget">
         {#each groups as g (g.category)}
           <div class="cat">
-            <div class="cat-head">{g.category}</div>
+            <div class="cat-head">{t('cat.' + g.category)}</div>
             <div class="grid">
               {#each g.items as m (m.id)}
                 <button
                   class="tile"
                   role="menuitem"
-                  aria-label={m.title}
+                  aria-label={t('mod.' + m.id + '.title')}
                   onclick={() => spawn(m.id)}
                 >
                   <span class="glyph" aria-hidden="true">{infoFor(m.id).icon}</span>
-                  <span class="label">{m.title}</span>
+                  <span class="label">{t('mod.' + m.id + '.title')}</span>
                 </button>
               {/each}
             </div>
@@ -55,7 +56,7 @@
       class="di add"
       aria-haspopup="menu"
       aria-expanded={menuOpen}
-      onclick={() => (menuOpen = !menuOpen)}><b>＋ Widget</b></button
+      onclick={() => (menuOpen = !menuOpen)}><b>{t('dock.widget')}</b></button
     >
   </div>
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import KeeperEye from './KeeperEye.svelte';
   import { moduleList } from '../lib/registry';
+  import { t } from '../lib/i18n';
   import type { ModuleId } from '../lib/module';
   import {
     exportCampaign,
@@ -80,7 +81,7 @@
         onclick={(e) => {
           e.preventDefault();
           onOpenEditor(m.id);
-        }}>{m.title}</a
+        }}>{t('mod.' + m.id + '.title')}</a
       >
     {/each}
   </nav>

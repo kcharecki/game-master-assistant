@@ -4,6 +4,7 @@
   import { wm } from '../lib/stores/windows.svelte';
   import WindowFrame from '../components/WindowFrame.svelte';
   import Dock from '../components/Dock.svelte';
+  import { t } from '../lib/i18n';
 
   let { onOpenEditor }: { onOpenEditor: (id: ModuleId) => void } = $props();
 
@@ -34,8 +35,12 @@
   {#if wm.windows.some((w) => w.minimized)}
     <div class="mindock">
       {#each wm.windows.filter((w) => w.minimized) as win (win.id)}
-        <button class="minchip" onclick={() => wm.toggleMin(win.id)} title="Restore {win.title}">
-          {win.title}
+        <button
+          class="minchip"
+          onclick={() => wm.toggleMin(win.id)}
+          title={t('win.expand') + ' ' + t('mod.' + win.kind + '.title')}
+        >
+          {t('mod.' + win.kind + '.title')}
         </button>
       {/each}
     </div>

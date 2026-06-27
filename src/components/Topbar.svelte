@@ -4,6 +4,7 @@
   import { SYSTEMS, systemConfig } from '../lib/system';
   import { layouts } from '../lib/stores/layouts.svelte';
   import { wm } from '../lib/stores/windows.svelte';
+  import { lang, t } from '../lib/i18n';
 
   let { onOpenBroadcast }: { onOpenBroadcast: () => void } = $props();
 
@@ -49,20 +50,34 @@
       >
     {/each}
   </div>
-  <button class="btn" aria-label="Tile windows" onclick={tileWindows}>⊞ Tile</button>
+  <div class="sysswitch" role="group" aria-label="Language">
+    <button
+      class="sysbtn"
+      class:on={lang.current === 'en'}
+      aria-pressed={lang.current === 'en'}
+      onclick={() => lang.set('en')}>EN</button
+    >
+    <button
+      class="sysbtn"
+      class:on={lang.current === 'pl'}
+      aria-pressed={lang.current === 'pl'}
+      onclick={() => lang.set('pl')}>PL</button
+    >
+  </div>
+  <button class="btn" aria-label="Tile windows" onclick={tileWindows}>{t('topbar.tile')}</button>
   <span class="pill">Session 02:34:17</span>
   <div class="layouts">
     <button
       class="btn"
       aria-haspopup="menu"
       aria-expanded={menuOpen}
-      onclick={() => (menuOpen = !menuOpen)}>Layouts ▾</button
+      onclick={() => (menuOpen = !menuOpen)}>{t('topbar.layouts')}</button
     >
     {#if menuOpen}
       <div class="lmenu" role="menu">
-        <div class="lhead">{systemConfig(system.current).label} layouts</div>
+        <div class="lhead">{systemConfig(system.current).label} {t('topbar.layoutsHeader')}</div>
         {#if layouts.presets.length === 0}
-          <div class="lempty">No saved layouts</div>
+          <div class="lempty">{t('topbar.noLayouts')}</div>
         {/if}
         {#each layouts.presets as p (p.name)}
           <div class="lrow">
@@ -78,15 +93,15 @@
           <input
             class="lin"
             bind:value={newName}
-            placeholder="Save current as…"
+            placeholder={t('topbar.saveAs')}
             onkeydown={(e) => e.key === 'Enter' && saveCurrent()}
           />
-          <button class="lsavebtn" onclick={saveCurrent}>Save</button>
+          <button class="lsavebtn" onclick={saveCurrent}>{t('topbar.save')}</button>
         </div>
       </div>
     {/if}
   </div>
-  <button class="btn" onclick={onOpenBroadcast}>Open Broadcast ↗</button>
+  <button class="btn" onclick={onOpenBroadcast}>{t('topbar.openBroadcast')}</button>
 </header>
 
 <style>

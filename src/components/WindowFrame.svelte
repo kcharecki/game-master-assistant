@@ -5,12 +5,14 @@
   import { feedback } from '../lib/stores/feedback.svelte';
   import { feedbackToMarkdown } from '../lib/feedback';
   import { getModule } from '../lib/registry';
+  import { t } from '../lib/i18n';
   import { dragHandle } from '../lib/actions/drag';
   import { resizeHandle } from '../lib/actions/resize';
   import Stub from './Stub.svelte';
 
   let { win }: { win: WindowState } = $props();
   const mod = $derived(getModule(win.kind));
+  const title = $derived(t('mod.' + win.kind + '.title'));
 
   onMount(() => void feedback.load());
 
@@ -41,7 +43,7 @@
     class="win"
     data-win
     role="group"
-    aria-label={win.title}
+    aria-label={title}
     tabindex="-1"
     style="left:{win.x}px;top:{win.y}px;width:{win.w}px;height:{win.collapsed
       ? 'auto'
@@ -50,7 +52,7 @@
   >
     <div class="bar" use:dragHandle={(x, y) => wm.move(win.id, x, y)}>
       <span class="dots"><i class="on"></i><i></i><i></i></span>
-      <span class="t">{win.title}</span>
+      <span class="t">{title}</span>
       <span class="ctrl">
         <button
           class="b"
@@ -66,14 +68,14 @@
           class="b"
           data-no-drag
           onclick={() => wm.toggleCollapse(win.id)}
-          aria-label={win.collapsed ? 'Expand' : 'Collapse'}
+          aria-label={win.collapsed ? t('win.expand') : t('win.collapse')}
         >
           {win.collapsed ? '▸' : '▾'}
         </button>
-        <button class="b" data-no-drag onclick={() => wm.toggleMin(win.id)} aria-label="Minimize">
+        <button class="b" data-no-drag onclick={() => wm.toggleMin(win.id)} aria-label={t('win.minimize')}>
           –
         </button>
-        <button class="b x" data-no-drag onclick={() => wm.close(win.id)} aria-label="Close">✕</button
+        <button class="b x" data-no-drag onclick={() => wm.close(win.id)} aria-label={t('win.close')}>✕</button
         >
       </span>
     </div>
@@ -81,9 +83,9 @@
     {#if fbOpen}
       <div class="fbpanel" data-no-drag>
         <div class="fbhead">
-          <span>Feedback · {win.title}</span>
+          <span>{t('win.feedbackFor')}{title}</span>
           <button class="fbexport" onclick={exportFeedback} title="Download all feedback (.md)"
-            >⤓ Export</button
+            >{t('win.export')}</button
           >
         </div>
         {#if fbItems.length}
@@ -91,7 +93,7 @@
             {#each fbItems as f (f.id)}
               <li>
                 <span class="fbtext">{f.text}</span>
-                <button class="fbdel" onclick={() => feedback.remove(f.id)} aria-label="Delete"
+                <button class="fbdel" onclick={() => feedback.remove(f.id)} aria-label={t('win.delete')}
                   >✕</button
                 >
               </li>
@@ -102,10 +104,10 @@
           class="fbinput"
           bind:value={fbText}
           rows="2"
-          placeholder="What to fix in this component…"
+          placeholder={t('win.feedbackPlaceholder')}
         ></textarea>
         <div class="fbactions">
-          <button class="fbsave" onclick={saveFeedback} disabled={!fbText.trim()}>Save</button>
+          <button class="fbsave" onclick={saveFeedback} disabled={!fbText.trim()}>{t('win.save')}</button>
         </div>
       </div>
     {/if}

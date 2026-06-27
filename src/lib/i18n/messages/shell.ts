@@ -1,0 +1,168 @@
+// App chrome + module titles + category names. EN values for module titles
+// MUST match the manifest titles exactly (e2e + UI depend on them).
+export const shell = {
+  en: {
+    // Module titles — keep identical to each module's manifest title.
+    'mod.scene.title': 'Current Scene',
+    'mod.initiative.title': 'Initiative Tracker',
+    'mod.conditions.title': 'Conditions',
+    'mod.timer.title': 'Session Timer',
+    'mod.roller.title': 'Quick Roller',
+    'mod.npcs.title': 'NPCs',
+    'mod.lore.title': 'Lore Wiki',
+    'mod.calendar.title': 'Calendar',
+    'mod.schedule.title': 'Timeline',
+    'mod.factions.title': 'Factions',
+    'mod.reveal.title': 'Reveal',
+    'mod.map.title': 'Battle Map',
+    'mod.audio.title': 'Audio',
+    'mod.handouts.title': 'Handouts',
+    'mod.notebook.title': 'Session Notes',
+    'mod.quests.title': 'Quest Tracker',
+    'mod.beats.title': 'Beat Planner',
+    'mod.tables.title': 'Tables & Rulings',
+    'mod.improv.title': 'Improv Prompt',
+    'mod.clues.title': 'Clue Board',
+    'mod.sanity.title': 'Sanity',
+    'mod.skillcheck.title': 'Skill Check',
+    'mod.statblock.title': 'Stat Blocks',
+    'mod.palette.title': 'Command Palette',
+    'mod.archive.title': 'Campaign Archive',
+    'mod.spotlight.title': 'Spotlight',
+    'mod.rules.title': 'Rules Reference',
+    'mod.dashboard.title': 'Player Dashboard',
+    'mod.reminders.title': 'Action Reminders',
+    'mod.composer.title': 'Broadcast Composer',
+    'mod.preview.title': 'Broadcast Preview',
+
+    // Categories — keep identical to categories.ts keys.
+    'cat.Combat': 'Combat',
+    'cat.NPCs & World': 'NPCs & World',
+    'cat.Maps & Broadcast': 'Maps & Broadcast',
+    'cat.Atmosphere': 'Atmosphere',
+    'cat.Dice & Rules': 'Dice & Rules',
+    'cat.Prep & Notes': 'Prep & Notes',
+    'cat.Investigation': 'Investigation',
+    'cat.Utility': 'Utility',
+    'cat.Other': 'Other',
+
+    // Topbar chrome.
+    'topbar.openBroadcast': 'Open Broadcast ↗',
+    'topbar.layouts': 'Layouts ▾',
+    'topbar.tile': '⊞ Tile',
+    'topbar.save': 'Save',
+    'topbar.saveAs': 'Save current as…',
+    'topbar.noLayouts': 'No saved layouts',
+    'topbar.layoutsHeader': 'layouts',
+
+    // Dock chrome.
+    'dock.narrate': 'Narrate',
+    'dock.reveal': 'Reveal',
+    'dock.addNpc': 'Add NPC',
+    'dock.roll': 'Roll',
+    'dock.timer': 'Timer',
+    'dock.conditions': 'Conditions',
+    'dock.widget': '＋ Widget',
+
+    // Window frame chrome.
+    'win.feedback': 'Feedback',
+    'win.feedbackFor': 'Feedback · ',
+    'win.feedbackPlaceholder': 'What to fix in this component…',
+    'win.export': '⤓ Export',
+    'win.save': 'Save',
+    'win.delete': 'Delete',
+    'win.collapse': 'Collapse',
+    'win.expand': 'Expand',
+    'win.minimize': 'Minimize',
+    'win.close': 'Close',
+
+    // Broadcast idle screen.
+    'broadcast.idle': 'Awaiting the Keeper…',
+    'broadcast.enableAudio': '🔊 Click to enable audio',
+
+    // Language switcher.
+    'lang.label': 'Language',
+  },
+  pl: {
+    // Module titles.
+    'mod.scene.title': 'Bieżąca scena',
+    'mod.initiative.title': 'Licznik inicjatywy',
+    'mod.conditions.title': 'Stany',
+    'mod.timer.title': 'Czas sesji',
+    'mod.roller.title': 'Szybki rzut',
+    'mod.npcs.title': 'BN-i',
+    'mod.lore.title': 'Wiki świata',
+    'mod.calendar.title': 'Kalendarz',
+    'mod.schedule.title': 'Oś czasu',
+    'mod.factions.title': 'Frakcje',
+    'mod.reveal.title': 'Odsłona',
+    'mod.map.title': 'Mapa bitwy',
+    'mod.audio.title': 'Dźwięk',
+    'mod.handouts.title': 'Materiały',
+    'mod.notebook.title': 'Notatki z sesji',
+    'mod.quests.title': 'Śledzenie zadań',
+    'mod.beats.title': 'Planer scen',
+    'mod.tables.title': 'Tabele i orzeczenia',
+    'mod.improv.title': 'Podpowiedź improwizacji',
+    'mod.clues.title': 'Tablica poszlak',
+    'mod.sanity.title': 'Poczytalność',
+    'mod.skillcheck.title': 'Test umiejętności',
+    'mod.statblock.title': 'Karty statystyk',
+    'mod.palette.title': 'Paleta poleceń',
+    'mod.archive.title': 'Archiwum kampanii',
+    'mod.spotlight.title': 'Reflektor',
+    'mod.rules.title': 'Odniesienie do zasad',
+    'mod.dashboard.title': 'Panel graczy',
+    'mod.reminders.title': 'Przypomnienia akcji',
+    'mod.composer.title': 'Kompozytor transmisji',
+    'mod.preview.title': 'Podgląd transmisji',
+
+    // Categories.
+    'cat.Combat': 'Walka',
+    'cat.NPCs & World': 'BN-i i świat',
+    'cat.Maps & Broadcast': 'Mapy i transmisja',
+    'cat.Atmosphere': 'Atmosfera',
+    'cat.Dice & Rules': 'Kości i zasady',
+    'cat.Prep & Notes': 'Przygotowanie i notatki',
+    'cat.Investigation': 'Śledztwo',
+    'cat.Utility': 'Narzędzia',
+    'cat.Other': 'Inne',
+
+    // Topbar chrome.
+    'topbar.openBroadcast': 'Otwórz transmisję ↗',
+    'topbar.layouts': 'Układy ▾',
+    'topbar.tile': '⊞ Kafelki',
+    'topbar.save': 'Zapisz',
+    'topbar.saveAs': 'Zapisz bieżący jako…',
+    'topbar.noLayouts': 'Brak zapisanych układów',
+    'topbar.layoutsHeader': 'układy',
+
+    // Dock chrome.
+    'dock.narrate': 'Narracja',
+    'dock.reveal': 'Odsłona',
+    'dock.addNpc': 'Dodaj BN',
+    'dock.roll': 'Rzut',
+    'dock.timer': 'Czas',
+    'dock.conditions': 'Stany',
+    'dock.widget': '＋ Widżet',
+
+    // Window frame chrome.
+    'win.feedback': 'Uwagi',
+    'win.feedbackFor': 'Uwagi · ',
+    'win.feedbackPlaceholder': 'Co poprawić w tym komponencie…',
+    'win.export': '⤓ Eksport',
+    'win.save': 'Zapisz',
+    'win.delete': 'Usuń',
+    'win.collapse': 'Zwiń',
+    'win.expand': 'Rozwiń',
+    'win.minimize': 'Minimalizuj',
+    'win.close': 'Zamknij',
+
+    // Broadcast idle screen.
+    'broadcast.idle': 'Oczekiwanie na Strażnika…',
+    'broadcast.enableAudio': '🔊 Kliknij, aby włączyć dźwięk',
+
+    // Language switcher.
+    'lang.label': 'Język',
+  },
+};
