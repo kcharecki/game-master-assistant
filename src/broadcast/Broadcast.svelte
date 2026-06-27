@@ -25,6 +25,27 @@
   let pendingCue: Extract<BroadcastPayload, { kind: 'audio' }> | null = null;
   // Object URLs are created in THIS tab from shared-IndexedDB blobs; revoke on replace.
   let ambientUrl = '';
+  // YouTube ambient: rendered as an iframe (the autoplay/loop embed). Seek scrubbing
+  // would need the JS IFrame API (out of scope) — Rewind re-mounts via `youtubeNonce`.
+  let youtubeId = $state<string | null>(null);
+  let youtubeNonce = $state(0);
+  // Reverse status channel back to the GM tab; opened in onMount (no import-time bus).
+  let statusBus: ReturnType<typeof createBus> | null = null;
+  let lastStatusAt = 0;
+
+  function postAmbientStatus(force = false) {
+    if (!statusBus || !ambientEl) return;
+    const now = Date.now();
+    if (!force && now - lastStatusAt < 500) return; // throttle timeupdate to ~2/s
+    lastStatusAt = now;
+    const duration = Number.isFinite(ambientEl.duration) ? ambientEl.duration : 0;
+    statusBus.sendAudioStatus({
+      channel: 'ambient',
+      current: ambientEl.currentTime,
+      duration,
+      playing: !ambientEl.paused,
+    });
+  }
 
   // Resolve an on-air image's asset to a tab-local URL (assetId), or use an
   // external src directly. blob: URLs from the GM tab never resolve here.
@@ -88,12 +109,39 @@
     if (!el) return;
     if (cue.action === 'stop') {
       el.pause();
-      if (cue.channel === 'ambient' && ambientUrl) {
-        URL.revokeObjectURL(ambientUrl);
-        ambientUrl = '';
+      if (cue.channel === 'ambient') {
+        youtubeId = null; // tear down any YT iframe
+        if (ambientUrl) {
+          URL.revokeObjectURL(ambientUrl);
+          ambientUrl = '';
+        }
+        postAmbientStatus(true);
       }
       return;
     }
+    if (cue.action === 'seek') {
+      // Fine seek applies to native <audio> only (ambient). YouTube has no JS
+      // seek here (IFrame API out of scope) — the GM uses Rewind, which re-mounts.
+      if (cue.channel === 'ambient' && !youtubeId) {
+        const dur = Number.isFinite(ambientEl.duration) ? ambientEl.duration : Infinity;
+        ambientEl.currentTime = Math.min(Math.max(0, cue.seek ?? 0), dur);
+        postAmbientStatus(true);
+      }
+      return;
+    }
+    // play action.
+    if (cue.channel === 'ambient' && cue.youtubeId) {
+      // YouTube ambient: pause native audio and (re)mount the iframe.
+      el.pause();
+      if (ambientUrl) {
+        URL.revokeObjectURL(ambientUrl);
+        ambientUrl = '';
+      }
+      youtubeId = cue.youtubeId;
+      youtubeNonce += 1;
+      return;
+    }
+    if (cue.channel === 'ambient') youtubeId = null; // switching back to native audio
     // Resolve the blob locally (assetId), or fall back to an external src.
     const url = cue.assetId ? await assetUrl(cue.assetId) : cue.src;
     if (!url) return;
@@ -130,7 +178,9 @@
       mood = normalizeMood(saved);
     });
     const bus = createBus();
+    statusBus = bus; // reuse for the reverse audioStatus channel
     const off = bus.on((m) => {
+      if (m.type === 'audioStatus') return; // our own reverse reports; ignore
       if (m.type === 'display') mode = m.mode;
       else if (m.type === 'mood') mood = moodById(m.moodId);
       else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
@@ -140,6 +190,7 @@
     return () => {
       off();
       bus.close();
+      statusBus = null;
       clearTimeout(pingTimer);
       if (ambientUrl) URL.revokeObjectURL(ambientUrl);
     };
@@ -211,8 +262,29 @@
     <button class="unlock" onclick={unlockAudio}>🔊 Click to enable audio</button>
   {/if}
 
-  <!-- Audio routed through this shared tab; hidden, GM-controlled via the bus. -->
-  <audio bind:this={ambientEl}></audio>
+  <!-- YouTube ambient embed (autoplay + loop). Muted fallback eases autoplay
+       blocking; the keeper can unmute via YouTube's own controls. No JS seek. -->
+  {#if youtubeId}
+    {#key youtubeNonce}
+      <iframe
+        class="ytplayer"
+        title="Ambient YouTube"
+        src="https://www.youtube-nocookie.com/embed/{youtubeId}?autoplay=1&loop=1&playlist={youtubeId}&mute=1"
+        allow="autoplay"
+        frameborder="0"
+      ></iframe>
+    {/key}
+  {/if}
+
+  <!-- Audio routed through this shared tab; hidden, GM-controlled via the bus.
+       Ambient posts position back over the reverse bus channel for the transport. -->
+  <audio
+    bind:this={ambientEl}
+    ontimeupdate={() => postAmbientStatus()}
+    ondurationchange={() => postAmbientStatus(true)}
+    onplay={() => postAmbientStatus(true)}
+    onpause={() => postAmbientStatus(true)}
+  ></audio>
   <audio bind:this={sfxEl}></audio>
 </div>
 
@@ -317,6 +389,15 @@
     pointer-events: none;
     transition: background 0.8s ease;
     z-index: 1;
+  }
+
+  .ytplayer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    z-index: 2;
   }
 
   .unlock {

@@ -1,5 +1,7 @@
 import type { BusMessage, BroadcastPayload, DisplayMode } from './types';
 
+type AudioStatusInput = Omit<Extract<BusMessage, { type: 'audioStatus' }>, 'type' | 'at'>;
+
 export const CHANNEL = 'gm-assistant';
 
 /** Pure helper: wrap a payload into a timestamped bus message. Unit-testable without a channel. */
@@ -17,10 +19,18 @@ export function makeMoodMessage(moodId: string): Extract<BusMessage, { type: 'mo
   return { type: 'mood', moodId, at: Date.now() };
 }
 
+/** Pure helper: wrap an audio playback-status report into a timestamped bus message. */
+export function makeAudioStatusMessage(
+  status: AudioStatusInput
+): Extract<BusMessage, { type: 'audioStatus' }> {
+  return { type: 'audioStatus', ...status, at: Date.now() };
+}
+
 export interface Bus {
   send(payload: BroadcastPayload): BusMessage;
   sendDisplay(mode: DisplayMode): BusMessage;
   sendMood(moodId: string): BusMessage;
+  sendAudioStatus(status: AudioStatusInput): BusMessage;
   on(cb: (msg: BusMessage) => void): () => void;
   close(): void;
 }
@@ -44,6 +54,11 @@ export function createBus(name: string = CHANNEL): Bus {
     },
     sendMood(moodId) {
       const msg = makeMoodMessage(moodId);
+      ch.postMessage(msg);
+      return msg;
+    },
+    sendAudioStatus(status) {
+      const msg = makeAudioStatusMessage(status);
       ch.postMessage(msg);
       return msg;
     },

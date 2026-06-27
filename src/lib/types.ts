@@ -38,13 +38,17 @@ export type BroadcastPayload =
   | { kind: 'ping'; x: number; y: number }
   // Audio cue routed through the broadcast tab's <audio> element. `channel`
   // separates looping ambience from one-shot SFX so they don't cut each other.
+  // `seek` (action 'seek') moves the ambient playhead to `seek` seconds (rewind
+  // = seek 0). `youtubeId` plays the cue as an embedded YouTube iframe instead.
   | {
       kind: 'audio';
       src?: string;
       assetId?: string;
+      youtubeId?: string;
       loop: boolean;
-      action: 'play' | 'stop';
+      action: 'play' | 'stop' | 'seek';
       channel: 'ambient' | 'sfx';
+      seek?: number;
     };
 
 export type DisplayMode = 'cinematic' | 'plain';
@@ -56,4 +60,14 @@ export type DisplayMode = 'cinematic' | 'plain';
 export type BusMessage =
   | { type: 'broadcast'; payload: BroadcastPayload; at: number }
   | { type: 'display'; mode: DisplayMode; at: number }
-  | { type: 'mood'; moodId: string; at: number };
+  | { type: 'mood'; moodId: string; at: number }
+  // Reverse channel: the broadcast tab reports ambient/sfx playback position back
+  // to the GM tab so it can drive the transport (seek slider + time readout).
+  | {
+      type: 'audioStatus';
+      channel: 'ambient' | 'sfx';
+      current: number;
+      duration: number;
+      playing: boolean;
+      at: number;
+    };
