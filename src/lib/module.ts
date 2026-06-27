@@ -10,6 +10,7 @@ export type ModuleId =
   | 'npcs'
   | 'lore'
   | 'calendar'
+  | 'schedule'
   | 'factions'
   | 'handouts'
   | 'notebook'

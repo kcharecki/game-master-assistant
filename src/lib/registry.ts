@@ -8,6 +8,7 @@ import roller from '../modules/roller';
 import npcs from '../modules/npcs';
 import lore from '../modules/lore';
 import calendar from '../modules/calendar';
+import schedule from '../modules/schedule';
 import factions from '../modules/factions';
 import reveal from '../modules/reveal';
 import map from '../modules/map';
@@ -39,6 +40,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   npcs,
   lore,
   calendar,
+  schedule,
   factions,
   reveal,
   map,
