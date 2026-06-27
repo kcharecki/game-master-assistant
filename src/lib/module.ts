@@ -29,6 +29,7 @@ export type ModuleId =
   | 'rules'
   | 'dashboard'
   | 'reminders'
+  | 'composer'
   | 'reveal';
 
 /**

@@ -1,13 +1,22 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { composer } from './store.svelte';
   import { npcs } from '../npcs/store.svelte';
-  import { assetPut } from '../../lib/db';
+  import { assetPut, assetUrl } from '../../lib/db';
+  import { putOnAir } from '../reveal/bus-actions';
+  import { clampCols, gridAssetIds } from '../../broadcast/grid';
   import type { GraphNode } from './graph';
+  import type { GridCell } from '../../lib/types';
 
   const NODE_W = 168;
   const HEADER_H = 24;
   const SLOT_GAP = 22;
   const SLOT_TOP = 40;
+
+  onMount(() => {
+    void composer.load();
+    void npcs.load();
+  });
 
   let canvas = $state<HTMLDivElement | null>(null);
 
@@ -111,11 +120,47 @@
     return pub.role ? `${pub.name} · ${pub.role}` : pub.name;
   }
 
+  // --- live preview --------------------------------------------------------
+  let preview = $derived(composer.preview);
+
+  // Resolve preview image cells' asset ids to tab-local object URLs (revoked on
+  // change / unmount), mirroring the broadcast renderer.
+  let previewUrls = $state<Record<string, string>>({});
+  $effect(() => {
+    const want = new Set(preview ? gridAssetIds(preview.cells) : []);
+    for (const [id, url] of Object.entries(previewUrls)) {
+      if (!want.has(id)) {
+        URL.revokeObjectURL(url);
+        delete previewUrls[id];
+      }
+    }
+    for (const id of want) {
+      if (!previewUrls[id]) {
+        void assetUrl(id).then((u) => {
+          if (u) previewUrls[id] = u;
+        });
+      }
+    }
+  });
+  $effect(() => () => {
+    for (const url of Object.values(previewUrls)) URL.revokeObjectURL(url);
+  });
+
+  function cellImg(cell: GridCell): string | undefined {
+    if (cell.kind !== 'image') return undefined;
+    return cell.assetId ? previewUrls[cell.assetId] : cell.src;
+  }
+
+  function onAir() {
+    const payload = composer.preview;
+    if (payload) putOnAir(payload);
+  }
+
   const TITLES: Record<string, string> = {
     npc: 'NPC',
     image: 'Image',
     text: 'Text',
-    grid: 'Grid → On Air',
+    grid: 'Grid (sink)',
   };
 </script>
 
@@ -124,6 +169,7 @@
   <button class="btn sm" onclick={() => composer.add('image', 40, 120)}>＋ Image</button>
   <button class="btn sm" onclick={() => composer.add('text', 40, 200)}>＋ Text</button>
   <button class="btn sm" onclick={() => extraSlots++}>＋ Slot</button>
+  <button class="btn sm air" onclick={onAir} disabled={!preview}>On Air</button>
 </div>
 
 <div
@@ -252,6 +298,30 @@
   {/each}
 </div>
 
+<div class="pvwrap" data-no-drag>
+  <span class="pvlbl">Live preview</span>
+  {#if preview}
+    <div class="pvgrid" style="grid-template-columns: repeat({clampCols(preview.cols, preview.cells.length)}, 1fr)">
+      {#each preview.cells as cell, i (i)}
+        <div class="pvcell">
+          {#if cell.kind === 'image'}
+            {@const url = cellImg(cell)}
+            {#if url}
+              <img src={url} alt={cell.caption ?? ''} />
+            {/if}
+            {#if cell.caption}<span class="pvcap">{cell.caption}</span>{/if}
+          {:else}
+            {#if cell.title}<strong>{cell.title}</strong>{/if}
+            {#if cell.body}<span>{cell.body}</span>{/if}
+          {/if}
+        </div>
+      {/each}
+    </div>
+  {:else}
+    <div class="pvempty">Wire a source into the grid to preview.</div>
+  {/if}
+</div>
+
 <style>
   .cbar {
     display: flex;
@@ -261,6 +331,55 @@
   .cbar .btn.sm {
     padding: 5px 9px;
     font-size: 12px;
+  }
+  .cbar .btn.air {
+    margin-left: auto;
+    border-color: var(--gold, #c7a44e);
+    color: var(--gold, #c7a44e);
+  }
+  .cbar .btn.air:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .pvwrap {
+    margin-top: 6px;
+  }
+  .pvlbl {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted, #9a9484);
+    margin-bottom: 4px;
+  }
+  .pvgrid {
+    display: grid;
+    gap: 4px;
+  }
+  .pvcell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 5px;
+    font-size: 10px;
+    border: 1px solid var(--line2);
+    border-radius: 4px;
+    background: rgba(20, 28, 22, 0.4);
+    color: var(--ink, #e7e3d4);
+  }
+  .pvcell img {
+    width: 100%;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 3px;
+  }
+  .pvcap {
+    color: var(--muted, #9a9484);
+  }
+  .pvempty {
+    font-size: 11px;
+    color: var(--faint, #6f6a5c);
+    font-style: italic;
   }
   .cgraph {
     position: relative;

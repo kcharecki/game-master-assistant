@@ -27,6 +27,7 @@ import spotlight from '../modules/spotlight';
 import rules from '../modules/rules';
 import dashboard from '../modules/dashboard';
 import reminders from '../modules/reminders';
+import composer from '../modules/composer';
 
 /** The single source of truth: id -> module. Surfaces resolve views from here. */
 export const modules: Record<ModuleId, ModuleManifest> = {
@@ -58,6 +59,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   rules,
   dashboard,
   reminders,
+  composer,
 };
 
 export const moduleList: ModuleManifest[] = Object.values(modules);
