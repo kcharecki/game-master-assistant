@@ -13,6 +13,7 @@ export interface WindowState {
   h: number;
   z: number;
   minimized: boolean;
+  collapsed: boolean;
 }
 
 // What the GM pushes to the shared broadcast window.

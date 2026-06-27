@@ -22,6 +22,7 @@ class WindowManager {
       h: mod.size.h,
       z: ++this.#z,
       minimized: false,
+      collapsed: false,
     };
     this.windows.push(win);
     this.persist();
@@ -56,6 +57,13 @@ class WindowManager {
     this.persist();
   }
 
+  /** Roll the window up to its title bar (content hidden) without moving it. */
+  toggleCollapse(id: string): void {
+    const w = this.windows.find((w) => w.id === id);
+    if (w) w.collapsed = !w.collapsed;
+    this.persist();
+  }
+
   close(id: string): void {
     this.windows = this.windows.filter((w) => w.id !== id);
     this.persist();
@@ -82,6 +90,7 @@ class WindowManager {
       h: p.h,
       z: ++this.#z,
       minimized: false,
+      collapsed: false,
     }));
     this.persist();
   }
@@ -93,7 +102,8 @@ class WindowManager {
   async load(): Promise<void> {
     const saved = await kvGet<WindowState[]>('windows');
     if (saved?.length) {
-      this.windows = saved;
+      // Older saved windows predate `collapsed`; coerce missing to false.
+      this.windows = saved.map((w) => ({ ...w, collapsed: w.collapsed ?? false }));
       this.#z = Math.max(...saved.map((w) => w.z), 10);
     }
   }

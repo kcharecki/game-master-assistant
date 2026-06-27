@@ -27,6 +27,7 @@ const win = (kind: string, x: number, y: number): WindowState => ({
   h: 200,
   z: 12,
   minimized: false,
+  collapsed: false,
 });
 
 describe('serializeLayout', () => {

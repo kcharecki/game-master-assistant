@@ -6,11 +6,13 @@ vi.mock('../../src/lib/db', () => ({
   kvSet: vi.fn().mockResolvedValue(undefined),
 }));
 
+import { kvSet } from '../../src/lib/db';
 import { wm } from '../../src/lib/stores/windows.svelte';
 
 describe('WindowManager', () => {
   beforeEach(() => {
     for (const w of [...wm.windows]) wm.close(w.id);
+    vi.clearAllMocks();
   });
 
   it('adds a window with defaults for its kind', () => {
@@ -20,6 +22,23 @@ describe('WindowManager', () => {
     expect(w.title).toBe('Quick Roller');
     expect(w.x).toBe(10);
     expect(w.y).toBe(20);
+    expect(w.collapsed).toBe(false);
+  });
+
+  it('toggleCollapse flips collapsed state without moving the window and persists', () => {
+    const w = wm.add('roller', 10, 20);
+    const got = () => wm.windows.find((x) => x.id === w.id)!;
+    expect(got().collapsed).toBe(false);
+
+    wm.toggleCollapse(w.id);
+    expect(got().collapsed).toBe(true);
+    // geometry untouched by collapse
+    expect(got().x).toBe(10);
+    expect(got().y).toBe(20);
+    expect(kvSet).toHaveBeenCalledWith('windows', expect.anything());
+
+    wm.toggleCollapse(w.id);
+    expect(got().collapsed).toBe(false);
   });
 
   it('raises z-index on focus', () => {

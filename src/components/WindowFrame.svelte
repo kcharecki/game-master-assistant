@@ -17,13 +17,23 @@
     role="group"
     aria-label={win.title}
     tabindex="-1"
-    style="left:{win.x}px;top:{win.y}px;width:{win.w}px;height:{win.h}px;z-index:{win.z}"
+    style="left:{win.x}px;top:{win.y}px;width:{win.w}px;height:{win.collapsed
+      ? 'auto'
+      : win.h + 'px'};z-index:{win.z}"
     onpointerdown={() => wm.focus(win.id)}
   >
     <div class="bar" use:dragHandle={(x, y) => wm.move(win.id, x, y)}>
       <span class="dots"><i class="on"></i><i></i><i></i></span>
       <span class="t">{win.title}</span>
       <span class="ctrl">
+        <button
+          class="b"
+          data-no-drag
+          onclick={() => wm.toggleCollapse(win.id)}
+          aria-label={win.collapsed ? 'Expand' : 'Collapse'}
+        >
+          {win.collapsed ? '▸' : '▾'}
+        </button>
         <button class="b" data-no-drag onclick={() => wm.toggleMin(win.id)} aria-label="Minimize">
           –
         </button>
@@ -31,20 +41,22 @@
         >
       </span>
     </div>
-    <div class="content">
-      {#if mod.desktop}
-        {@const Desktop = mod.desktop}
-        <Desktop />
-      {:else}
-        <Stub moduleId={win.kind} title={mod.title} />
-      {/if}
-    </div>
-    <span
-      class="grip"
-      data-no-drag
-      aria-label="Resize"
-      use:resizeHandle={(w, h) => wm.resize(win.id, w, h)}
-    ></span>
+    {#if !win.collapsed}
+      <div class="content">
+        {#if mod.desktop}
+          {@const Desktop = mod.desktop}
+          <Desktop />
+        {:else}
+          <Stub moduleId={win.kind} title={mod.title} />
+        {/if}
+      </div>
+      <span
+        class="grip"
+        data-no-drag
+        aria-label="Resize"
+        use:resizeHandle={(w, h) => wm.resize(win.id, w, h)}
+      ></span>
+    {/if}
   </section>
 {/if}
 
