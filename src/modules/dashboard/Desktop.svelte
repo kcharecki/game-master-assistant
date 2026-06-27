@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { dashboard } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void dashboard.load());
 
@@ -10,7 +11,7 @@
 </script>
 
 <div class="db">
-  <div class="hint muted">Party reference · passive Perception high = {dashboard.topPP}</div>
+  <div class="hint muted">{t('dashboard.partyRef')} {dashboard.topPP}</div>
   <div class="rows">
     {#each dashboard.sorted as p (p.id)}
       <div class="row">
@@ -21,23 +22,23 @@
         />
         <label class="stat">AC<input type="number" value={p.ac} oninput={(e) => dashboard.update(p.id, { ac: num(e) })} /></label>
         <label class="stat">PP<input type="number" value={p.pp} oninput={(e) => dashboard.update(p.id, { pp: num(e) })} /></label>
-        <button class="del" aria-label="Remove" onclick={() => dashboard.remove(p.id)}>×</button>
+        <button class="del" aria-label={t('dashboard.remove')} onclick={() => dashboard.remove(p.id)}>×</button>
         <input
           class="meta"
           value={p.saves ?? ''}
-          placeholder="saves"
+          placeholder={t('dashboard.savesPlaceholder')}
           oninput={(e) => dashboard.update(p.id, { saves: (e.currentTarget as HTMLInputElement).value })}
         />
         <input
           class="meta"
           value={p.resistances ?? ''}
-          placeholder="resist / lang"
+          placeholder={t('dashboard.resistPlaceholder')}
           oninput={(e) => dashboard.update(p.id, { resistances: (e.currentTarget as HTMLInputElement).value })}
         />
       </div>
     {/each}
   </div>
-  <button class="btn" onclick={() => dashboard.add()}>＋ Add PC</button>
+  <button class="btn" onclick={() => dashboard.add()}>{t('dashboard.addPc')}</button>
 </div>
 
 <style>

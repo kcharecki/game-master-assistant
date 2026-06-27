@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { timer, formatClock } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   let handle: ReturnType<typeof setInterval> | undefined;
 
@@ -13,33 +14,33 @@
 </script>
 
 <div class="diebox">
-  <div class="dt">Session</div>
+  <div class="dt">{t('timer.session')}</div>
   <div class="dn" class:over={timer.overBudget}>{formatClock(timer.elapsed)}</div>
   {#if timer.sceneBudget > 0}
     <div class="bar"><span style="width:{timer.budgetFraction * 100}%"></span></div>
-    <div class="ds">scene budget {formatClock(timer.sceneBudget)}</div>
+    <div class="ds">{t('timer.sceneBudget')} {formatClock(timer.sceneBudget)}</div>
   {/if}
 </div>
 
 {#if timer.breakDue}
   <div class="brk" data-no-drag>
-    Break suggested
-    <button class="ob" onclick={() => timer.ackBreak()}>Dismiss</button>
+    {t('timer.breakSuggested')}
+    <button class="ob" onclick={() => timer.ackBreak()}>{t('timer.dismiss')}</button>
   </div>
 {/if}
 
 <div class="row">
   {#if timer.running}
-    <button class="btn sm" onclick={() => timer.pause()}>Pause</button>
+    <button class="btn sm" onclick={() => timer.pause()}>{t('timer.pause')}</button>
   {:else}
-    <button class="btn solid sm" onclick={() => timer.start()}>Start</button>
+    <button class="btn solid sm" onclick={() => timer.start()}>{t('timer.start')}</button>
   {/if}
-  <button class="btn sm" onclick={() => timer.reset()}>Reset</button>
+  <button class="btn sm" onclick={() => timer.reset()}>{t('timer.reset')}</button>
 </div>
 
 <div class="opts" data-no-drag>
   <label
-    >Scene min
+    >{t('timer.sceneMin')}
     <input
       class="in"
       type="number"
@@ -49,7 +50,7 @@
     />
   </label>
   <label
-    >Break min
+    >{t('timer.breakMin')}
     <input class="in" type="number" min="0" bind:value={timer.breakEvery} />
   </label>
 </div>

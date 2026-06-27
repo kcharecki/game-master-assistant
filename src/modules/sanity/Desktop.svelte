@@ -1,5 +1,6 @@
 <script lang="ts">
   import { sanity } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   let spec = $state('1/1d6');
 
@@ -9,30 +10,30 @@
 </script>
 
 <div class="initbar">
-  <span class="rnd">Sanity</span>
-  <input class="in spec" bind:value={spec} aria-label="SAN loss spec" placeholder="1/1d6" />
+  <span class="rnd">{t('sanity.title')}</span>
+  <input class="in spec" bind:value={spec} aria-label={t('sanity.lossSpec')} placeholder="1/1d6" />
 </div>
 
 {#if sanity.last}
   {@const r = sanity.last.result}
   <div class="result" class:bout={r.bout} data-no-drag>
-    d100 {r.roll} · {r.success ? 'pass' : 'FAIL'} · −{r.loss} SAN
-    {#if r.bout}<span class="bouttag">BOUT OF MADNESS</span>{/if}
+    d100 {r.roll} · {r.success ? t('sanity.pass') : t('sanity.fail')} · −{r.loss} {t('sanity.san')}
+    {#if r.bout}<span class="bouttag">{t('sanity.bout')}</span>{/if}
   </div>
 {/if}
 
 {#each sanity.list as inv (inv.id)}
   <div class="combatant" class:foe={inv.san <= inv.maxSan / 5}>
-    <span class="cn"><div class="nm">{inv.name}</div><div class="rl">SAN {inv.san}/{inv.maxSan}</div></span>
+    <span class="cn"><div class="nm">{inv.name}</div><div class="rl">{t('sanity.san')} {inv.san}/{inv.maxSan}</div></span>
     <span class="ord" data-no-drag>
-      <button class="btn sm" onclick={() => rollFor(inv.id)}>Roll</button>
-      <button class="ob x" onclick={() => sanity.remove(inv.id)} aria-label="Remove">✕</button>
+      <button class="btn sm" onclick={() => rollFor(inv.id)}>{t('sanity.roll')}</button>
+      <button class="ob x" onclick={() => sanity.remove(inv.id)} aria-label={t('sanity.remove')}>✕</button>
     </span>
   </div>
 {/each}
 
 <form class="add-row" data-no-drag onsubmit={(ev) => (ev.preventDefault(), sanity.add())}>
-  <button class="btn sm" type="submit">＋ Investigator</button>
+  <button class="btn sm" type="submit">{t('sanity.addInvestigator')}</button>
 </form>
 
 <style>

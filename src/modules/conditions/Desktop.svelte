@@ -1,5 +1,6 @@
 <script lang="ts">
   import { conditions, type Effect } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   let target = $state('');
   let name = $state('');
@@ -18,13 +19,13 @@
 </script>
 
 <div class="initbar">
-  <span class="rnd">{conditions.list.length} active</span>
-  <button class="btn solid sm" onclick={tick}>Tick ▸</button>
+  <span class="rnd">{conditions.list.length} {t('conditions.active')}</span>
+  <button class="btn solid sm" onclick={tick}>{t('conditions.tick')}</button>
 </div>
 
 {#if expired.length}
   <div class="expired" data-no-drag>
-    Expired: {expired.map((e) => `${e.name} (${e.target})`).join(', ')}
+    {t('conditions.expired')} {expired.map((e) => `${e.name} (${e.target})`).join(', ')}
   </div>
 {/if}
 
@@ -33,16 +34,16 @@
     <span class="cn"><div class="nm">{e.name}</div><div class="rl">{e.target}</div></span>
     <span class="iv" class:low={e.rounds <= 1}>{e.rounds}</span>
     <span class="ord" data-no-drag>
-      <button class="ob x" onclick={() => conditions.remove(e.id)} aria-label="Remove">✕</button>
+      <button class="ob x" onclick={() => conditions.remove(e.id)} aria-label={t('conditions.remove')}>✕</button>
     </span>
   </div>
 {/each}
 
 <form class="add-row" data-no-drag onsubmit={(ev) => (ev.preventDefault(), addEffect())}>
-  <input class="in" placeholder="Effect" bind:value={name} aria-label="Effect name" />
-  <input class="in t" placeholder="Target" bind:value={target} aria-label="Target" />
-  <input class="in n" type="number" min="1" bind:value={rounds} aria-label="Rounds" />
-  <button class="btn sm" type="submit" aria-label="Add effect">＋</button>
+  <input class="in" placeholder={t('conditions.effectPlaceholder')} bind:value={name} aria-label={t('conditions.effectName')} />
+  <input class="in t" placeholder={t('conditions.targetPlaceholder')} bind:value={target} aria-label={t('conditions.target')} />
+  <input class="in n" type="number" min="1" bind:value={rounds} aria-label={t('conditions.rounds')} />
+  <button class="btn sm" type="submit" aria-label={t('conditions.addEffect')}>＋</button>
 </form>
 
 <style>

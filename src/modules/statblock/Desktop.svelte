@@ -1,5 +1,6 @@
 <script lang="ts">
   import { statblock, searchStatBlocks } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   let query = $state('');
   const shown = $derived(searchStatBlocks(statblock.library, query));
@@ -14,43 +15,43 @@
   };
 </script>
 
-<input class="search" bind:value={query} placeholder="Search monsters…" />
+<input class="search" bind:value={query} placeholder={t('statblock.searchPlaceholder')} />
 
 <div class="lib" data-no-drag>
   {#each shown as s (s.id)}
     <div class="row">
       <span class="cn"><div class="nm">{s.name}</div><div class="rl">CR {s.cr} · {s.hp} HP · AC {s.ac}</div></span>
-      <button class="btn sm" aria-label="Add to encounter" onclick={() => statblock.addToEncounter(s.id)}>＋</button>
+      <button class="btn sm" aria-label={t('statblock.addToEncounter')} onclick={() => statblock.addToEncounter(s.id)}>＋</button>
     </div>
   {/each}
 </div>
 
 <div class="encbar">
-  <span class="rnd">Encounter ({statblock.fight.length})</span>
-  <button class="ob" onclick={() => statblock.clearEncounter()} aria-label="Clear">clear</button>
+  <span class="rnd">{t('statblock.encounter')} ({statblock.fight.length})</span>
+  <button class="ob" onclick={() => statblock.clearEncounter()} aria-label={t('statblock.clear')}>{t('statblock.clear')}</button>
 </div>
 
 <div class="party" data-no-drag>
-  <label>PCs<input
+  <label>{t('statblock.pcs')}<input
       type="number"
       min="1"
       value={statblock.partySize}
       oninput={(e) => statblock.setParty(+e.currentTarget.value, statblock.partyLevel)}
-      aria-label="Party size"
+      aria-label={t('statblock.partySize')}
     /></label>
-  <label>Lvl<input
+  <label>{t('statblock.lvl')}<input
       type="number"
       min="1"
       max="20"
       value={statblock.partyLevel}
       oninput={(e) => statblock.setParty(statblock.partySize, +e.currentTarget.value)}
-      aria-label="Party level"
+      aria-label={t('statblock.partyLevel')}
     /></label>
 </div>
 
 <div class="enc" data-no-drag>
   {#each statblock.fight as s, i (i)}
-    <button class="chip" onclick={() => statblock.removeFromEncounter(i)} title="Remove"
+    <button class="chip" onclick={() => statblock.removeFromEncounter(i)} title={t('statblock.remove')}
       >{s.name} ✕</button
     >
   {/each}
@@ -58,7 +59,7 @@
 
 <div class="readout {tierClass[r.difficulty]}">
   <div class="diff">{r.difficulty}</div>
-  <div class="xp">{r.adjustedXp} adj XP · ×{r.multiplier} · raw {r.rawXp}</div>
+  <div class="xp">{r.adjustedXp} {t('statblock.adjXp')} · ×{r.multiplier} · {t('statblock.raw')} {r.rawXp}</div>
 </div>
 
 <style>

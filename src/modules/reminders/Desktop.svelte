@@ -1,19 +1,20 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { reminders } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void reminders.load());
 </script>
 
 <div class="rm">
   <div class="count">
-    <span class="muted">Initiative count</span>
+    <span class="muted">{t('reminders.initiativeCount')}</span>
     <input class="num" type="number" bind:value={reminders.current} />
   </div>
 
   {#if reminders.due.length}
     <div class="due">
-      <div class="dlabel">Due now</div>
+      <div class="dlabel">{t('reminders.dueNow')}</div>
       {#each reminders.due as r (r.id)}
         <div class="ditem">⚡ {r.label}</div>
       {/each}
@@ -34,14 +35,14 @@
           value={r.count}
           oninput={(e) => reminders.update(r.id, { count: Number((e.currentTarget as HTMLInputElement).value) || 0 })}
         />
-        <button class="del" aria-label="Remove" onclick={() => reminders.remove(r.id)}>×</button>
+        <button class="del" aria-label={t('reminders.remove')} onclick={() => reminders.remove(r.id)}>×</button>
       </li>
     {:else}
-      <li class="muted">No reminders.</li>
+      <li class="muted">{t('reminders.empty')}</li>
     {/each}
   </ul>
 
-  <button class="btn" onclick={() => reminders.add()}>＋ Add reminder</button>
+  <button class="btn" onclick={() => reminders.add()}>{t('reminders.add')}</button>
 </div>
 
 <style>

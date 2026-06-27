@@ -1,1 +1,116 @@
-export const combat = { en: {}, pl: {} };
+export const combat = {
+  en: {
+    // initiative
+    'initiative.round': 'Round',
+    'initiative.nextTurn': 'Next ▸',
+    'initiative.bloodied': 'Bloodied',
+    'initiative.hiddenHp': 'Hidden HP — players see status only',
+    'initiative.damage1': 'Damage 1',
+    'initiative.heal1': 'Heal 1',
+    'initiative.toggleHidden': 'Toggle hidden HP',
+    'initiative.moveUp': 'Move up',
+    'initiative.moveDown': 'Move down',
+    'initiative.remove': 'Remove',
+    'initiative.addCombatant': '＋ Combatant',
+
+    // conditions
+    'conditions.active': 'active',
+    'conditions.tick': 'Tick ▸',
+    'conditions.expired': 'Expired:',
+    'conditions.remove': 'Remove',
+    'conditions.effectPlaceholder': 'Effect',
+    'conditions.effectName': 'Effect name',
+    'conditions.targetPlaceholder': 'Target',
+    'conditions.target': 'Target',
+    'conditions.rounds': 'Rounds',
+    'conditions.addEffect': 'Add effect',
+
+    // timer
+    'timer.session': 'Session',
+    'timer.sceneBudget': 'scene budget',
+    'timer.breakSuggested': 'Break suggested',
+    'timer.dismiss': 'Dismiss',
+    'timer.pause': 'Pause',
+    'timer.start': 'Start',
+    'timer.reset': 'Reset',
+    'timer.sceneMin': 'Scene min',
+    'timer.breakMin': 'Break min',
+
+    // statblock
+    'statblock.searchPlaceholder': 'Search monsters…',
+    'statblock.addToEncounter': 'Add to encounter',
+    'statblock.encounter': 'Encounter',
+    'statblock.clear': 'clear',
+    'statblock.pcs': 'PCs',
+    'statblock.partySize': 'Party size',
+    'statblock.lvl': 'Lvl',
+    'statblock.partyLevel': 'Party level',
+    'statblock.remove': 'Remove',
+    'statblock.adjXp': 'adj XP',
+    'statblock.raw': 'raw',
+
+    // reminders
+    'reminders.initiativeCount': 'Initiative count',
+    'reminders.dueNow': 'Due now',
+    'reminders.remove': 'Remove',
+    'reminders.empty': 'No reminders.',
+    'reminders.add': '＋ Add reminder',
+  },
+  pl: {
+    // initiative
+    'initiative.round': 'Runda',
+    'initiative.nextTurn': 'Następny ▸',
+    'initiative.bloodied': 'Ranny',
+    'initiative.hiddenHp': 'Ukryte PŻ — gracze widzą tylko stan',
+    'initiative.damage1': 'Obrażenia 1',
+    'initiative.heal1': 'Lecz 1',
+    'initiative.toggleHidden': 'Przełącz ukryte PŻ',
+    'initiative.moveUp': 'Przesuń w górę',
+    'initiative.moveDown': 'Przesuń w dół',
+    'initiative.remove': 'Usuń',
+    'initiative.addCombatant': '＋ Walczący',
+
+    // conditions
+    'conditions.active': 'aktywne',
+    'conditions.tick': 'Odlicz ▸',
+    'conditions.expired': 'Wygasłe:',
+    'conditions.remove': 'Usuń',
+    'conditions.effectPlaceholder': 'Efekt',
+    'conditions.effectName': 'Nazwa efektu',
+    'conditions.targetPlaceholder': 'Cel',
+    'conditions.target': 'Cel',
+    'conditions.rounds': 'Rundy',
+    'conditions.addEffect': 'Dodaj efekt',
+
+    // timer
+    'timer.session': 'Sesja',
+    'timer.sceneBudget': 'budżet sceny',
+    'timer.breakSuggested': 'Sugerowana przerwa',
+    'timer.dismiss': 'Odrzuć',
+    'timer.pause': 'Pauza',
+    'timer.start': 'Start',
+    'timer.reset': 'Resetuj',
+    'timer.sceneMin': 'Min sceny',
+    'timer.breakMin': 'Min przerwy',
+
+    // statblock
+    'statblock.searchPlaceholder': 'Szukaj potworów…',
+    'statblock.addToEncounter': 'Dodaj do spotkania',
+    'statblock.encounter': 'Spotkanie',
+    'statblock.clear': 'wyczyść',
+    'statblock.pcs': 'BG-i',
+    'statblock.partySize': 'Liczebność drużyny',
+    'statblock.lvl': 'Poz',
+    'statblock.partyLevel': 'Poziom drużyny',
+    'statblock.remove': 'Usuń',
+    'statblock.adjXp': 'skor. PD',
+    'statblock.raw': 'surowe',
+
+    // reminders
+    'reminders.initiativeCount': 'Numer inicjatywy',
+    'reminders.dueNow': 'Teraz',
+    'reminders.remove': 'Usuń',
+    'reminders.empty': 'Brak przypomnień.',
+    'reminders.add': '＋ Dodaj przypomnienie',
+  },
+};

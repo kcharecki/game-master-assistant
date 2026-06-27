@@ -1,5 +1,6 @@
 <script lang="ts">
   import { initiative, isBloodied, vagueStatus } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   function initials(name: string): string {
     return name
@@ -12,8 +13,8 @@
 </script>
 
 <div class="initbar">
-  <span class="rnd">Round {initiative.round}</span>
-  <button class="btn solid sm" onclick={() => initiative.nextTurn()}>Next ▸</button>
+  <span class="rnd">{t('initiative.round')} {initiative.round}</span>
+  <button class="btn solid sm" onclick={() => initiative.nextTurn()}>{t('initiative.nextTurn')}</button>
 </div>
 
 {#each initiative.order as c, i (c.id)}
@@ -22,8 +23,8 @@
     <span class="cn">
       <div class="nm">
         {c.name}
-        {#if isBloodied(c)}<span class="blood" title="Bloodied">●</span>{/if}
-        {#if c.hidden}<span class="hid" title="Hidden HP — players see status only">◐</span>{/if}
+        {#if isBloodied(c)}<span class="blood" title={t('initiative.bloodied')}>●</span>{/if}
+        {#if c.hidden}<span class="hid" title={t('initiative.hiddenHp')}>◐</span>{/if}
       </div>
       <div class="rl">
         {#if c.hidden}
@@ -38,19 +39,19 @@
     </span>
     <span class="iv">{c.init}</span>
     <span class="ord" data-no-drag>
-      <button class="ob" onclick={() => initiative.damage(c.id, 1)} aria-label="Damage 1">−</button>
-      <button class="ob" onclick={() => initiative.heal(c.id, 1)} aria-label="Heal 1">+</button>
-      <button class="ob" onclick={() => initiative.toggleHidden(c.id)} aria-label="Toggle hidden HP"
+      <button class="ob" onclick={() => initiative.damage(c.id, 1)} aria-label={t('initiative.damage1')}>−</button>
+      <button class="ob" onclick={() => initiative.heal(c.id, 1)} aria-label={t('initiative.heal1')}>+</button>
+      <button class="ob" onclick={() => initiative.toggleHidden(c.id)} aria-label={t('initiative.toggleHidden')}
         >◐</button
       >
-      <button class="ob" onclick={() => initiative.moveUp(c.id)} aria-label="Move up">▲</button>
-      <button class="ob" onclick={() => initiative.moveDown(c.id)} aria-label="Move down">▼</button>
-      <button class="ob x" onclick={() => initiative.remove(c.id)} aria-label="Remove">✕</button>
+      <button class="ob" onclick={() => initiative.moveUp(c.id)} aria-label={t('initiative.moveUp')}>▲</button>
+      <button class="ob" onclick={() => initiative.moveDown(c.id)} aria-label={t('initiative.moveDown')}>▼</button>
+      <button class="ob x" onclick={() => initiative.remove(c.id)} aria-label={t('initiative.remove')}>✕</button>
     </span>
   </div>
 {/each}
 
-<button class="btn sm add" onclick={() => initiative.add()}>＋ Combatant</button>
+<button class="btn sm add" onclick={() => initiative.add()}>{t('initiative.addCombatant')}</button>
 
 <style>
   .initbar {

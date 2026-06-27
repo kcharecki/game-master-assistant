@@ -1,1 +1,116 @@
-export const investigation = { en: {}, pl: {} };
+export const investigation = {
+  en: {
+    // sanity
+    'sanity.title': 'Sanity',
+    'sanity.lossSpec': 'SAN loss spec',
+    'sanity.pass': 'pass',
+    'sanity.fail': 'FAIL',
+    'sanity.san': 'SAN',
+    'sanity.bout': 'BOUT OF MADNESS',
+    'sanity.roll': 'Roll',
+    'sanity.remove': 'Remove',
+    'sanity.addInvestigator': '＋ Investigator',
+
+    // clues
+    'clues.redString': 'Red string',
+    'clues.addClue': '＋ Clue',
+    'clues.newClue': 'New clue',
+    'clues.hintPrefix': 'click a pin to select · click another to',
+    'clues.hintStringCut': 'string/cut',
+    'clues.hintConnect': 'connect',
+    'clues.remove': 'Remove clue',
+
+    // skillcheck
+    'skillcheck.check': 'check',
+    'skillcheck.roll': 'Roll',
+    'skillcheck.mod': 'Mod',
+    'skillcheck.modifier': 'Modifier',
+    'skillcheck.dc': 'DC',
+    'skillcheck.difficultyClass': 'Difficulty class',
+    'skillcheck.skill': 'Skill',
+    'skillcheck.skillRating': 'Skill rating',
+    'skillcheck.enterCheck': 'enter a check',
+    'skillcheck.vsDc': 'vs DC',
+    'skillcheck.success': 'SUCCESS',
+    'skillcheck.fail': 'fail',
+    'skillcheck.nat20': '· nat 20',
+    'skillcheck.nat1': '· nat 1',
+    'skillcheck.vsSkill': 'vs skill',
+
+    // dashboard
+    'dashboard.partyRef': 'Party reference · passive Perception high =',
+    'dashboard.remove': 'Remove',
+    'dashboard.savesPlaceholder': 'saves',
+    'dashboard.resistPlaceholder': 'resist / lang',
+    'dashboard.addPc': '＋ Add PC',
+
+    // spotlight
+    'spotlight.overdueAfter': 'Overdue after',
+    'spotlight.min': 'min',
+    'spotlight.never': 'never',
+    'spotlight.justNow': 'just now',
+    'spotlight.minAgo': 'm ago',
+    'spotlight.spotlight': 'Spotlight',
+    'spotlight.remove': 'Remove',
+    'spotlight.empty': 'No players.',
+    'spotlight.addPlaceholder': 'Add player…',
+    'spotlight.add': 'Add',
+  },
+  pl: {
+    // sanity
+    'sanity.title': 'Poczytalność',
+    'sanity.lossSpec': 'Wzór utraty POCZ',
+    'sanity.pass': 'sukces',
+    'sanity.fail': 'PORAŻKA',
+    'sanity.san': 'POCZ',
+    'sanity.bout': 'NAPAD SZALEŃSTWA',
+    'sanity.roll': 'Rzuć',
+    'sanity.remove': 'Usuń',
+    'sanity.addInvestigator': '＋ Badacz',
+
+    // clues
+    'clues.redString': 'Czerwona nić',
+    'clues.addClue': '＋ Poszlaka',
+    'clues.newClue': 'Nowa poszlaka',
+    'clues.hintPrefix': 'kliknij pinezkę, by zaznaczyć · kliknij inną, by',
+    'clues.hintStringCut': 'połączyć/przeciąć',
+    'clues.hintConnect': 'połączyć',
+    'clues.remove': 'Usuń poszlakę',
+
+    // skillcheck
+    'skillcheck.check': 'test',
+    'skillcheck.roll': 'Rzuć',
+    'skillcheck.mod': 'Mod',
+    'skillcheck.modifier': 'Modyfikator',
+    'skillcheck.dc': 'PT',
+    'skillcheck.difficultyClass': 'Poziom trudności',
+    'skillcheck.skill': 'Umiejętność',
+    'skillcheck.skillRating': 'Wartość umiejętności',
+    'skillcheck.enterCheck': 'wprowadź test',
+    'skillcheck.vsDc': 'vs PT',
+    'skillcheck.success': 'SUKCES',
+    'skillcheck.fail': 'porażka',
+    'skillcheck.nat20': '· nat. 20',
+    'skillcheck.nat1': '· nat. 1',
+    'skillcheck.vsSkill': 'vs umiejętność',
+
+    // dashboard
+    'dashboard.partyRef': 'Odniesienie drużyny · najwyższe pasywne Postrzeganie =',
+    'dashboard.remove': 'Usuń',
+    'dashboard.savesPlaceholder': 'rzuty obronne',
+    'dashboard.resistPlaceholder': 'odporności / języki',
+    'dashboard.addPc': '＋ Dodaj BG',
+
+    // spotlight
+    'spotlight.overdueAfter': 'Zaległe po',
+    'spotlight.min': 'min',
+    'spotlight.never': 'nigdy',
+    'spotlight.justNow': 'przed chwilą',
+    'spotlight.minAgo': ' min temu',
+    'spotlight.spotlight': 'Reflektor',
+    'spotlight.remove': 'Usuń',
+    'spotlight.empty': 'Brak graczy.',
+    'spotlight.addPlaceholder': 'Dodaj gracza…',
+    'spotlight.add': 'Dodaj',
+  },
+};

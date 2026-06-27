@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { spotlight } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   let draft = $state('');
 
@@ -19,16 +20,16 @@
   }
 
   function ago(sinceMs: number): string {
-    if (!isFinite(sinceMs)) return 'never';
+    if (!isFinite(sinceMs)) return t('spotlight.never');
     const m = Math.floor(sinceMs / 60_000);
-    return m < 1 ? 'just now' : `${m}m ago`;
+    return m < 1 ? t('spotlight.justNow') : `${m}${t('spotlight.minAgo')}`;
   }
 </script>
 
 <div class="sp">
   <div class="thr">
-    <span class="muted">Overdue after</span>
-    <input class="num" type="number" min="1" bind:value={spotlight.thresholdMin} /> min
+    <span class="muted">{t('spotlight.overdueAfter')}</span>
+    <input class="num" type="number" min="1" bind:value={spotlight.thresholdMin} /> {t('spotlight.min')}
   </div>
 
   <ul class="list">
@@ -36,22 +37,22 @@
       <li class="row" class:overdue={r.overdue}>
         <span class="name">{r.name}</span>
         <span class="since">{ago(r.sinceMs)}</span>
-        <button class="mark" onclick={() => spotlight.mark(r.id)}>Spotlight</button>
-        <button class="del" aria-label="Remove" onclick={() => spotlight.remove(r.id)}>×</button>
+        <button class="mark" onclick={() => spotlight.mark(r.id)}>{t('spotlight.spotlight')}</button>
+        <button class="del" aria-label={t('spotlight.remove')} onclick={() => spotlight.remove(r.id)}>×</button>
       </li>
     {:else}
-      <li class="muted">No players.</li>
+      <li class="muted">{t('spotlight.empty')}</li>
     {/each}
   </ul>
 
   <div class="add">
     <input
       class="in"
-      placeholder="Add player…"
+      placeholder={t('spotlight.addPlaceholder')}
       bind:value={draft}
       onkeydown={(e) => e.key === 'Enter' && addPlayer()}
     />
-    <button class="btn" onclick={addPlayer}>Add</button>
+    <button class="btn" onclick={addPlayer}>{t('spotlight.add')}</button>
   </div>
 </div>
 

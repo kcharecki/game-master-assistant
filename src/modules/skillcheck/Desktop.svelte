@@ -1,6 +1,7 @@
 <script lang="ts">
   import { system } from '../../lib/stores/system.svelte';
   import { check, type CheckResult } from './logic';
+  import { t } from '../../lib/i18n';
 
   // For D&D `value` = modifier, `target` = DC. For CoC `value` = skill rating.
   let value = $state(50);
@@ -25,33 +26,33 @@
 </script>
 
 <div class="cbbar">
-  <span class="rnd">{system.config.label} check</span>
-  <button class="btn solid sm" onclick={roll}>Roll</button>
+  <span class="rnd">{system.config.label} {t('skillcheck.check')}</span>
+  <button class="btn solid sm" onclick={roll}>{t('skillcheck.roll')}</button>
 </div>
 
 <div class="fields" data-no-drag>
   {#if isDnd}
-    <label>Mod<input type="number" bind:value aria-label="Modifier" /></label>
-    <label>DC<input type="number" bind:value={target} aria-label="Difficulty class" /></label>
+    <label>{t('skillcheck.mod')}<input type="number" bind:value aria-label={t('skillcheck.modifier')} /></label>
+    <label>{t('skillcheck.dc')}<input type="number" bind:value={target} aria-label={t('skillcheck.difficultyClass')} /></label>
   {:else}
-    <label>Skill<input type="number" min="1" max="99" bind:value aria-label="Skill rating" /></label>
+    <label>{t('skillcheck.skill')}<input type="number" min="1" max="99" bind:value aria-label={t('skillcheck.skillRating')} /></label>
   {/if}
 </div>
 
 <div class="diebox">
   {#if !result}
-    <div class="ds">enter a check</div>
+    <div class="ds">{t('skillcheck.enterCheck')}</div>
   {:else if result.system === 'dnd5e'}
     <div class="dn" class:good={result.success} class:bad={!result.success}>{result.total}</div>
     <div class="ds">
-      d20 {result.roll}{result.modifier >= 0 ? ' +' : ' '}{result.modifier} vs DC {result.dc}
-      · {result.success ? 'SUCCESS' : 'fail'} ({result.margin >= 0 ? '+' : ''}{result.margin})
-      {#if result.crit}<span class="hid">· nat 20</span>{/if}
-      {#if result.fumble}<span class="err">· nat 1</span>{/if}
+      d20 {result.roll}{result.modifier >= 0 ? ' +' : ' '}{result.modifier} {t('skillcheck.vsDc')} {result.dc}
+      · {result.success ? t('skillcheck.success') : t('skillcheck.fail')} ({result.margin >= 0 ? '+' : ''}{result.margin})
+      {#if result.crit}<span class="hid">{t('skillcheck.nat20')}</span>{/if}
+      {#if result.fumble}<span class="err">{t('skillcheck.nat1')}</span>{/if}
     </div>
   {:else}
     <div class="dn" class:good={result.success} class:bad={!result.success}>{result.roll}</div>
-    <div class="ds">vs skill {result.skill} · {result.outcome}</div>
+    <div class="ds">{t('skillcheck.vsSkill')} {result.skill} · {result.outcome}</div>
   {/if}
 </div>
 

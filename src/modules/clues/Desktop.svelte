@@ -1,6 +1,7 @@
 <script lang="ts">
   import { clues } from './store.svelte';
   import type { Pin } from './logic';
+  import { t } from '../../lib/i18n';
 
   const PIN_W = 96;
   const PIN_H = 44;
@@ -53,16 +54,16 @@
   }
 
   function addClue() {
-    clues.add('New clue', 30, 30);
+    clues.add(t('clues.newClue'), 30, 30);
   }
 </script>
 
 <div class="cbbar">
-  <span class="rnd">Red string</span>
-  <button class="btn sm" onclick={addClue}>＋ Clue</button>
+  <span class="rnd">{t('clues.redString')}</span>
+  <button class="btn sm" onclick={addClue}>{t('clues.addClue')}</button>
 </div>
 <div class="hint" data-no-drag>
-  click a pin to select · click another to {selected ? 'string/cut' : 'connect'}
+  {t('clues.hintPrefix')} {selected ? t('clues.hintStringCut') : t('clues.hintConnect')}
 </div>
 
 <div class="cork" bind:this={board} data-no-drag>
@@ -91,7 +92,7 @@
         class="px"
         onpointerdown={(e) => e.stopPropagation()}
         onclick={() => clues.remove(p.id)}
-        aria-label="Remove clue">✕</button
+        aria-label={t('clues.remove')}>✕</button
       >
       <span class="ptext">{p.text}</span>
     </div>
