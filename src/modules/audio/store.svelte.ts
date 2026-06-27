@@ -24,6 +24,8 @@ class AudioStore {
   playingScene = $state<string | null>(null);
   /** true while the on-air ambient track is a YouTube embed (no native seek) */
   playingYouTube = $state(false);
+  /** play YouTube tracks as sound only — hide the video on the broadcast tab */
+  ytAudioOnly = $state(false);
 
   // Reactive ambient transport state, fed by the broadcast tab's audioStatus
   // reports over the reverse bus channel (see subscribeStatus).
@@ -77,7 +79,14 @@ class AudioStore {
     const first = pl?.tracks[0];
     if (!first) return;
     if (first.youtubeId) {
-      sendAudio({ kind: 'audio', youtubeId: first.youtubeId, loop: true, action: 'play', channel: 'ambient' });
+      sendAudio({
+        kind: 'audio',
+        youtubeId: first.youtubeId,
+        audioOnly: this.ytAudioOnly,
+        loop: true,
+        action: 'play',
+        channel: 'ambient',
+      });
       this.playingYouTube = true;
     } else if (first.assetId) {
       sendAudio({ kind: 'audio', assetId: first.assetId, loop: true, action: 'play', channel: 'ambient' });

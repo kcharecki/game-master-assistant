@@ -45,6 +45,8 @@ export type BroadcastPayload =
       src?: string;
       assetId?: string;
       youtubeId?: string;
+      /** YouTube only: play sound but hide the video (offscreen iframe). */
+      audioOnly?: boolean;
       loop: boolean;
       action: 'play' | 'stop' | 'seek';
       channel: 'ambient' | 'sfx';

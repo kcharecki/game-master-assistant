@@ -29,6 +29,9 @@
   // would need the JS IFrame API (out of scope) — Rewind re-mounts via `youtubeNonce`.
   let youtubeId = $state<string | null>(null);
   let youtubeNonce = $state(0);
+  // Sound-only mode: keep the iframe playing but hidden offscreen (players see
+  // only the normal broadcast content). Unmuted so it's actually audible.
+  let youtubeAudioOnly = $state(false);
   // Reverse status channel back to the GM tab; opened in onMount (no import-time bus).
   let statusBus: ReturnType<typeof createBus> | null = null;
   let lastStatusAt = 0;
@@ -138,6 +141,7 @@
         ambientUrl = '';
       }
       youtubeId = cue.youtubeId;
+      youtubeAudioOnly = !!cue.audioOnly;
       youtubeNonce += 1;
       return;
     }
@@ -266,10 +270,15 @@
        blocking; the keeper can unmute via YouTube's own controls. No JS seek. -->
   {#if youtubeId}
     {#key youtubeNonce}
+      <!-- Audio-only: unmuted (so it's audible) but hidden offscreen. Visible:
+           muted so autoplay isn't blocked; the keeper unmutes via YT controls. -->
       <iframe
         class="ytplayer"
+        class:audioonly={youtubeAudioOnly}
         title="Ambient YouTube"
-        src="https://www.youtube-nocookie.com/embed/{youtubeId}?autoplay=1&loop=1&playlist={youtubeId}&mute=1"
+        src="https://www.youtube-nocookie.com/embed/{youtubeId}?autoplay=1&loop=1&playlist={youtubeId}{youtubeAudioOnly
+          ? ''
+          : '&mute=1'}"
         allow="autoplay"
         frameborder="0"
       ></iframe>
@@ -398,6 +407,18 @@
     height: 100%;
     border: 0;
     z-index: 2;
+  }
+  /* Sound-only: keep the iframe loaded/playing but invisible to players.
+     Not display:none (that can stop playback) — push it offscreen at 1px. */
+  .ytplayer.audioonly {
+    inset: auto;
+    left: -9999px;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
   }
 
   .unlock {

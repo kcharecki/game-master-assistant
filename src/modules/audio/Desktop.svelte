@@ -65,6 +65,10 @@
       />
       <button class="btn sm" onclick={onAddYouTube} disabled={!ytUrl.trim()}>＋ YouTube</button>
     </div>
+    <label class="ytopt">
+      <input type="checkbox" bind:checked={audio.ytAudioOnly} />
+      Audio only (hide video on broadcast)
+    </label>
 
     <!-- Ambient transport. Fine seek is native-audio only; for YouTube the slider
          is disabled and Rewind re-mounts the iframe (YT scrubbing needs the JS API). -->
@@ -187,6 +191,15 @@
   }
   .ytrow {
     margin-top: 8px;
+  }
+  .ytopt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
   }
   .transport {
     display: flex;
