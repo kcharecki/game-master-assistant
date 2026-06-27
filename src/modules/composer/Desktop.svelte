@@ -150,6 +150,40 @@
     return pub.role ? `${pub.name} · ${pub.role}` : pub.name;
   }
 
+  // Resolve each NPC node's portrait (asset id -> tab-local object URL) so the
+  // node shows a small thumbnail. Same asset-id rule + revoke discipline.
+  let npcThumbs = $state<Record<string, string>>({});
+  $effect(() => {
+    const want = new Set<string>();
+    for (const n of composer.nodes) {
+      if (n.kind === 'npc' && n.npcId) {
+        const pub = composer.npcLookup(n.npcId);
+        if (pub?.portraitId) want.add(pub.portraitId);
+      }
+    }
+    for (const [id, url] of Object.entries(npcThumbs)) {
+      if (!want.has(id)) {
+        URL.revokeObjectURL(url);
+        delete npcThumbs[id];
+      }
+    }
+    for (const id of want) {
+      if (!npcThumbs[id]) {
+        void assetUrl(id).then((u) => {
+          if (u) npcThumbs[id] = u;
+        });
+      }
+    }
+  });
+  $effect(() => () => {
+    for (const url of Object.values(npcThumbs)) URL.revokeObjectURL(url);
+  });
+  function npcThumb(n: GraphNode): string | undefined {
+    if (!n.npcId) return undefined;
+    const pub = composer.npcLookup(n.npcId);
+    return pub?.portraitId ? npcThumbs[pub.portraitId] : undefined;
+  }
+
   // --- live preview --------------------------------------------------------
   let preview = $derived(composer.preview);
 
@@ -254,7 +288,13 @@
               <option value={npc.id}>{npc.name}</option>
             {/each}
           </select>
-          <div class="prev">{npcPreview(n)}</div>
+          {@const thumb = npcThumb(n)}
+          <div class="npcrow">
+            {#if thumb}
+              <img class="npcthumb" src={thumb} alt="" onload={measurePorts} />
+            {/if}
+            <div class="prev">{npcPreview(n)}</div>
+          </div>
         {:else if n.kind === 'image'}
           <input
             type="url"
@@ -511,6 +551,19 @@
   .nbody textarea {
     min-height: 38px;
     resize: vertical;
+  }
+  .npcrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .npcthumb {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--line2);
   }
   .prev {
     color: var(--muted, #9a9484);
