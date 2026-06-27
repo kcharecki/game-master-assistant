@@ -81,9 +81,12 @@
   // --- wiring --------------------------------------------------------------
   function startWire(e: PointerEvent, from: string) {
     e.stopPropagation();
+    e.preventDefault();
     const { x, y } = canvasXY(e);
     wiring = { from, x, y };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    // NOTE: do NOT setPointerCapture here — capture would redirect the pointerup
+    // to this output port, so the target slot's onpointerup (dropOnSlot) would
+    // never fire and no edge could be made. Canvas onpointermove tracks the wire.
   }
   function dropOnSlot(e: PointerEvent, slot: number) {
     if (!wiring) return;
@@ -270,14 +273,15 @@
           </label>
           <div class="slotlist">
             {#each slots() as s (s)}
-              <div class="slotrow">
-                <span
-                  class="port in"
-                  onpointerup={(e) => dropOnSlot(e, s)}
-                  role="button"
-                  tabindex="0"
-                  aria-label={`Slot ${s}`}
-                ></span>
+              <div
+                class="slotrow"
+                class:wirable={wiring}
+                onpointerup={(e) => dropOnSlot(e, s)}
+                role="button"
+                tabindex="0"
+                aria-label={`Slot ${s}`}
+              >
+                <span class="port in"></span>
                 <span class="slotlbl">slot {s}</span>
               </div>
             {/each}
@@ -501,6 +505,15 @@
     align-items: center;
     gap: 6px;
     position: relative;
+    border-radius: 4px;
+  }
+  /* While dragging a wire, slots are valid drop targets — make that obvious. */
+  .slotrow.wirable {
+    cursor: pointer;
+  }
+  .slotrow.wirable:hover {
+    background: rgba(199, 164, 78, 0.18);
+    outline: 1px dashed var(--gold, #c7a44e);
   }
   .slotlbl {
     color: var(--muted, #9a9484);

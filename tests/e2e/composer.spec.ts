@@ -22,3 +22,34 @@ test('Broadcast Composer wires a source and pushes a grid on air', async ({ cont
 
   await expect(view.locator('.grid')).toBeVisible({ timeout: 5000 });
 });
+
+test('Broadcast Composer can manually wire a new source into a grid slot', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '＋ Widget' }).click();
+  await page.getByRole('menuitem', { name: 'Broadcast Composer' }).click();
+
+  const win = page.locator('[data-win]').filter({ hasText: 'Broadcast Composer' }).last();
+
+  // Seed graph already has one edge (npc -> slot 0). Add an Image source node…
+  await win.getByRole('button', { name: '＋ Image' }).click();
+
+  const wires = win.locator('svg.wires path.wire:not(.live)');
+  const before = await wires.count();
+
+  // …and drag a wire from its output port onto the grid's slot 1.
+  const port = win.locator('.node', { hasText: 'Image' }).locator('.port.out');
+  const slot = win.locator('.slotrow[aria-label="Slot 1"]');
+  const a = await port.boundingBox();
+  const b = await slot.boundingBox();
+  if (!a || !b) throw new Error('port/slot not found');
+
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(a.x + 30, a.y + 20); // start the drag
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 6 });
+  await page.mouse.up();
+
+  // A new edge must exist — proving manual wiring works (regression: pointer
+  // capture used to swallow the drop so no edge could ever be made).
+  await expect(wires).toHaveCount(before + 1);
+});
