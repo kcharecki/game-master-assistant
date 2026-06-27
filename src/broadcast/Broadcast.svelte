@@ -5,6 +5,7 @@
   import type { BroadcastPayload, DisplayMode } from '../lib/types';
   import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
   import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
+  import { clampCols, gridAssetIds } from './grid';
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
@@ -51,6 +52,29 @@
       };
     }
     imgSrc = '';
+  });
+
+  // Resolve grid image cells' asset ids -> tab-local object URLs, revoking
+  // any no-longer-referenced URLs. Same asset-id-over-bus rule as `imgSrc`.
+  let gridUrls = $state<Record<string, string>>({});
+  $effect(() => {
+    const want = payload.kind === 'grid' ? new Set(gridAssetIds(payload.cells)) : new Set<string>();
+    for (const [id, url] of Object.entries(gridUrls)) {
+      if (!want.has(id)) {
+        URL.revokeObjectURL(url);
+        delete gridUrls[id];
+      }
+    }
+    for (const id of want) {
+      if (!gridUrls[id]) {
+        void assetUrl(id).then((u) => {
+          if (u) gridUrls[id] = u;
+        });
+      }
+    }
+  });
+  $effect(() => () => {
+    for (const url of Object.values(gridUrls)) URL.revokeObjectURL(url);
   });
 
   function flashPing(x: number, y: number) {
@@ -152,6 +176,26 @@
         {/each}
       </svg>
     </div>
+  {:else if payload.kind === 'grid'}
+    <div
+      class="grid"
+      style="grid-template-columns: repeat({clampCols(payload.cols, payload.cells.length)}, 1fr)"
+    >
+      {#each payload.cells as cell, i (i)}
+        {#if cell.kind === 'image'}
+          {@const url = cell.assetId ? gridUrls[cell.assetId] : cell.src}
+          <figure class="gcell">
+            {#if url}<img src={url} alt={cell.caption ?? ''} />{/if}
+            {#if cell.caption}<figcaption>{cell.caption}</figcaption>{/if}
+          </figure>
+        {:else}
+          <div class="gcell gtext">
+            {#if cell.title}<h2>{cell.title}</h2>{/if}
+            {#if cell.body}<p>{cell.body}</p>{/if}
+          </div>
+        {/if}
+      {/each}
+    </div>
   {:else}
     <div class="idle">Awaiting the Keeper…</div>
   {/if}
@@ -230,6 +274,43 @@
     font-style: italic;
   }
 
+  .grid {
+    display: grid;
+    gap: 18px;
+    width: 100%;
+    max-width: 92vw;
+    max-height: 84vh;
+    align-content: center;
+    justify-items: center;
+  }
+  .gcell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 100%;
+  }
+  .gcell img {
+    max-width: 100%;
+    max-height: 60vh;
+    border-radius: 10px;
+    border: 1px solid var(--line2);
+    object-fit: contain;
+  }
+  .gtext {
+    text-align: center;
+    padding: 8px 12px;
+  }
+  .gtext h2 {
+    font-family: Georgia, serif;
+    color: var(--green);
+    font-size: clamp(18px, 2.6vw, 30px);
+    margin-bottom: 8px;
+  }
+  .gtext p {
+    font-size: clamp(13px, 1.7vw, 19px);
+    line-height: 1.5;
+  }
+
   .mood {
     position: absolute;
     inset: 0;
@@ -291,8 +372,13 @@
     font-family: system-ui, sans-serif;
     color: var(--txt);
   }
-  .broadcast.plain figure img {
+  .broadcast.plain figure img,
+  .broadcast.plain .gcell img {
     border-radius: 4px;
+  }
+  .broadcast.plain .gtext h2 {
+    font-family: system-ui, sans-serif;
+    color: var(--txt);
   }
   .broadcast.plain figcaption {
     font-style: normal;

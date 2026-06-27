@@ -21,11 +21,19 @@ export interface WindowState {
 // NOTE: blob: object URLs are document-scoped and DO NOT resolve in another tab.
 // For uploaded assets send `assetId`; the broadcast tab loads the blob from the
 // shared IndexedDB and makes its own URL. `src` is only for external (http) URLs.
+// One cell of a `grid` broadcast. Image cells follow the same asset-id rule as
+// the top-level image payload: send `assetId` for uploaded blobs; `src` is only
+// for external (http) URLs. Cells are GM-composed and player-safe by design.
+export type GridCell =
+  | { kind: 'image'; assetId?: string; src?: string; caption?: string }
+  | { kind: 'text'; title?: string; body?: string };
+
 export type BroadcastPayload =
   | { kind: 'clear' }
   | { kind: 'image'; src?: string; assetId?: string; caption?: string }
   | { kind: 'text'; title?: string; body: string }
   | { kind: 'map'; src?: string; assetId?: string; reveal: number[][] }
+  | { kind: 'grid'; cols: number; cells: GridCell[] }
   | { kind: 'ping'; x: number; y: number }
   // Audio cue routed through the broadcast tab's <audio> element. `channel`
   // separates looping ambience from one-shot SFX so they don't cut each other.
