@@ -69,6 +69,33 @@ class WindowManager {
     this.persist();
   }
 
+  /**
+   * Auto-arrange every visible (non-minimized) window into a non-overlapping
+   * grid that fills the given viewport. Collapsed windows still get a cell.
+   * Viewport dims are passed in so this is unit-testable without the DOM.
+   */
+  tile(viewportW: number, viewportH: number, gap = 12, pad = 12): void {
+    const visible = this.windows.filter((w) => !w.minimized);
+    const n = visible.length;
+    if (n === 0) return;
+
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols);
+    const cellW = (viewportW - pad * 2 - gap * (cols - 1)) / cols;
+    const cellH = (viewportH - pad * 2 - gap * (rows - 1)) / rows;
+
+    visible.forEach((win, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      win.x = Math.round(pad + col * (cellW + gap));
+      win.y = Math.round(pad + row * (cellH + gap));
+      win.w = Math.max(WindowManager.MIN_W, Math.round(cellW));
+      win.h = Math.max(WindowManager.MIN_H, Math.round(cellH));
+    });
+
+    this.persist();
+  }
+
   /** Remove every window. */
   clear(): void {
     this.windows = [];

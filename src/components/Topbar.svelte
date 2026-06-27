@@ -3,6 +3,7 @@
   import { system } from '../lib/stores/system.svelte';
   import { SYSTEMS, systemConfig } from '../lib/system';
   import { layouts } from '../lib/stores/layouts.svelte';
+  import { wm } from '../lib/stores/windows.svelte';
 
   let { onOpenBroadcast }: { onOpenBroadcast: () => void } = $props();
 
@@ -25,6 +26,13 @@
     void layouts.save(name);
     newName = '';
   }
+
+  function tileWindows() {
+    const desk = document.getElementById('desktop');
+    const w = desk?.clientWidth ?? window.innerWidth;
+    const h = desk?.clientHeight ?? window.innerHeight;
+    wm.tile(w, h);
+  }
 </script>
 
 <header class="topbar">
@@ -41,6 +49,7 @@
       >
     {/each}
   </div>
+  <button class="btn" aria-label="Tile windows" onclick={tileWindows}>⊞ Tile</button>
   <span class="pill">Session 02:34:17</span>
   <div class="layouts">
     <button
