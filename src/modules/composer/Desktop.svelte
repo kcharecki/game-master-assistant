@@ -10,8 +10,6 @@
 
   const NODE_W = 168;
   const HEADER_H = 24;
-  const SLOT_GAP = 22;
-  const SLOT_TOP = 40;
 
   onMount(() => {
     void composer.load();
@@ -59,24 +57,55 @@
     return Math.min(Math.max(v, lo), hi);
   }
 
-  // --- port geometry -------------------------------------------------------
-  function outPort(n: GraphNode) {
-    return { x: n.x + NODE_W, y: n.y + HEADER_H / 2 };
-  }
-  function slotPort(grid: GraphNode, slot: number) {
-    return { x: grid.x, y: grid.y + SLOT_TOP + slot * SLOT_GAP + 6 };
-  }
-
-  // How many input slots the grid shows: at least 2, or one past the
-  // highest used slot, plus any manually added via ＋Slot.
+  // Grid input slots: follow the column count, never fewer than the highest
+  // wired slot, plus any added manually via ＋Slot.
   let extraSlots = $state(0);
   let slotCount = $derived.by(() => {
+    const cols = composer.gridNode?.cols ?? 2;
     const used = composer.edges.reduce((m, e) => Math.max(m, e.toSlot + 1), 0);
-    return Math.max(2, used) + extraSlots;
+    return Math.max(cols, used, 1) + extraSlots;
   });
   function slots(): number[] {
     return Array.from({ length: slotCount }, (_, i) => i);
   }
+
+  // --- port positions (measured from the DOM) ------------------------------
+  // Wires must land exactly on the rendered port dots no matter how tall a
+  // node's body is, so measure real element rects instead of guessing from
+  // constants — the constants drifted as node content changed and wires ended
+  // up near the wrong row.
+  const portEls = new Map<string, HTMLElement>();
+  let ports = $state<Record<string, { x: number; y: number }>>({});
+
+  function registerPort(el: HTMLElement, key: string) {
+    portEls.set(key, el);
+    measurePorts();
+    return { destroy: () => void portEls.delete(key) };
+  }
+  function measurePorts() {
+    const r = canvas?.getBoundingClientRect();
+    if (!r) return;
+    const next: Record<string, { x: number; y: number }> = {};
+    for (const [k, el] of portEls) {
+      const b = el.getBoundingClientRect();
+      next[k] = { x: b.left - r.left + b.width / 2, y: b.top - r.top + b.height / 2 };
+    }
+    ports = next;
+  }
+  // Re-measure after any layout-affecting change (node moved/added, slots/cols
+  // changed), once the DOM has painted.
+  $effect(() => {
+    composer.nodes.map((n) => `${n.x},${n.y}`); // touch positions
+    void slotCount; // touch slot count
+    requestAnimationFrame(measurePorts);
+  });
+  // Keep wires aligned when the window/canvas resizes.
+  $effect(() => {
+    if (!canvas) return;
+    const ro = new ResizeObserver(() => measurePorts());
+    ro.observe(canvas);
+    return () => ro.disconnect();
+  });
 
   // --- wiring --------------------------------------------------------------
   function startWire(e: PointerEvent, from: string) {
@@ -100,11 +129,9 @@
   }
 
   function edgeGeom(fromId: string, toSlot: number) {
-    const src = composer.nodes.find((n) => n.id === fromId);
-    const grid = composer.gridNode;
-    if (!src || !grid) return null;
-    const a = outPort(src);
-    const b = slotPort(grid, toSlot);
+    const a = ports[`out:${fromId}`];
+    const b = ports[`in:${toSlot}`];
+    if (!a || !b) return null;
     return `M ${a.x} ${a.y} C ${a.x + 50} ${a.y}, ${b.x - 50} ${b.y}, ${b.x} ${b.y}`;
   }
 
@@ -193,9 +220,8 @@
       {/if}
     {/each}
     {#if wiring}
-      {@const src = composer.nodes.find((n) => n.id === wiring!.from)}
-      {#if src}
-        {@const a = outPort(src)}
+      {@const a = ports[`out:${wiring.from}`]}
+      {#if a}
         <path class="wire live" d={`M ${a.x} ${a.y} L ${wiring.x} ${wiring.y}`} />
       {/if}
     {/if}
@@ -281,7 +307,7 @@
                 tabindex="0"
                 aria-label={`Slot ${s}`}
               >
-                <span class="port in"></span>
+                <span class="port in" use:registerPort={`in:${s}`}></span>
                 <span class="slotlbl">slot {s}</span>
               </div>
             {/each}
@@ -292,6 +318,7 @@
       {#if n.kind !== 'grid'}
         <span
           class="port out"
+          use:registerPort={`out:${n.id}`}
           onpointerdown={(e) => startWire(e, n.id)}
           role="button"
           tabindex="0"
@@ -358,24 +385,27 @@
   }
   .pvgrid {
     display: grid;
-    gap: 4px;
+    gap: 8px;
   }
   .pvcell {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 5px;
-    font-size: 10px;
+    gap: 4px;
+    padding: 8px;
+    font-size: 12px;
     border: 1px solid var(--line2);
-    border-radius: 4px;
+    border-radius: 6px;
     background: rgba(20, 28, 22, 0.4);
     color: var(--ink, #e7e3d4);
   }
   .pvcell img {
     width: 100%;
-    height: 48px;
+    height: 140px;
     object-fit: cover;
-    border-radius: 3px;
+    border-radius: 4px;
+  }
+  .pvcell strong {
+    font-size: 14px;
   }
   .pvcap {
     color: var(--muted, #9a9484);
