@@ -16,11 +16,30 @@ test('Broadcast Composer wires a source and pushes a grid on air', async ({ cont
   // pick an NPC so it resolves into a cell, then go on air.
   await win.getByRole('combobox', { name: 'NPC' }).selectOption({ index: 1 });
 
-  const onAir = win.getByRole('button', { name: 'On Air', exact: true });
-  await expect(onAir).toBeEnabled();
-  await onAir.click();
+  const broadcast = win.getByRole('button', { name: 'Broadcast', exact: true });
+  await expect(broadcast).toBeEnabled();
+  await broadcast.click();
 
   await expect(view.locator('.grid')).toBeVisible({ timeout: 5000 });
+});
+
+test('Broadcast Composer tabs: add and duplicate views', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '＋ Widget' }).click();
+  await page.getByRole('menuitem', { name: 'Broadcast Composer' }).click();
+
+  const win = page.locator('[data-win]').filter({ hasText: 'Broadcast Composer' }).last();
+  const tabs = win.locator('.tabstrip .tab');
+
+  await expect(tabs).toHaveCount(1);
+
+  // ＋ adds a fresh view.
+  await win.getByRole('button', { name: 'Add view' }).click();
+  await expect(tabs).toHaveCount(2);
+
+  // ⧉ duplicates the active view.
+  await win.getByRole('button', { name: 'Duplicate view' }).click();
+  await expect(tabs).toHaveCount(3);
 });
 
 test('Broadcast Composer can manually wire a new source into a grid slot', async ({ page }) => {

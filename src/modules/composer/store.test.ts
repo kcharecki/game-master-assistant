@@ -24,7 +24,7 @@ describe('ComposerStore', () => {
     composer.add('text', 10, 20);
     const text = composer.nodes.find((n) => n.kind === 'text');
     expect(text).toBeDefined();
-    expect(kvSet).toHaveBeenCalledWith('composerGraph', expect.any(String));
+    expect(kvSet).toHaveBeenCalledWith('composerViews', expect.any(String));
   });
 
   it('connects a source into the grid and previews a payload', () => {
@@ -40,5 +40,61 @@ describe('ComposerStore', () => {
 
   it('preview is null with no connected sources', () => {
     expect(composer.preview).toBeNull();
+  });
+});
+
+describe('ComposerStore views', () => {
+  beforeEach(() => {
+    kvSet.mockClear();
+    const v = { id: 'v1', name: 'View 1', graph: { nodes: [], edges: [] } };
+    composer.state = { views: [v], activeId: 'v1' };
+  });
+
+  it('addView appends and makes the new view active', () => {
+    const before = composer.views.length;
+    const v = composer.addView('Combat');
+    expect(composer.views).toHaveLength(before + 1);
+    expect(composer.activeId).toBe(v.id);
+    expect(composer.active.name).toBe('Combat');
+  });
+
+  it('mutators operate on the active view only', () => {
+    composer.addView('B'); // active is B now, empty
+    composer.add('grid', 0, 0);
+    const aId = composer.views[0].id;
+    composer.setActive(aId);
+    expect(composer.gridNode).toBeUndefined(); // A untouched
+  });
+
+  it('duplicateView clones the active view with fresh ids and "copy" name', () => {
+    composer.add('grid', 0, 0);
+    composer.add('text', 10, 10);
+    const text = composer.nodes.find((n) => n.kind === 'text')!;
+    const grid = composer.gridNode!;
+    composer.connect(text.id, grid.id, 0);
+
+    const origIds = new Set(composer.nodes.map((n) => n.id));
+    const dup = composer.duplicateView();
+    expect(dup.name).toBe('View 1 copy');
+    expect(composer.activeId).toBe(dup.id);
+    // cloned node ids differ but wiring preserved
+    for (const n of dup.graph.nodes) expect(origIds.has(n.id)).toBe(false);
+    expect(dup.graph.edges).toHaveLength(1);
+    const cloneIds = new Set(dup.graph.nodes.map((n) => n.id));
+    expect(cloneIds.has(dup.graph.edges[0].from)).toBe(true);
+  });
+
+  it('removeView never drops below one view', () => {
+    composer.addView('B');
+    const ids = composer.views.map((v) => v.id);
+    composer.removeView(ids[0]);
+    expect(composer.views).toHaveLength(1);
+    composer.removeView(composer.views[0].id); // refuses last
+    expect(composer.views).toHaveLength(1);
+  });
+
+  it('renameView updates the name', () => {
+    composer.renameView('v1', 'Tavern');
+    expect(composer.active.name).toBe('Tavern');
   });
 });

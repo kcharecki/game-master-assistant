@@ -6,6 +6,7 @@ import {
   connect,
   disconnect,
   evaluateGraph,
+  cloneGraph,
   type Graph,
 } from './graph';
 import type { PublicNpc } from '../npcs/public';
@@ -165,5 +166,70 @@ describe('graph helpers', () => {
     const edgeId = g.edges[0].id;
     g = disconnect(g, edgeId);
     expect(g.edges).toHaveLength(0);
+  });
+});
+
+describe('cloneGraph', () => {
+  function wired(): Graph {
+    let g: Graph = emptyGraph();
+    g = addNode(g, 'grid', 300, 10);
+    g = addNode(g, 'text', 10, 10);
+    g = addNode(g, 'image', 10, 120);
+    const grid = g.nodes.find((n) => n.kind === 'grid')!;
+    const text = g.nodes.find((n) => n.kind === 'text')!;
+    const image = g.nodes.find((n) => n.kind === 'image')!;
+    g = {
+      ...g,
+      nodes: g.nodes.map((n) =>
+        n.id === text.id
+          ? { ...n, title: 'T', body: 'B' }
+          : n.id === image.id
+            ? { ...n, src: 'http://x/y.png', caption: 'cap' }
+            : n
+      ),
+    };
+    g = connect(g, image.id, grid.id, 0);
+    g = connect(g, text.id, grid.id, 1);
+    return g;
+  }
+
+  it('assigns fresh ids but preserves structure and wiring', () => {
+    const orig = wired();
+    const clone = cloneGraph(orig);
+
+    expect(clone.nodes).toHaveLength(orig.nodes.length);
+    expect(clone.edges).toHaveLength(orig.edges.length);
+
+    // All node + edge ids are new.
+    const origNodeIds = new Set(orig.nodes.map((n) => n.id));
+    for (const n of clone.nodes) expect(origNodeIds.has(n.id)).toBe(false);
+    const origEdgeIds = new Set(orig.edges.map((e) => e.id));
+    for (const e of clone.edges) expect(origEdgeIds.has(e.id)).toBe(false);
+
+    // Every cloned edge.from points at a cloned node, slot index preserved.
+    const cloneNodeIds = new Set(clone.nodes.map((n) => n.id));
+    for (const e of clone.edges) expect(cloneNodeIds.has(e.from)).toBe(true);
+    expect(clone.edges.map((e) => e.toSlot).sort()).toEqual(
+      orig.edges.map((e) => e.toSlot).sort()
+    );
+  });
+
+  it('produces an independent copy (mutating clone leaves original intact)', () => {
+    const orig = wired();
+    const clone = cloneGraph(orig);
+    clone.nodes[0].x = 999;
+    clone.nodes.push({ id: 'extra', kind: 'text', x: 0, y: 0 });
+    expect(orig.nodes[0].x).not.toBe(999);
+    expect(orig.nodes).toHaveLength(3);
+  });
+
+  it('evaluates to the same cell shape as the original', () => {
+    const orig = wired();
+    const clone = cloneGraph(orig);
+    const a = evaluateGraph(orig, lookup({}))!;
+    const b = evaluateGraph(clone, lookup({}))!;
+    expect(b.kind).toBe(a.kind);
+    expect(b.cols).toBe(a.cols);
+    expect(b.cells).toEqual(a.cells);
   });
 });

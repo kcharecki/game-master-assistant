@@ -164,6 +164,27 @@ export function disconnect(graph: Graph, edgeId: string): Graph {
   return { ...graph, edges: graph.edges.filter((e) => e.id !== edgeId) };
 }
 
+/**
+ * Deep-clone a graph, assigning a fresh id to every node and remapping all
+ * edges so each `edge.from` (and thus the wiring into the grid sink) points at
+ * the cloned node, preserving every connection and slot index. The clone shares
+ * no object references with the original, so mutating one never affects the other.
+ */
+export function cloneGraph(graph: Graph): Graph {
+  const idMap = new Map<string, string>();
+  const nodes = graph.nodes.map((n) => {
+    const id = crypto.randomUUID();
+    idMap.set(n.id, id);
+    return { ...n, id };
+  });
+  const edges = graph.edges.map((e) => ({
+    ...e,
+    id: crypto.randomUUID(),
+    from: idMap.get(e.from) ?? e.from,
+  }));
+  return { nodes, edges };
+}
+
 export function serialize(graph: Graph): string {
   return JSON.stringify(graph);
 }

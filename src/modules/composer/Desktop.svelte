@@ -220,6 +220,17 @@
     if (payload) putOnAir(payload);
   }
 
+  // --- tab strip (views) ---------------------------------------------------
+  let editingId = $state<string | null>(null);
+  function startRename(id: string) {
+    editingId = id;
+  }
+  function commitRename(id: string, value: string) {
+    const name = value.trim();
+    if (name) composer.renameView(id, name);
+    editingId = null;
+  }
+
   const TITLES: Record<string, string> = {
     npc: 'NPC',
     image: 'Image',
@@ -233,7 +244,45 @@
   <button class="btn sm" onclick={() => composer.add('image', 40, 120)}>＋ Image</button>
   <button class="btn sm" onclick={() => composer.add('text', 40, 200)}>＋ Text</button>
   <button class="btn sm" onclick={() => extraSlots++}>＋ Slot</button>
-  <button class="btn sm air" onclick={onAir} disabled={!preview}>On Air</button>
+  <button class="btn sm air" onclick={onAir} disabled={!preview}>Broadcast</button>
+</div>
+
+<div class="tabstrip" role="tablist" aria-label="Composer views">
+  {#each composer.views as v (v.id)}
+    <div class="tab" class:active={v.id === composer.activeId}>
+      {#if editingId === v.id}
+        <!-- svelte-ignore a11y_autofocus -->
+        <input
+          class="tabedit"
+          value={v.name}
+          autofocus
+          onblur={(e) => commitRename(v.id, (e.currentTarget as HTMLInputElement).value)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur();
+            else if (e.key === 'Escape') (editingId = null);
+          }}
+          aria-label="View name"
+        />
+      {:else}
+        <button
+          class="tablabel"
+          role="tab"
+          aria-selected={v.id === composer.activeId}
+          onclick={() => composer.setActive(v.id)}
+          ondblclick={() => startRename(v.id)}
+        >{v.name}</button>
+        <button
+          class="tabx"
+          onclick={() => composer.removeView(v.id)}
+          disabled={composer.views.length <= 1}
+          aria-label={`Close ${v.name}`}
+          title="Close view"
+        >✕</button>
+      {/if}
+    </div>
+  {/each}
+  <button class="tabadd" onclick={() => composer.addView()} aria-label="Add view" title="Add view">＋</button>
+  <button class="tabadd" onclick={() => composer.duplicateView()} aria-label="Duplicate view" title="Duplicate view">⧉</button>
 </div>
 
 <div
@@ -411,6 +460,83 @@
   .cbar .btn.air:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+  .tabstrip {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line2);
+    border-radius: 6px 6px 0 0;
+    background: rgba(20, 28, 22, 0.5);
+    overflow: hidden;
+  }
+  .tab.active {
+    border-color: var(--gold, #c7a44e);
+    background: rgba(199, 164, 78, 0.16);
+  }
+  .tablabel {
+    padding: 4px 9px;
+    font-size: 12px;
+    border: 0;
+    background: transparent;
+    color: var(--muted, #9a9484);
+    cursor: pointer;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tab.active .tablabel {
+    color: var(--ink, #e7e3d4);
+    font-weight: 600;
+  }
+  .tabx {
+    width: 18px;
+    height: 18px;
+    margin-right: 3px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--muted, #9a9484);
+    cursor: pointer;
+    font-size: 10px;
+  }
+  .tabx:hover:not(:disabled) {
+    background: #8a3b34;
+    color: #fff;
+  }
+  .tabx:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .tabedit {
+    width: 110px;
+    margin: 2px;
+    padding: 2px 5px;
+    font-size: 12px;
+    background: #11160f;
+    color: var(--ink, #e7e3d4);
+    border: 1px solid var(--gold, #c7a44e);
+    border-radius: 4px;
+  }
+  .tabadd {
+    width: 26px;
+    border: 1px solid var(--line2);
+    border-radius: 6px;
+    background: rgba(20, 28, 22, 0.5);
+    color: var(--gold, #c7a44e);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .tabadd:hover {
+    background: rgba(199, 164, 78, 0.18);
   }
   .pvwrap {
     margin-top: 6px;
