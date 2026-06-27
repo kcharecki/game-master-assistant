@@ -2,6 +2,7 @@
   import { npcs, type Disposition } from './store.svelte';
   import { filterNpcs } from './roster';
   import { assetUrl } from '../../lib/db';
+  import { t } from '../../lib/i18n';
 
   const rep: Record<Disposition, string> = { ally: '+', neutral: '·', hostile: '–' };
 
@@ -32,7 +33,7 @@
   });
 </script>
 
-<input class="npcsearch" bind:value={query} placeholder="Search NPCs…" />
+<input class="npcsearch" bind:value={query} placeholder={t('npcs.searchDesktop')} />
 
 {#each shown as n (n.id)}
   <div class="combatant" class:foe={n.disposition === 'hostile'}>
@@ -43,7 +44,7 @@
         {n.name.slice(0, 2).toUpperCase()}
       {/if}
     </span>
-    <span class="cn"><div class="nm">{n.name}</div><div class="rl">{n.role || n.disposition}</div></span>
+    <span class="cn"><div class="nm">{n.name}</div><div class="rl">{n.role || t('npcs.disposition.' + n.disposition)}</div></span>
     <span class="iv">{rep[n.disposition]}</span>
   </div>
 {/each}

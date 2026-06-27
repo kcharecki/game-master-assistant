@@ -1,5 +1,6 @@
 <script lang="ts">
   import { lore } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   const sel = $derived(lore.selected);
   const links = $derived(sel ? lore.linksOf(sel.id) : []);
@@ -14,14 +15,14 @@
 <div class="editor">
   <aside class="side">
     <header class="shead">
-      <h2>Lore</h2>
-      <button class="btn solid sm" aria-label="Add page" onclick={() => lore.add()}>＋</button>
+      <h2>{t('lore.title')}</h2>
+      <button class="btn solid sm" aria-label={t('lore.addPage')} onclick={() => lore.add()}>＋</button>
     </header>
     <ul class="plist">
       {#each lore.pages as p (p.id)}
         <li>
           <button class="pbtn" class:on={p.id === lore.selectedId} onclick={() => lore.select(p.id)}>
-            {p.title || 'Untitled'}
+            {p.title || t('lore.untitled')}
           </button>
         </li>
       {/each}
@@ -34,18 +35,18 @@
         class="in title"
         value={sel.title}
         oninput={(e) => lore.update(sel.id, { title: e.currentTarget.value })}
-        placeholder="Page title"
+        placeholder={t('lore.titlePlaceholder')}
       />
       <textarea
         class="in body"
         value={sel.body}
         oninput={(e) => lore.update(sel.id, { body: e.currentTarget.value })}
-        placeholder="Write lore. Link other pages with [[Page Title]]."
+        placeholder={t('lore.bodyPlaceholder')}
       ></textarea>
 
       <div class="meta">
         <div class="metacol">
-          <h4>Links out</h4>
+          <h4>{t('lore.linksOut')}</h4>
           {#if links.length}
             {#each links as l (l.title)}
               <button
@@ -57,24 +58,24 @@
               </button>
             {/each}
           {:else}
-            <span class="muted">none</span>
+            <span class="muted">{t('lore.none')}</span>
           {/if}
         </div>
         <div class="metacol">
-          <h4>Backlinks</h4>
+          <h4>{t('lore.backlinksHead')}</h4>
           {#if backs.length}
             {#each backs as b (b.id)}
               <button class="chip" onclick={() => lore.select(b.id)}>{b.title}</button>
             {/each}
           {:else}
-            <span class="muted">none</span>
+            <span class="muted">{t('lore.none')}</span>
           {/if}
         </div>
       </div>
 
-      <button class="btn del" onclick={() => lore.remove(sel.id)}>Delete page</button>
+      <button class="btn del" onclick={() => lore.remove(sel.id)}>{t('lore.deletePage')}</button>
     {:else}
-      <p class="muted">No page selected.</p>
+      <p class="muted">{t('lore.noPageSelected')}</p>
     {/if}
   </section>
 </div>

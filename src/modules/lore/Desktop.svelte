@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { lore } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void lore.load());
 
@@ -10,19 +11,19 @@
 
 <div class="lore">
   <select class="pick" value={lore.selectedId} onchange={(e) => lore.select(e.currentTarget.value)}>
-    {#each lore.pages as p (p.id)}<option value={p.id}>{p.title || 'Untitled'}</option>{/each}
+    {#each lore.pages as p (p.id)}<option value={p.id}>{p.title || t('lore.untitled')}</option>{/each}
   </select>
 
   {#if sel}
-    <p class="body">{sel.body || 'No content yet.'}</p>
+    <p class="body">{sel.body || t('lore.noContent')}</p>
     {#if backs.length}
       <div class="backs">
-        <span class="lbl">Backlinks:</span>
+        <span class="lbl">{t('lore.backlinks')}</span>
         {#each backs as b (b.id)}<button class="chip" onclick={() => lore.select(b.id)}>{b.title}</button>{/each}
       </div>
     {/if}
   {:else}
-    <p class="muted">No pages.</p>
+    <p class="muted">{t('lore.noPages')}</p>
   {/if}
 </div>
 

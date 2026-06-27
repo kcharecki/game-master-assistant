@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { schedule } from './store.svelte';
   import type { ScheduledEvent } from './logic';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void schedule.load());
 
@@ -20,7 +21,7 @@
   });
 
   function addAtHour(hour: number) {
-    schedule.addEvent({ ...schedule.current, hour, minute: 0 }, 'New event');
+    schedule.addEvent({ ...schedule.current, hour, minute: 0 }, t('schedule.newEvent'));
   }
 </script>
 
@@ -32,12 +33,12 @@
 
   <div class="controls">
     <div class="grp">
-      <button class="btn sm" onclick={() => schedule.advanceMinutes(-1440)} aria-label="Back one day">−1d</button>
-      <button class="btn sm" onclick={() => schedule.advanceMinutes(-60)} aria-label="Back one hour">−1h</button>
-      <button class="btn sm" onclick={() => schedule.advanceMinutes(-10)} aria-label="Back ten minutes">−10m</button>
-      <button class="btn sm" onclick={() => schedule.advanceMinutes(10)} aria-label="Forward ten minutes">+10m</button>
-      <button class="btn sm" onclick={() => schedule.advanceMinutes(60)} aria-label="Forward one hour">+1h</button>
-      <button class="btn sm" onclick={() => schedule.advanceMinutes(1440)} aria-label="Forward one day">+1d</button>
+      <button class="btn sm" onclick={() => schedule.advanceMinutes(-1440)} aria-label={t('schedule.backDay')}>−1d</button>
+      <button class="btn sm" onclick={() => schedule.advanceMinutes(-60)} aria-label={t('schedule.backHour')}>−1h</button>
+      <button class="btn sm" onclick={() => schedule.advanceMinutes(-10)} aria-label={t('schedule.backTenMin')}>−10m</button>
+      <button class="btn sm" onclick={() => schedule.advanceMinutes(10)} aria-label={t('schedule.fwdTenMin')}>+10m</button>
+      <button class="btn sm" onclick={() => schedule.advanceMinutes(60)} aria-label={t('schedule.fwdHour')}>+1h</button>
+      <button class="btn sm" onclick={() => schedule.advanceMinutes(1440)} aria-label={t('schedule.fwdDay')}>+1d</button>
     </div>
     <div class="grp set">
       <input
@@ -47,7 +48,7 @@
         max="23"
         value={schedule.current.hour}
         onchange={(e) => schedule.setClock(Number(e.currentTarget.value), schedule.current.minute)}
-        aria-label="Hour"
+        aria-label={t('schedule.hour')}
       />
       <span class="colon">:</span>
       <input
@@ -57,9 +58,9 @@
         max="59"
         value={schedule.current.minute}
         onchange={(e) => schedule.setClock(schedule.current.hour, Number(e.currentTarget.value))}
-        aria-label="Minute"
+        aria-label={t('schedule.minute')}
       />
-      <button class="btn sm" onclick={() => addAtHour(schedule.current.hour)}>＋ Event now</button>
+      <button class="btn sm" onclick={() => addAtHour(schedule.current.hour)}>{t('schedule.eventNow')}</button>
     </div>
   </div>
 
@@ -75,12 +76,12 @@
                 class="evtitle"
                 value={ev.title}
                 oninput={(e) => schedule.updateEvent(ev.id, { title: e.currentTarget.value })}
-                placeholder="Event"
+                placeholder={t('schedule.eventPlaceholder')}
               />
-              <button class="evx" onclick={() => schedule.removeEvent(ev.id)} aria-label="Remove event">✕</button>
+              <button class="evx" onclick={() => schedule.removeEvent(ev.id)} aria-label={t('schedule.removeEvent')}>✕</button>
             </div>
           {/each}
-          <button class="addhr" onclick={() => addAtHour(h)} aria-label={`Add event at ${pad(h)}:00`}>＋</button>
+          <button class="addhr" onclick={() => addAtHour(h)} aria-label={`${t('schedule.addAtPre')}${pad(h)}:00`}>＋</button>
         </div>
       </div>
     {/each}

@@ -1,9 +1,12 @@
+<script lang="ts">
+  import { t } from '../../lib/i18n';
+</script>
+
 <div class="scene-img"></div>
 <h2 style="font-family:Georgia,serif;font-size:20px;margin-bottom:6px;color:#e9f3ed">
-  2. The Derelict Warehouse
+  {t('scene.title')}
 </h2>
 <p class="muted" style="font-size:13px">
-  The investigators have followed the trail to the abandoned warehouse on the docks. A foul smell of
-  brine and decay fills the air.
+  {t('scene.body')}
 </p>
-<button class="btn solid" style="margin-top:12px">Open Scene</button>
+<button class="btn solid" style="margin-top:12px">{t('scene.open')}</button>

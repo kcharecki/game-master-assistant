@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { calendar } from './store.svelte';
   import { formatDate, type MoonPhase } from './logic';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void calendar.load());
 
@@ -15,37 +16,50 @@
     'Last Quarter': '◐',
     'Waning Crescent': '◐',
   };
+
+  // Map a moon-phase enum to its translation key (display only; the stored
+  // value stays the English enum used for glyph lookup and logic).
+  const MOON_KEY: Record<MoonPhase, string> = {
+    'New Moon': 'calendar.moon.newMoon',
+    'Waxing Crescent': 'calendar.moon.waxingCrescent',
+    'First Quarter': 'calendar.moon.firstQuarter',
+    'Waxing Gibbous': 'calendar.moon.waxingGibbous',
+    'Full Moon': 'calendar.moon.fullMoon',
+    'Waning Gibbous': 'calendar.moon.waningGibbous',
+    'Last Quarter': 'calendar.moon.lastQuarter',
+    'Waning Crescent': 'calendar.moon.waningCrescent',
+  };
 </script>
 
 <div class="cal">
   <div class="now">
     <div class="date">{calendar.label}</div>
-    <div class="moon"><span class="glyph">{GLYPH[calendar.moon]}</span>{calendar.moon}</div>
+    <div class="moon"><span class="glyph">{GLYPH[calendar.moon]}</span>{t(MOON_KEY[calendar.moon])}</div>
   </div>
 
   <div class="adv">
-    <button class="btn sm" onclick={() => calendar.advanceBy(-1)}>‹ Day</button>
-    <button class="btn sm" onclick={() => calendar.advanceBy(1)}>Day ›</button>
-    <button class="btn sm" onclick={() => calendar.advanceBy(7)}>+ Week</button>
+    <button class="btn sm" onclick={() => calendar.advanceBy(-1)}>{t('calendar.prevDay')}</button>
+    <button class="btn sm" onclick={() => calendar.advanceBy(1)}>{t('calendar.nextDay')}</button>
+    <button class="btn sm" onclick={() => calendar.advanceBy(7)}>{t('calendar.week')}</button>
   </div>
 
   <div class="events">
-    <span class="lbl">Upcoming</span>
+    <span class="lbl">{t('calendar.upcoming')}</span>
     {#if calendar.upcoming.length}
       <ul>
         {#each calendar.upcoming as e (e.id)}
           <li>
             <span class="ed">{formatDate(e.date)}</span>
             <span class="et">{e.title}</span>
-            <button class="x" title="Remove" aria-label="Remove event" onclick={() => calendar.removeEvent(e.id)}>×</button>
+            <button class="x" title={t('calendar.remove')} aria-label={t('calendar.removeEvent')} onclick={() => calendar.removeEvent(e.id)}>×</button>
           </li>
         {/each}
       </ul>
     {:else}
-      <p class="muted">Nothing scheduled.</p>
+      <p class="muted">{t('calendar.nothingScheduled')}</p>
     {/if}
-    <button class="btn sm add" onclick={() => calendar.addEvent({ ...calendar.current }, 'New event')}>
-      ＋ Event on this day
+    <button class="btn sm add" onclick={() => calendar.addEvent({ ...calendar.current }, t('calendar.newEvent'))}>
+      {t('calendar.addEvent')}
     </button>
   </div>
 </div>

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { factions } from './store.svelte';
   import { circleLayout, edgeGeometry, RELATION_COLOR, type RelationType } from './graph';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void factions.load());
 
@@ -21,12 +22,12 @@
 </script>
 
 <div class="fac">
-  <svg viewBox="0 0 {W} {H}" class="web" role="img" aria-label="Faction relationship web">
+  <svg viewBox="0 0 {W} {H}" class="web" role="img" aria-label={t('factions.web')}>
     {#each factions.relationships as r, i (i)}
       {@const g = edgeGeometry(r, positions)}
       {#if g}
         <line x1={g.a.x} y1={g.a.y} x2={g.b.x} y2={g.b.y} stroke={g.color} stroke-width="1.6" opacity="0.8" />
-        <text x={g.mid.x} y={g.mid.y} class="elabel" fill={g.color}>{r.type}</text>
+        <text x={g.mid.x} y={g.mid.y} class="elabel" fill={g.color}>{t('factions.rel.' + r.type)}</text>
       {/if}
     {/each}
     {#each positions as p (p.id)}
@@ -39,25 +40,25 @@
 
   <div class="controls">
     <div class="row">
-      <button class="btn sm" onclick={() => factions.addFaction()}>＋ Faction</button>
+      <button class="btn sm" onclick={() => factions.addFaction()}>{t('factions.addFaction')}</button>
     </div>
     <div class="row rel">
       <select bind:value={relFrom}>
-        <option value="" disabled>from…</option>
+        <option value="" disabled>{t('factions.from')}</option>
         {#each factions.factions as f (f.id)}<option value={f.id}>{f.name}</option>{/each}
       </select>
       <select bind:value={relType}>
-        {#each types as t (t)}<option value={t}>{t}</option>{/each}
+        {#each types as rt (rt)}<option value={rt}>{t('factions.rel.' + rt)}</option>{/each}
       </select>
       <select bind:value={relTo}>
-        <option value="" disabled>to…</option>
+        <option value="" disabled>{t('factions.to')}</option>
         {#each factions.factions as f (f.id)}<option value={f.id}>{f.name}</option>{/each}
       </select>
-      <button class="btn sm" onclick={addRel}>Link</button>
+      <button class="btn sm" onclick={addRel}>{t('factions.link')}</button>
     </div>
     <div class="legend">
-      {#each types as t (t)}
-        <span class="key"><span class="sw" style="background:{RELATION_COLOR[t]}"></span>{t}</span>
+      {#each types as rt (rt)}
+        <span class="key"><span class="sw" style="background:{RELATION_COLOR[rt]}"></span>{t('factions.rel.' + rt)}</span>
       {/each}
     </div>
   </div>

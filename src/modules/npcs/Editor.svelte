@@ -2,6 +2,7 @@
   import { npcs, type Disposition } from './store.svelte';
   import { filterNpcs } from './roster';
   import { assetPut, assetUrl } from '../../lib/db';
+  import { t } from '../../lib/i18n';
 
   const dispositions: Disposition[] = ['ally', 'neutral', 'hostile'];
 
@@ -55,20 +56,20 @@
 
 <div class="editor">
   <header class="ehead">
-    <h2>NPC Roster</h2>
+    <h2>{t('npcs.roster')}</h2>
     <div class="hbtns">
-      <button class="btn" onclick={() => npcs.addGenerated()}>🎲 Generate</button>
-      <button class="btn solid" onclick={() => npcs.add()}>＋ New NPC</button>
+      <button class="btn" onclick={() => npcs.addGenerated()}>{t('npcs.generate')}</button>
+      <button class="btn solid" onclick={() => npcs.add()}>{t('npcs.newNpc')}</button>
     </div>
   </header>
 
-  <input class="in search" bind:value={query} placeholder="Search name / role / disposition…" />
+  <input class="in search" bind:value={query} placeholder={t('npcs.searchEditor')} />
 
   <div class="grid">
     {#each shown as n (n.id)}
       <div class="card">
         <div class="portrow">
-          <label class="port" title="Upload portrait">
+          <label class="port" title={t('npcs.uploadPortrait')}>
             {#if n.portraitId && urls[n.portraitId]}
               <img class="pimg" src={urls[n.portraitId]} alt="{n.name} portrait" />
             {:else}
@@ -85,20 +86,20 @@
             class="in name"
             value={n.name}
             oninput={(e) => npcs.update(n.id, { name: e.currentTarget.value })}
-            placeholder="Name"
+            placeholder={t('npcs.namePlaceholder')}
           />
         </div>
         <input
           class="in"
           value={n.role}
           oninput={(e) => npcs.update(n.id, { role: e.currentTarget.value })}
-          placeholder="Role / location"
+          placeholder={t('npcs.rolePlaceholder')}
         />
         <input
           class="in"
           value={n.voice ?? ''}
           oninput={(e) => npcs.update(n.id, { voice: e.currentTarget.value })}
-          placeholder="Voice / accent notes"
+          placeholder={t('npcs.voicePlaceholder')}
         />
         <div class="rowflex">
           <select
@@ -106,23 +107,23 @@
             value={n.disposition}
             onchange={(e) => npcs.update(n.id, { disposition: e.currentTarget.value as Disposition })}
           >
-            {#each dispositions as d (d)}<option value={d}>{d}</option>{/each}
+            {#each dispositions as d (d)}<option value={d}>{t('npcs.disposition.' + d)}</option>{/each}
           </select>
           <button
             class="btn"
             aria-expanded={!!open[n.id]}
             onclick={() => (open[n.id] = !open[n.id])}
           >
-            {open[n.id] ? 'Hide' : 'Details'}
+            {open[n.id] ? t('npcs.hide') : t('npcs.details')}
           </button>
-          <button class="btn" onclick={() => npcs.remove(n.id)}>Delete</button>
+          <button class="btn" onclick={() => npcs.remove(n.id)}>{t('npcs.delete')}</button>
         </div>
 
         {#if open[n.id]}
           <div class="detail">
             <!-- Gallery -->
             <section>
-              <div class="seclabel">Gallery</div>
+              <div class="seclabel">{t('npcs.gallery')}</div>
               <div class="thumbs">
                 {#each n.gallery ?? [] as gid (gid)}
                   <div class="thumb" class:primary={gid === n.portraitId}>
@@ -130,7 +131,7 @@
                       <button
                         type="button"
                         class="thumbpick"
-                        title="Set as primary"
+                        title={t('npcs.setPrimary')}
                         onclick={() => npcs.setPrimaryPhoto(n.id, gid)}
                       >
                         <img src={urls[gid]} alt="" />
@@ -139,12 +140,12 @@
                     <button
                       type="button"
                       class="thumbx"
-                      aria-label="Remove photo"
+                      aria-label={t('npcs.removePhoto')}
                       onclick={() => npcs.removePhoto(n.id, gid)}>×</button
                     >
                   </div>
                 {/each}
-                <label class="thumb addthumb" title="Add photo">
+                <label class="thumb addthumb" title={t('npcs.addPhoto')}>
                   ＋
                   <input
                     type="file"
@@ -159,8 +160,8 @@
             <!-- Equipment -->
             <section>
               <div class="seclabel">
-                Equipment
-                <button class="mini" onclick={() => npcs.addEquip(n.id)}>＋ row</button>
+                {t('npcs.equipment')}
+                <button class="mini" onclick={() => npcs.addEquip(n.id)}>{t('npcs.addRow')}</button>
               </div>
               {#each n.equipment ?? [] as it (it.id)}
                 <div class="equiprow">
@@ -168,7 +169,7 @@
                     class="in"
                     value={it.name}
                     oninput={(e) => npcs.updateEquip(n.id, it.id, { name: e.currentTarget.value })}
-                    placeholder="Item"
+                    placeholder={t('npcs.itemPlaceholder')}
                   />
                   <input
                     class="in qty"
@@ -178,15 +179,15 @@
                       npcs.updateEquip(n.id, it.id, {
                         qty: e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value),
                       })}
-                    placeholder="Qty"
+                    placeholder={t('npcs.qtyPlaceholder')}
                   />
                   <input
                     class="in"
                     value={it.notes ?? ''}
                     oninput={(e) => npcs.updateEquip(n.id, it.id, { notes: e.currentTarget.value })}
-                    placeholder="Notes"
+                    placeholder={t('npcs.notesPlaceholder')}
                   />
-                  <button class="mini" aria-label="Remove item" onclick={() => npcs.removeEquip(n.id, it.id)}>×</button>
+                  <button class="mini" aria-label={t('npcs.removeItem')} onclick={() => npcs.removeEquip(n.id, it.id)}>×</button>
                 </div>
               {/each}
             </section>
@@ -194,8 +195,8 @@
             <!-- Stats -->
             <section>
               <div class="seclabel">
-                Stats
-                <button class="mini" onclick={() => npcs.addStat(n.id)}>＋ row</button>
+                {t('npcs.stats')}
+                <button class="mini" onclick={() => npcs.addStat(n.id)}>{t('npcs.addRow')}</button>
               </div>
               {#each n.stats ?? [] as s (s.id)}
                 <div class="statrow">
@@ -203,38 +204,38 @@
                     class="in"
                     value={s.key}
                     oninput={(e) => npcs.updateStat(n.id, s.id, { key: e.currentTarget.value })}
-                    placeholder="Key (HP, AC…)"
+                    placeholder={t('npcs.statKeyPlaceholder')}
                   />
                   <input
                     class="in"
                     value={s.val}
                     oninput={(e) => npcs.updateStat(n.id, s.id, { val: e.currentTarget.value })}
-                    placeholder="Value"
+                    placeholder={t('npcs.statValPlaceholder')}
                   />
-                  <button class="mini" aria-label="Remove stat" onclick={() => npcs.removeStat(n.id, s.id)}>×</button>
+                  <button class="mini" aria-label={t('npcs.removeStat')} onclick={() => npcs.removeStat(n.id, s.id)}>×</button>
                 </div>
               {/each}
             </section>
 
             <!-- Public blurb -->
             <section>
-              <div class="seclabel public">Public blurb · players may see</div>
+              <div class="seclabel public">{t('npcs.publicBlurb')}</div>
               <textarea
                 class="in ta"
                 value={n.publicBlurb ?? ''}
                 oninput={(e) => npcs.update(n.id, { publicBlurb: e.currentTarget.value })}
-                placeholder="What players are allowed to learn about this NPC…"
+                placeholder={t('npcs.publicBlurbPlaceholder')}
               ></textarea>
             </section>
 
             <!-- GM notes -->
             <section>
-              <div class="seclabel private">GM notes · private, never broadcast</div>
+              <div class="seclabel private">{t('npcs.gmNotes')}</div>
               <textarea
                 class="in ta"
                 value={n.gmNotes ?? ''}
                 oninput={(e) => npcs.update(n.id, { gmNotes: e.currentTarget.value })}
-                placeholder="Secrets, plot hooks, true motives — GM eyes only…"
+                placeholder={t('npcs.gmNotesPlaceholder')}
               ></textarea>
             </section>
           </div>
@@ -242,7 +243,7 @@
       </div>
     {/each}
     {#if shown.length === 0}
-      <p class="muted empty">No NPCs match “{query}”.</p>
+      <p class="muted empty">{t('npcs.noneMatchPre')}{query}{t('npcs.noneMatchPost')}</p>
     {/if}
   </div>
 </div>

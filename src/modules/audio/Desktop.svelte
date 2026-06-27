@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { audio } from './store.svelte';
   import { formatTime } from './logic';
+  import { t } from '../../lib/i18n';
 
   let pickPlaylist = $state(audio.playlists[0]?.id ?? '');
   let ytUrl = $state('');
@@ -33,27 +34,27 @@
 <div class="audio" data-no-drag>
   <section>
     <header>
-      <select class="in" bind:value={pickPlaylist} aria-label="Scene playlist">
+      <select class="in" bind:value={pickPlaylist} aria-label={t('audio.scenePlaylist')}>
         {#each audio.playlists as p (p.id)}
           <option value={p.id}>{p.scene} ({p.tracks.length})</option>
         {/each}
       </select>
       <label class="btn sm">
-        + Track<input type="file" accept="audio/*" onchange={onTrackFile} hidden />
+        {t('audio.addTrack')}<input type="file" accept="audio/*" onchange={onTrackFile} hidden />
       </label>
     </header>
     <div class="row">
-      <button class="btn sm solid" onclick={() => audio.playScene(pickPlaylist)}>Play scene</button>
-      <button class="btn sm" onclick={() => audio.stopScene()}>Stop</button>
-      {#if audio.playingScene}<span class="now">on air</span>{/if}
+      <button class="btn sm solid" onclick={() => audio.playScene(pickPlaylist)}>{t('audio.playScene')}</button>
+      <button class="btn sm" onclick={() => audio.stopScene()}>{t('audio.stop')}</button>
+      {#if audio.playingScene}<span class="now">{t('audio.onAir')}</span>{/if}
     </div>
 
     {#if tracks.length}
       <ul class="tracks">
-        {#each tracks as t (t.id)}
+        {#each tracks as tr (tr.id)}
           <li>
-            {#if t.youtubeId}<span class="ytbadge">▶ YT</span>{/if}
-            <span class="tlabel">{t.label}</span>
+            {#if tr.youtubeId}<span class="ytbadge">▶ YT</span>{/if}
+            <span class="tlabel">{tr.label}</span>
           </li>
         {/each}
       </ul>
@@ -63,22 +64,22 @@
       <input
         class="in"
         type="url"
-        placeholder="YouTube URL…"
+        placeholder={t('audio.ytUrlPlaceholder')}
         bind:value={ytUrl}
-        aria-label="YouTube URL"
+        aria-label={t('audio.ytUrl')}
       />
-      <button class="btn sm" onclick={onAddYouTube} disabled={!ytUrl.trim()}>＋ YouTube</button>
+      <button class="btn sm" onclick={onAddYouTube} disabled={!ytUrl.trim()}>{t('audio.addYouTube')}</button>
     </div>
     <label class="ytopt">
       <input type="checkbox" bind:checked={audio.ytAudioOnly} />
-      Audio only (hide video on broadcast)
+      {t('audio.audioOnly')}
     </label>
 
     <!-- Ambient transport. Fine seek is native-audio only; for YouTube the slider
          is disabled and Rewind re-mounts the iframe (YT scrubbing needs the JS API). -->
     {#if audio.playingScene}
       <div class="transport">
-        <button class="btn sm" onclick={() => audio.rewind()} aria-label="Rewind to start">⏪</button>
+        <button class="btn sm" onclick={() => audio.rewind()} aria-label={t('audio.rewind')}>⏪</button>
         <input
           type="range"
           class="seek"
@@ -88,7 +89,7 @@
           value={audio.position}
           oninput={onSeek}
           disabled={audio.playingYouTube || audio.duration <= 0}
-          aria-label="Seek ambient track"
+          aria-label={t('audio.seek')}
         />
         <span class="time">
           {#if audio.playingYouTube}
@@ -103,14 +104,14 @@
 
   <section>
     <header>
-      <strong class="sfxhdr">Soundboard</strong>
-      <label class="btn sm">+ SFX<input type="file" accept="audio/*" onchange={onSfxFile} hidden /></label>
+      <strong class="sfxhdr">{t('audio.soundboard')}</strong>
+      <label class="btn sm">{t('audio.addSfx')}<input type="file" accept="audio/*" onchange={onSfxFile} hidden /></label>
     </header>
     <div class="board">
       {#each audio.sfx as s (s.id)}
         <button class="chip" onclick={() => audio.playSfx(s.id)}>{s.label}</button>
       {:else}
-        <span class="muted hint">Import clips to build a soundboard.</span>
+        <span class="muted hint">{t('audio.soundboardHint')}</span>
       {/each}
     </div>
   </section>
