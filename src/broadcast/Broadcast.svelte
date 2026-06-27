@@ -40,6 +40,12 @@
   const ytBackground = $derived(
     youtubeAudioOnly || (!ytVideoFg && payload.kind !== 'clear')
   );
+
+  // Preview mode (?preview=1): a silent visual mirror embedded on the GM desktop.
+  // It renders all on-air visuals (incl. a muted YouTube video) but never plays
+  // audio — otherwise the preview would double the broadcast tab's sound.
+  const isPreview =
+    typeof location !== 'undefined' && new URLSearchParams(location.search).has('preview');
   // Reverse status channel back to the GM tab; opened in onMount (no import-time bus).
   let statusBus: ReturnType<typeof createBus> | null = null;
   let lastStatusAt = 0;
@@ -116,6 +122,23 @@
   }
 
   async function handleAudio(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
+    // Preview mirror: reflect the YouTube video state (muted, via the iframe)
+    // but never touch native <audio> or post status — stay silent.
+    if (isPreview) {
+      if (cue.channel !== 'ambient') return;
+      if (cue.action === 'stop') youtubeId = null;
+      else if (cue.action === 'play') {
+        if (cue.youtubeId) {
+          youtubeId = cue.youtubeId;
+          youtubeAudioOnly = !!cue.audioOnly;
+          ytVideoFg = !cue.audioOnly;
+          youtubeNonce += 1;
+        } else {
+          youtubeId = null;
+        }
+      }
+      return;
+    }
     const el = cue.channel === 'ambient' ? ambientEl : sfxEl;
     if (!el) return;
     if (cue.action === 'stop') {
@@ -288,7 +311,8 @@
         class="ytplayer"
         class:audioonly={ytBackground}
         title="Ambient YouTube"
-        src="https://www.youtube-nocookie.com/embed/{youtubeId}?autoplay=1&loop=1&playlist={youtubeId}{youtubeAudioOnly
+        src="https://www.youtube-nocookie.com/embed/{youtubeId}?autoplay=1&loop=1&playlist={youtubeId}{youtubeAudioOnly &&
+        !isPreview
           ? ''
           : '&mute=1'}"
         allow="autoplay"

@@ -31,6 +31,7 @@ export const categoryMap: Record<ModuleId, CategoryInfo> = {
   map: { category: 'Maps & Broadcast', icon: '🗺️' },
   reveal: { category: 'Maps & Broadcast', icon: '🖼️' },
   composer: { category: 'Maps & Broadcast', icon: '🎛️' },
+  preview: { category: 'Maps & Broadcast', icon: '📺' },
   handouts: { category: 'Maps & Broadcast', icon: '✉️' },
   // Atmosphere
   audio: { category: 'Atmosphere', icon: '🎵' },

@@ -31,6 +31,7 @@ export type ModuleId =
   | 'dashboard'
   | 'reminders'
   | 'composer'
+  | 'preview'
   | 'reveal';
 
 /**

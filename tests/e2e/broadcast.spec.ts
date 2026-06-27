@@ -32,3 +32,13 @@ test('a second module (Handouts) can take over the broadcast', async ({ context 
 
   await expect(view.getByText('A Letter from the Order')).toBeVisible({ timeout: 5000 });
 });
+
+test('Broadcast Preview embeds the broadcast page in preview mode', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '＋ Widget' }).click();
+  await page.getByRole('menuitem', { name: 'Broadcast Preview' }).click();
+
+  const win = page.locator('[data-win]').filter({ hasText: 'Broadcast Preview' }).last();
+  const frame = win.locator('iframe[title="Broadcast preview"]');
+  await expect(frame).toHaveAttribute('src', /broadcast\.html\?preview=1/);
+});
