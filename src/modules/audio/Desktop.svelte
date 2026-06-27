@@ -7,8 +7,12 @@
   let ytUrl = $state('');
   const tracks = $derived(audio.playlists.find((p) => p.id === pickPlaylist)?.tracks ?? []);
 
-  // Subscribe to ambient playback status from the broadcast tab; clean up on unmount.
-  onMount(() => audio.subscribeStatus());
+  // Load saved playlists/soundboard, then subscribe to ambient playback status
+  // from the broadcast tab; clean up the subscription on unmount.
+  onMount(() => {
+    void audio.load();
+    return audio.subscribeStatus();
+  });
 
   function onTrackFile(e: Event) {
     const file = (e.currentTarget as HTMLInputElement).files?.[0];

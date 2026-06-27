@@ -1,4 +1,4 @@
-import { assetPut } from '../../lib/db';
+import { assetPut, kvGet, kvSet } from '../../lib/db';
 import { createBus } from '../../lib/bus';
 import type { BroadcastPayload } from '../../lib/types';
 import { parseYouTubeId, type Playlist, type Sfx, type Track } from './logic';
@@ -44,6 +44,7 @@ class AudioStore {
     const assetId = await this.importFile(file);
     const track: Track = { id: crypto.randomUUID(), assetId, label: file.name };
     pl.tracks.push(track);
+    this.persist();
     return track;
   }
 
@@ -59,6 +60,7 @@ class AudioStore {
       label: label?.trim() || `YouTube ${youtubeId}`,
     };
     pl.tracks.push(track);
+    this.persist();
     return track;
   }
 
@@ -66,6 +68,7 @@ class AudioStore {
     const assetId = await this.importFile(file);
     const s: Sfx = { id: crypto.randomUUID(), assetId, label: file.name };
     this.sfx.push(s);
+    this.persist();
     return s;
   }
 
@@ -143,6 +146,28 @@ class AudioStore {
     const s = this.sfx.find((x) => x.id === sfxId);
     if (!s) return;
     sendAudio({ kind: 'audio', assetId: s.assetId, loop: false, action: 'play', channel: 'sfx' });
+  }
+
+  /**
+   * Persist playlist + soundboard metadata (the blobs already live in the asset
+   * store; only the track list referencing them needs saving).
+   */
+  persist(): void {
+    void kvSet('audio', {
+      playlists: $state.snapshot(this.playlists),
+      sfx: $state.snapshot(this.sfx),
+      ytAudioOnly: this.ytAudioOnly,
+    });
+  }
+
+  async load(): Promise<void> {
+    const saved = await kvGet<{ playlists?: Playlist[]; sfx?: Sfx[]; ytAudioOnly?: boolean }>(
+      'audio'
+    );
+    if (!saved) return;
+    if (saved.playlists?.length) this.playlists = saved.playlists;
+    if (saved.sfx) this.sfx = saved.sfx;
+    if (typeof saved.ytAudioOnly === 'boolean') this.ytAudioOnly = saved.ytAudioOnly;
   }
 }
 
