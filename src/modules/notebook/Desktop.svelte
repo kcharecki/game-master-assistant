@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { notebook } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void notebook.load());
 
@@ -24,23 +25,23 @@
   <div class="add">
     <input
       class="in"
-      placeholder="Note… use #tags"
+      placeholder={t('notebook.placeholder')}
       bind:value={draft}
       onkeydown={(e) => e.key === 'Enter' && submit()}
     />
-    <button class="btn" onclick={submit}>Add</button>
+    <button class="btn" onclick={submit}>{t('notebook.add')}</button>
   </div>
 
   <div class="filters">
-    <input class="in search" placeholder="Search…" bind:value={notebook.query} />
-    <button class="btn" onclick={() => notebook.makeRecap()}>Recap</button>
+    <input class="in search" placeholder={t('notebook.search')} bind:value={notebook.query} />
+    <button class="btn" onclick={() => notebook.makeRecap()}>{t('notebook.recap')}</button>
     {#if notebook.tags.length}
       <div class="tags">
-        {#each notebook.tags as t (t)}
+        {#each notebook.tags as tag (tag)}
           <button
             class="chip"
-            class:on={notebook.activeTag === t}
-            onclick={() => notebook.setTag(t)}>#{t}</button
+            class:on={notebook.activeTag === tag}
+            onclick={() => notebook.setTag(tag)}>#{tag}</button
           >
         {/each}
       </div>
@@ -49,7 +50,7 @@
 
   {#if notebook.recap}
     <div class="recap">
-      <button class="rclose" title="Dismiss" aria-label="Dismiss recap" onclick={() => (notebook.recap = null)}>×</button>
+      <button class="rclose" title={t('notebook.dismiss')} aria-label={t('notebook.dismissRecap')} onclick={() => (notebook.recap = null)}>×</button>
       <pre>{notebook.recap}</pre>
     </div>
   {/if}
@@ -59,12 +60,12 @@
       <li class="note">
         <div class="meta">
           <span class="time">{fmt(n.at)}</span>
-          <button class="del" title="Delete" aria-label="Delete note" onclick={() => notebook.remove(n.id)}>×</button>
+          <button class="del" title={t('notebook.delete')} aria-label={t('notebook.deleteNote')} onclick={() => notebook.remove(n.id)}>×</button>
         </div>
         <p class="body">{n.body}</p>
       </li>
     {:else}
-      <li class="muted">No notes.</li>
+      <li class="muted">{t('notebook.noNotes')}</li>
     {/each}
   </ul>
 </div>

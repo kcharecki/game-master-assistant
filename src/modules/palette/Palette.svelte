@@ -1,6 +1,7 @@
 <script lang="ts">
   import { palette } from './store.svelte';
   import type { PaletteHit } from './search';
+  import { t } from '../../lib/i18n';
 
   let inputEl: HTMLInputElement | undefined = $state();
 
@@ -26,7 +27,11 @@
   }
 
   function badge(hit: PaletteHit): string {
-    return hit.kind === 'spawn' ? 'spawn' : hit.kind === 'editor' ? 'edit' : 'open';
+    return hit.kind === 'spawn'
+      ? t('palette.badgeSpawn')
+      : hit.kind === 'editor'
+        ? t('palette.badgeEdit')
+        : t('palette.badgeOpen');
   }
 </script>
 
@@ -47,7 +52,7 @@
         bind:this={inputEl}
         class="pin"
         type="text"
-        placeholder="Search NPCs, lore, notes, quests, rules — or spawn a window…"
+        placeholder={t('palette.search')}
         value={palette.query}
         oninput={(e) => palette.setQuery((e.currentTarget as HTMLInputElement).value)}
         onkeydown={onKeydown}
@@ -67,7 +72,7 @@
             <span class="badge">{badge(hit)}</span>
           </button>
         {:else}
-          <div class="empty">No matches</div>
+          <div class="empty">{t('palette.noMatches')}</div>
         {/each}
       </div>
     </div>

@@ -82,6 +82,23 @@ export const shell = {
 
     // Language switcher.
     'lang.label': 'Language',
+
+    // Editor host + sidebar + tab strip.
+    'editorHost.noEditorPre': 'No editor for ',
+    'editorHost.noEditorPost': ' yet.',
+    'sidebar.desktop': 'Desktop',
+    'sidebar.campaign': 'Campaign',
+    'sidebar.export': 'Export',
+    'sidebar.import': 'Import',
+    'sidebar.exported': 'Exported.',
+    'sidebar.imported': 'Imported — reload to see changes.',
+    'sidebar.importFailedPre': 'Import failed: ',
+    'sidebar.storagePre': 'Storage: ',
+    'sidebar.storageSep': ' / ',
+    'sidebar.nearLimit': ' · near limit',
+    'sidebar.checkStorage': 'Check storage usage',
+    'tabs.desktop': 'Desktop',
+    'tabs.closeTab': 'Close tab',
   },
   pl: {
     // Module titles.
@@ -164,5 +181,22 @@ export const shell = {
 
     // Language switcher.
     'lang.label': 'Język',
+
+    // Editor host + sidebar + tab strip.
+    'editorHost.noEditorPre': 'Brak edytora dla ',
+    'editorHost.noEditorPost': ' (jeszcze).',
+    'sidebar.desktop': 'Pulpit',
+    'sidebar.campaign': 'Kampania',
+    'sidebar.export': 'Eksport',
+    'sidebar.import': 'Import',
+    'sidebar.exported': 'Wyeksportowano.',
+    'sidebar.imported': 'Zaimportowano — odśwież, aby zobaczyć zmiany.',
+    'sidebar.importFailedPre': 'Import nieudany: ',
+    'sidebar.storagePre': 'Pamięć: ',
+    'sidebar.storageSep': ' / ',
+    'sidebar.nearLimit': ' · blisko limitu',
+    'sidebar.checkStorage': 'Sprawdź użycie pamięci',
+    'tabs.desktop': 'Pulpit',
+    'tabs.closeTab': 'Zamknij kartę',
   },
 };

@@ -55,11 +55,11 @@
     <Sidebar activeView={view} onShowDesktop={showDesktop} onOpenEditor={openEditor} />
     <main class="workspace">
       <div class="tabs">
-        <button class="tab" class:on={view === 'desktop'} onclick={showDesktop}>Desktop</button>
+        <button class="tab" class:on={view === 'desktop'} onclick={showDesktop}>{t('tabs.desktop')}</button>
         {#each openEditors as id (id)}
           <span class="tab" class:on={view === id}>
             <button class="tlabel" onclick={() => (view = id)}>{t('mod.' + id + '.title')}</button>
-            <button class="tx" onclick={() => closeEditor(id)} aria-label="Close tab">✕</button>
+            <button class="tx" onclick={() => closeEditor(id)} aria-label={t('tabs.closeTab')}>✕</button>
           </span>
         {/each}
       </div>

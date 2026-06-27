@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { quests } from './store.svelte';
   import type { QuestStatus } from './logic';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void quests.load());
 
@@ -13,26 +14,26 @@
     clueDraft[id] = '';
   }
 
-  const groups: { status: QuestStatus; label: string }[] = [
-    { status: 'open', label: 'Open' },
-    { status: 'resolved', label: 'Resolved' },
+  const groups: { status: QuestStatus; labelKey: string }[] = [
+    { status: 'open', labelKey: 'quests.groupOpen' },
+    { status: 'resolved', labelKey: 'quests.groupResolved' },
   ];
 </script>
 
 <div class="q">
   <div class="head">
-    <span class="tally">{quests.counts.open} open · {quests.counts.resolved} resolved</span>
-    <button class="btn" onclick={() => quests.add()}>+ Thread</button>
+    <span class="tally">{quests.counts.open} {t('quests.open')}{t('quests.tallySep')}{quests.counts.resolved} {t('quests.resolved')}</span>
+    <button class="btn" onclick={() => quests.add()}>{t('quests.addThread')}</button>
   </div>
 
   {#each groups as g (g.status)}
     <div class="group">
-      <h4 class="gh">{g.label}</h4>
+      <h4 class="gh">{t(g.labelKey)}</h4>
       {#each quests.group(g.status) as q (q.id)}
         <div class="card" class:done={q.status === 'resolved'}>
           <div class="top">
             <input class="title" bind:value={q.title} onchange={() => quests.update(q.id, { title: q.title })} />
-            <button class="del" title="Delete" aria-label="Delete quest" onclick={() => quests.remove(q.id)}>×</button>
+            <button class="del" title={t('quests.delete')} aria-label={t('quests.deleteQuest')} onclick={() => quests.remove(q.id)}>×</button>
           </div>
           {#if q.clues.length}
             <ul class="clues">
@@ -42,17 +43,17 @@
           <div class="row">
             <input
               class="cin"
-              placeholder="Add clue…"
+              placeholder={t('quests.addClue')}
               bind:value={clueDraft[q.id]}
               onkeydown={(e) => e.key === 'Enter' && addClue(q.id)}
             />
             <button class="lnk" onclick={() => quests.toggleStatus(q.id)}>
-              {q.status === 'open' ? 'Resolve' : 'Reopen'}
+              {q.status === 'open' ? t('quests.resolve') : t('quests.reopen')}
             </button>
           </div>
         </div>
       {:else}
-        <p class="muted">None.</p>
+        <p class="muted">{t('quests.none')}</p>
       {/each}
     </div>
   {/each}

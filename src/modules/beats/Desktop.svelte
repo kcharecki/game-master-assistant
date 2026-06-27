@@ -1,14 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { beats } from './store.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => void beats.load());
 </script>
 
 <div class="bp">
   <div class="head">
-    <span class="lbl">Scene flow</span>
-    <button class="btn" onclick={() => beats.add()}>+ Beat</button>
+    <span class="lbl">{t('beats.sceneFlow')}</span>
+    <button class="btn" onclick={() => beats.add()}>{t('beats.addBeat')}</button>
   </div>
 
   <ul class="cards">
@@ -17,19 +18,19 @@
         <span class="num">{i + 1}</span>
         <input class="title" bind:value={b.title} onchange={() => beats.rename(b.id, b.title)} />
         <div class="moves">
-          <button class="mv" disabled={i === 0} onclick={() => beats.move(b.id, -1)} title="Up" aria-label="Move up">▲</button>
+          <button class="mv" disabled={i === 0} onclick={() => beats.move(b.id, -1)} title={t('beats.up')} aria-label={t('beats.moveUp')}>▲</button>
           <button
             class="mv"
             disabled={i === beats.cards.length - 1}
             onclick={() => beats.move(b.id, 1)}
-            title="Down"
-            aria-label="Move down">▼</button
+            title={t('beats.down')}
+            aria-label={t('beats.moveDown')}>▼</button
           >
-          <button class="del" onclick={() => beats.remove(b.id)} title="Remove" aria-label="Remove beat">×</button>
+          <button class="del" onclick={() => beats.remove(b.id)} title={t('beats.remove')} aria-label={t('beats.removeBeat')}>×</button>
         </div>
       </li>
     {:else}
-      <li class="muted">No beats yet.</li>
+      <li class="muted">{t('beats.none')}</li>
     {/each}
   </ul>
 </div>

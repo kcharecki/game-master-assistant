@@ -1,5 +1,6 @@
 <script lang="ts">
   import { improvPrompt, type ImprovPrompt } from './logic';
+  import { t } from '../../lib/i18n';
 
   let current = $state<ImprovPrompt | null>(null);
 
@@ -9,14 +10,14 @@
 </script>
 
 <div class="im">
-  <button class="btn" onclick={roll}>Improv prompt</button>
+  <button class="btn" onclick={roll}>{t('improv.prompt')}</button>
   {#if current}
     <div class="card">
-      <span class="kind">{current.kind}</span>
+      <span class="kind">{t('improv.kind.' + current.kind)}</span>
       <p class="text">{current.text}</p>
     </div>
   {:else}
-    <p class="muted">Stuck? Get a complication, twist, or NPC on demand.</p>
+    <p class="muted">{t('improv.hint')}</p>
   {/if}
 </div>
 

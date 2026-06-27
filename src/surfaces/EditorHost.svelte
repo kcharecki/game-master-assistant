@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ModuleId } from '../lib/module';
   import { getModule } from '../lib/registry';
+  import { t } from '../lib/i18n';
 
   let { moduleId }: { moduleId: ModuleId } = $props();
   const mod = $derived(getModule(moduleId));
@@ -11,7 +12,7 @@
     {@const Editor = mod.editor}
     <Editor />
   {:else}
-    <div class="noedit">No editor for <strong>{mod.title}</strong> yet.</div>
+    <div class="noedit">{t('editorHost.noEditorPre')}<strong>{t('mod.' + moduleId + '.title')}</strong>{t('editorHost.noEditorPost')}</div>
   {/if}
 </div>
 

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { archive } from './store.svelte';
   import { notebook } from '../notebook/store.svelte';
+  import { t } from '../../lib/i18n';
 
   onMount(() => {
     void archive.load();
@@ -20,7 +21,7 @@
 </script>
 
 <div class="arc">
-  <input class="in" placeholder="Search the whole campaign…" bind:value={archive.query} />
+  <input class="in" placeholder={t('archive.searchAll')} bind:value={archive.query} />
 
   <ul class="list">
     {#each archive.results as e (e.id)}
@@ -32,18 +33,18 @@
         <p class="body">{e.text}</p>
       </li>
     {:else}
-      <li class="muted">No matching history.</li>
+      <li class="muted">{t('archive.noHistory')}</li>
     {/each}
   </ul>
 
   <div class="add">
     <input
       class="in"
-      placeholder="Log a session…"
+      placeholder={t('archive.logPlaceholder')}
       bind:value={sTitle}
       onkeydown={(e) => e.key === 'Enter' && addSession()}
     />
-    <button class="btn" onclick={addSession}>Log</button>
+    <button class="btn" onclick={addSession}>{t('archive.log')}</button>
   </div>
 </div>
 

@@ -42,7 +42,7 @@
     a.download = `campaign-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    status = 'Exported.';
+    status = t('sidebar.exported');
   }
 
   async function onImportFile(e: Event) {
@@ -51,9 +51,9 @@
     try {
       const parsed = parseCampaign(JSON.parse(await file.text()));
       await importCampaign(parsed);
-      status = 'Imported — reload to see changes.';
+      status = t('sidebar.imported');
     } catch (err) {
-      status = `Import failed: ${(err as Error).message}`;
+      status = `${t('sidebar.importFailedPre')}${(err as Error).message}`;
     }
   }
 
@@ -72,7 +72,7 @@
       onclick={(e) => {
         e.preventDefault();
         onShowDesktop();
-      }}>Desktop</a
+      }}>{t('sidebar.desktop')}</a
     >
     {#each editable as m (m.id)}
       <a
@@ -87,10 +87,10 @@
   </nav>
 
   <div class="backup">
-    <div class="bhead">Campaign</div>
+    <div class="bhead">{t('sidebar.campaign')}</div>
     <div class="brow">
-      <button class="bbtn" onclick={doExport}>Export</button>
-      <button class="bbtn" onclick={() => fileInput?.click()}>Import</button>
+      <button class="bbtn" onclick={doExport}>{t('sidebar.export')}</button>
+      <button class="bbtn" onclick={() => fileInput?.click()}>{t('sidebar.import')}</button>
     </div>
     <input
       bind:this={fileInput}
@@ -101,10 +101,10 @@
     />
     <button class="quota" onclick={refreshQuota}>
       {#if quota}
-        Storage: {fmtBytes(quota.usage)} / {fmtBytes(quota.quota)}
-        {#if quota.nearLimit}<span class="warn"> · near limit</span>{/if}
+        {t('sidebar.storagePre')}{fmtBytes(quota.usage)}{t('sidebar.storageSep')}{fmtBytes(quota.quota)}
+        {#if quota.nearLimit}<span class="warn">{t('sidebar.nearLimit')}</span>{/if}
       {:else}
-        Check storage usage
+        {t('sidebar.checkStorage')}
       {/if}
     </button>
     {#if status}<div class="bstatus">{status}</div>{/if}
