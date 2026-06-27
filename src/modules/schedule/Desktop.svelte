@@ -162,8 +162,37 @@
     border-bottom: 1px solid rgba(95, 150, 120, 0.08);
   }
   .hrow.current {
+    position: relative;
     background: rgba(47, 138, 102, 0.14);
-    border-left: 2px solid var(--green, #5fbf8f);
+  }
+  /* Pulsing "beam" on the left edge of the current hour. */
+  .hrow.current::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--green, #5fbf8f);
+    box-shadow: 0 0 6px var(--green, #5fbf8f);
+    animation: beam 1.8s ease-in-out infinite;
+  }
+  @keyframes beam {
+    0%,
+    100% {
+      opacity: 0.45;
+      box-shadow: 0 0 4px var(--green, #5fbf8f);
+    }
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 10px var(--green, #5fbf8f), 0 0 16px rgba(57, 217, 138, 0.5);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hrow.current::before {
+      animation: none;
+      opacity: 0.9;
+    }
   }
   .hlabel {
     flex: 0 0 44px;
