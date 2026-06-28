@@ -33,7 +33,22 @@ export type BroadcastPayload =
   | { kind: 'clear' }
   | { kind: 'image'; src?: string; assetId?: string; caption?: string }
   | { kind: 'text'; title?: string; body: string }
-  | { kind: 'map'; src?: string; assetId?: string; reveal: number[][] }
+  // Battle map. `tokens` carry only player-safe fields (position/label/colour) —
+  // HP, conditions and hidden state never cross to the broadcast.
+  | {
+      kind: 'map';
+      src?: string;
+      assetId?: string;
+      reveal: number[][];
+      tokens?: { gx: number; gy: number; label: string; color: string; conditions?: string[] }[];
+      /** background placement in the shared world space (px): top-left (x,y) +
+       *  display size (w,h). Grid/fog/tokens use cell coords in that same space,
+       *  so the broadcast aligns exactly with the GM canvas. */
+      img?: { x: number; y: number; w: number; h: number };
+      /** the world-px fragment to show on air (the broadcast viewBox); fills the
+       *  player window keeping ratio. */
+      view?: { x: number; y: number; w: number; h: number };
+    }
   | { kind: 'grid'; cols: number; cells: GridCell[] }
   | { kind: 'ping'; x: number; y: number }
   // Audio cue routed through the broadcast tab's <audio> element. `channel`

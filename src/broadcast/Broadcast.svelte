@@ -7,6 +7,7 @@
   import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
   import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
   import { clampCols, gridAssetIds } from './grid';
+  import { conditionGlyph, conditionMeta } from '../modules/map/conditions';
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
@@ -91,6 +92,34 @@
       };
     }
     imgSrc = '';
+  });
+
+  // Resolve a map background's asset (assetId) to a tab-local URL, or use an
+  // external src directly — same cross-tab blob rule as on-air images.
+  let mapSrc = $state('');
+  $effect(() => {
+    const p = payload;
+    if (p.kind !== 'map') {
+      mapSrc = '';
+      return;
+    }
+    if (p.src) {
+      mapSrc = p.src;
+      return;
+    }
+    if (p.assetId) {
+      let url = '';
+      void assetUrl(p.assetId).then((u) => {
+        if (u) {
+          url = u;
+          mapSrc = u;
+        }
+      });
+      return () => {
+        if (url) URL.revokeObjectURL(url);
+      };
+    }
+    mapSrc = '';
   });
 
   // Resolve grid image cells' asset ids -> tab-local object URLs, revoking
@@ -250,14 +279,49 @@
       {#if payload.caption}<figcaption>{payload.caption}</figcaption>{/if}
     </figure>
   {:else if payload.kind === 'map'}
+    {@const cols = payload.reveal[0]?.length ?? 0}
+    {@const rows = payload.reveal.length}
+    <!-- One shared world space (px). The `view` fragment sets the viewBox (fills
+         the player window, ratio kept); the background is placed by its calibrated
+         rect so image/grid/fog/tokens align with the GM. -->
+    {@const vf = payload.view ?? { x: 0, y: 0, w: cols * CELL, h: rows * CELL }}
     <div class="mapview">
       <svg
-        viewBox="0 0 {(payload.reveal[0]?.length ?? 0) * CELL} {payload.reveal.length * CELL}"
+        viewBox="{vf.x} {vf.y} {vf.w} {vf.h}"
         preserveAspectRatio="xMidYMid meet"
       >
-        {#if payload.src}
-          <image href={payload.src} x="0" y="0" width="100%" height="100%" />
+        <defs>
+          <pattern id="bgrid" width={CELL} height={CELL} patternUnits="userSpaceOnUse">
+            <path
+              d="M {CELL} 0 L 0 0 0 {CELL}"
+              fill="none"
+              stroke="rgba(95,150,120,.22)"
+              stroke-width="1"
+            />
+          </pattern>
+        </defs>
+        {#if mapSrc}
+          {@const im = payload.img ?? { x: vf.x, y: vf.y, w: vf.w, h: vf.h }}
+          <image href={mapSrc} x={im.x} y={im.y} width={im.w} height={im.h} preserveAspectRatio="none" />
         {/if}
+        <!-- battle grid (1 cell = 1 metre) -->
+        <rect x={vf.x} y={vf.y} width={vf.w} height={vf.h} fill="url(#bgrid)" />
+
+        <!-- tokens (player-safe: position + label only) -->
+        {#each payload.tokens ?? [] as tk, i (i)}
+          {#if payload.reveal[tk.gy]?.[tk.gx] === 1}
+            <g transform="translate({tk.gx * CELL} {tk.gy * CELL})">
+              <circle cx={CELL / 2} cy={CELL / 2} r={CELL / 2 - 4} fill={tk.color} />
+              <text x={CELL / 2} y={CELL / 2 + 4} text-anchor="middle" class="tlbl">{tk.label}</text>
+              {#each tk.conditions ?? [] as cid, j (cid)}
+                <text x={CELL / 2} y={CELL + 12 + j * 13} text-anchor="middle" class="tcond">
+                  {conditionGlyph(cid)} {conditionMeta(cid)?.label ?? cid}
+                </text>
+              {/each}
+            </g>
+          {/if}
+        {/each}
+
         {#each payload.reveal as fogRow, row (row)}
           {#each fogRow as cell, col (col)}
             {#if cell === 0}
@@ -386,6 +450,20 @@
     background: #0a1611;
     border-radius: 10px;
     border: 1px solid var(--line2);
+  }
+  .mapview .tlbl {
+    fill: #06120c;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .mapview .tcond {
+    fill: #eafff3;
+    stroke: #05090a;
+    stroke-width: 2.6;
+    paint-order: stroke;
+    stroke-linejoin: round;
+    font-size: 10px;
+    font-weight: 600;
   }
   figcaption {
     margin-top: 14px;

@@ -2,9 +2,22 @@ import { createBus } from '../../lib/bus';
 import { kvSet } from '../../lib/db';
 import type { BroadcastPayload } from '../../lib/types';
 
-/** Put the map (background + fog reveal grid) on air and mirror to kv. */
-export function broadcastMap(src: string, reveal: number[][]): void {
-  const payload: BroadcastPayload = { kind: 'map', src, reveal };
+/**
+ * Put the map (background + fog reveal grid) on air and mirror to kv.
+ * Uploaded backgrounds travel as `assetId` (blob: URLs don't resolve cross-tab);
+ * external image URLs travel as `src`.
+ */
+export function broadcastMap(
+  reveal: number[][],
+  ref: {
+    assetId?: string;
+    src?: string;
+    tokens?: { gx: number; gy: number; label: string; color: string; conditions?: string[] }[];
+    img?: { x: number; y: number; w: number; h: number };
+    view?: { x: number; y: number; w: number; h: number };
+  } = {}
+): void {
+  const payload: BroadcastPayload = { kind: 'map', reveal, ...ref };
   const bus = createBus();
   bus.send(payload);
   bus.close();
