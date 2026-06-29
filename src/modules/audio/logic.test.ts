@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { crossfadeGains, nextIndex, formatTime, parseYouTubeId } from './logic';
+import {
+  crossfadeGains,
+  nextIndex,
+  advanceIndex,
+  effectiveVolume,
+  reorder,
+  formatTime,
+  parseYouTubeId,
+} from './logic';
 
 describe('crossfadeGains', () => {
   it('starts fully on the outgoing track', () => {
@@ -28,6 +36,63 @@ describe('nextIndex', () => {
 
   it('is safe on an empty list', () => {
     expect(nextIndex(0, 0)).toBe(0);
+  });
+});
+
+describe('advanceIndex', () => {
+  it('advances within bounds', () => {
+    expect(advanceIndex(0, 3)).toBe(1);
+    expect(advanceIndex(1, 3, {}, -1)).toBe(0);
+  });
+
+  it('stops at the ends without looping', () => {
+    expect(advanceIndex(2, 3)).toBe(-1);
+    expect(advanceIndex(0, 3, {}, -1)).toBe(-1);
+  });
+
+  it('wraps when loopList is set', () => {
+    expect(advanceIndex(2, 3, { loopList: true })).toBe(0);
+    expect(advanceIndex(0, 3, { loopList: true }, -1)).toBe(2);
+  });
+
+  it('repeats the current track when loopTrack is set', () => {
+    expect(advanceIndex(1, 3, { loopTrack: true })).toBe(1);
+    expect(advanceIndex(1, 3, { loopTrack: true }, -1)).toBe(1);
+  });
+
+  it('is safe on an empty queue', () => {
+    expect(advanceIndex(0, 0)).toBe(-1);
+  });
+});
+
+describe('effectiveVolume', () => {
+  it('multiplies factors and clamps to 0..1', () => {
+    expect(effectiveVolume(0.5, 0.5)).toBe(0.25);
+    expect(effectiveVolume(1, 1, 1)).toBe(1);
+    expect(effectiveVolume(2, 1)).toBe(1);
+    expect(effectiveVolume(-1, 0.5)).toBe(0);
+  });
+
+  it('ignores non-finite factors', () => {
+    expect(effectiveVolume(0.8, NaN)).toBeCloseTo(0.8);
+  });
+});
+
+describe('reorder', () => {
+  it('moves an item forward and back', () => {
+    expect(reorder(['a', 'b', 'c'], 0, 2)).toEqual(['b', 'c', 'a']);
+    expect(reorder(['a', 'b', 'c'], 2, 0)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('clamps out-of-range targets and ignores bad sources', () => {
+    expect(reorder(['a', 'b', 'c'], 0, 9)).toEqual(['b', 'c', 'a']);
+    expect(reorder(['a', 'b', 'c'], 5, 0)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('does not mutate the input', () => {
+    const src = ['a', 'b', 'c'];
+    reorder(src, 0, 2);
+    expect(src).toEqual(['a', 'b', 'c']);
   });
 });
 
