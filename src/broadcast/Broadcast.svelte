@@ -16,6 +16,8 @@
   // Transient ping marker (normalized 0..1) that overlays current content.
   let ping = $state<{ x: number; y: number } | null>(null);
   let pingTimer: ReturnType<typeof setTimeout> | undefined;
+  // Steady laser dot (normalized 0..1), shown until the GM turns it off.
+  let laser = $state<{ x: number; y: number } | null>(null);
   const CELL = 48; // viewBox cell size; aspect-ratio only, scales to fit
 
   // Audio routed here so it plays in the shared tab (not throttled when GM tab hides).
@@ -39,9 +41,7 @@
   // foregrounds that content (and backgrounds the video). The video also shows
   // when the stage is clear. Audio-only is always hidden in the background.
   let ytVideoFg = $state(false);
-  const ytBackground = $derived(
-    youtubeAudioOnly || (!ytVideoFg && payload.kind !== 'clear')
-  );
+  const ytBackground = $derived(youtubeAudioOnly || (!ytVideoFg && payload.kind !== 'clear'));
 
   // Preview mode (?preview=1): a silent visual mirror embedded on the GM desktop.
   // It renders all on-air visuals (incl. a muted YouTube video) but never plays
@@ -251,6 +251,8 @@
       if (m.type === 'display') mode = m.mode;
       else if (m.type === 'mood') mood = moodById(m.moodId);
       else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
+      else if (m.payload.kind === 'laser')
+        laser = m.payload.on ? { x: m.payload.x, y: m.payload.y } : null;
       else if (m.payload.kind === 'audio') handleAudio(m.payload);
       else {
         payload = m.payload;
@@ -286,10 +288,7 @@
          rect so image/grid/fog/tokens align with the GM. -->
     {@const vf = payload.view ?? { x: 0, y: 0, w: cols * CELL, h: rows * CELL }}
     <div class="mapview">
-      <svg
-        viewBox="{vf.x} {vf.y} {vf.w} {vf.h}"
-        preserveAspectRatio="xMidYMid meet"
-      >
+      <svg viewBox="{vf.x} {vf.y} {vf.w} {vf.h}" preserveAspectRatio="xMidYMid meet">
         <defs>
           <pattern id="bgrid" width={CELL} height={CELL} patternUnits="userSpaceOnUse">
             <path
@@ -302,7 +301,14 @@
         </defs>
         {#if mapSrc}
           {@const im = payload.img ?? { x: vf.x, y: vf.y, w: vf.w, h: vf.h }}
-          <image href={mapSrc} x={im.x} y={im.y} width={im.w} height={im.h} preserveAspectRatio="none" />
+          <image
+            href={mapSrc}
+            x={im.x}
+            y={im.y}
+            width={im.w}
+            height={im.h}
+            preserveAspectRatio="none"
+          />
         {/if}
         <!-- battle grid (1 cell = 1 metre) -->
         <rect x={vf.x} y={vf.y} width={vf.w} height={vf.h} fill="url(#bgrid)" />
@@ -312,10 +318,12 @@
           {#if payload.reveal[tk.gy]?.[tk.gx] === 1}
             <g transform="translate({tk.gx * CELL} {tk.gy * CELL})">
               <circle cx={CELL / 2} cy={CELL / 2} r={CELL / 2 - 4} fill={tk.color} />
-              <text x={CELL / 2} y={CELL / 2 + 4} text-anchor="middle" class="tlbl">{tk.label}</text>
+              <text x={CELL / 2} y={CELL / 2 + 4} text-anchor="middle" class="tlbl">{tk.label}</text
+              >
               {#each tk.conditions ?? [] as cid, j (cid)}
                 <text x={CELL / 2} y={CELL + 12 + j * 13} text-anchor="middle" class="tcond">
-                  {conditionGlyph(cid)} {conditionMeta(cid)?.label ?? cid}
+                  {conditionGlyph(cid)}
+                  {conditionMeta(cid)?.label ?? cid}
                 </text>
               {/each}
             </g>
@@ -331,6 +339,37 @@
           {/each}
         {/each}
       </svg>
+    </div>
+  {:else if payload.kind === 'grid' && payload.cells.some((c) => c.area)}
+    <!-- Stage: aspect-locked to the GM board (1280x800) so every cell has the
+         same geometry and the laser/crops line up exactly with what the GM sees. -->
+    <div class="stagebox">
+      <div
+        class="grid placed"
+        style="grid-template-columns: repeat({payload.cols}, 1fr); grid-template-rows: repeat({payload.rows ??
+          1}, 1fr)"
+      >
+        {#each payload.cells as cell, i (i)}
+          {@const area = cell.area
+            ? `grid-column:${cell.area.col} / span ${cell.area.cw}; grid-row:${cell.area.row} / span ${cell.area.rh}`
+            : ''}
+          {#if cell.kind === 'image'}
+            {@const url = cell.assetId ? gridUrls[cell.assetId] : cell.src}
+            <figure class="gcell" style={area}>
+              {#if url}<img src={url} alt={cell.caption ?? ''} />{/if}
+              {#if cell.caption}<figcaption>{cell.caption}</figcaption>{/if}
+            </figure>
+          {:else}
+            <div class="gcell gtext" style={area}>
+              {#if cell.title}<h2>{cell.title}</h2>{/if}
+              {#if cell.body}<p>{cell.body}</p>{/if}
+            </div>
+          {/if}
+        {/each}
+      </div>
+      {#if laser}
+        <div class="laser" style="left:{laser.x * 100}%; top:{laser.y * 100}%"></div>
+      {/if}
     </div>
   {:else if payload.kind === 'grid'}
     <div
@@ -361,6 +400,11 @@
 
   {#if ping}
     <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
+  {/if}
+
+  {#if laser && !(payload.kind === 'grid' && payload.cells.some((c) => c.area))}
+    <!-- Fallback dot for non-stage content (spotlight image/text): page fraction. -->
+    <div class="laser" style="left:{laser.x * 100}%; top:{laser.y * 100}%"></div>
   {/if}
 
   {#if audioLocked}
@@ -480,6 +524,52 @@
     align-content: center;
     justify-items: center;
   }
+  /* Stage box: locked to the GM board's aspect ratio (1280x800) and fitted into
+     the player window, so every cell has the same geometry as the GM board —
+     identical crops and laser alignment. */
+  .stagebox {
+    position: relative;
+    aspect-ratio: 1280 / 800;
+    width: min(92vw, calc(84vh * 1280 / 800));
+    max-height: 84vh;
+  }
+  .grid.placed {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    gap: 0;
+    align-content: stretch;
+    justify-items: stretch;
+  }
+  /* Mirror the GM tile: image covers the whole cell (same crop), caption overlays
+     the bottom instead of taking flow space. */
+  .grid.placed .gcell {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .grid.placed .gcell img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    max-width: none;
+    object-fit: cover;
+  }
+  .grid.placed .gcell figcaption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 4px 8px;
+    background: rgba(5, 9, 10, 0.6);
+    color: #e9f3ed;
+    font-style: normal;
+    font-size: clamp(11px, 1.4vw, 18px);
+  }
   .gcell {
     display: flex;
     flex-direction: column;
@@ -566,6 +656,20 @@
     box-shadow: 0 0 18px var(--green);
     pointer-events: none;
     animation: pingpulse 1.5s ease-out forwards;
+  }
+  .laser {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff5a5a 0%, #ff2d2d 45%, rgba(255, 45, 45, 0) 72%);
+    box-shadow: 0 0 14px 4px rgba(255, 45, 45, 0.7);
+    pointer-events: none;
+    z-index: 3;
+    transition:
+      left 0.05s linear,
+      top 0.05s linear;
   }
   @keyframes pingpulse {
     0% {

@@ -33,6 +33,7 @@ export const shell = {
     'mod.dashboard.title': 'Player Dashboard',
     'mod.reminders.title': 'Action Reminders',
     'mod.composer.title': 'Broadcast Composer',
+    'mod.stage.title': 'Broadcast Stage',
     'mod.preview.title': 'Broadcast Preview',
 
     // Categories — keep identical to categories.ts keys.
@@ -132,6 +133,7 @@ export const shell = {
     'mod.dashboard.title': 'Panel graczy',
     'mod.reminders.title': 'Przypomnienia akcji',
     'mod.composer.title': 'Kompozytor transmisji',
+    'mod.stage.title': 'Scena transmisji',
     'mod.preview.title': 'Podgląd transmisji',
 
     // Categories.

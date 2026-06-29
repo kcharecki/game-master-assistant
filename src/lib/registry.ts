@@ -29,6 +29,7 @@ import rules from '../modules/rules';
 import dashboard from '../modules/dashboard';
 import reminders from '../modules/reminders';
 import composer from '../modules/composer';
+import stage from '../modules/stage';
 import preview from '../modules/preview';
 
 /** The single source of truth: id -> module. Surfaces resolve views from here. */
@@ -63,6 +64,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   dashboard,
   reminders,
   composer,
+  stage,
   preview,
 };
 
