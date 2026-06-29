@@ -40,6 +40,20 @@ export type GridCell =
   | { kind: 'image'; assetId?: string; src?: string; caption?: string; area?: GridArea }
   | { kind: 'text'; title?: string; body?: string; area?: GridArea };
 
+// One entry of the ambient queue handed to the broadcast sequencer. A native
+// clip carries `assetId` (blob resolved tab-locally); a YouTube item carries
+// `youtubeId`. `gain` is the per-track 0..1 trim applied on top of the channel
+// volume so loud/quiet imports can be levelled.
+export interface AudioQueueItem {
+  assetId?: string;
+  /** external (http) audio URL — only for non-uploaded sources */
+  src?: string;
+  youtubeId?: string;
+  audioOnly?: boolean;
+  gain?: number;
+  label?: string;
+}
+
 export type BroadcastPayload =
   | { kind: 'clear' }
   | { kind: 'image'; src?: string; assetId?: string; caption?: string }
@@ -68,21 +82,40 @@ export type BroadcastPayload =
   // on-air content and tracks the GM's cursor. `on:false` hides it. Like `ping`
   // it is transient/live-only and never clobbers `broadcastState`.
   | { kind: 'laser'; x: number; y: number; on: boolean }
-  // Audio cue routed through the broadcast tab's <audio> element. `channel`
-  // separates looping ambience from one-shot SFX so they don't cut each other.
-  // `seek` (action 'seek') moves the ambient playhead to `seek` seconds (rewind
-  // = seek 0). `youtubeId` plays the cue as an embedded YouTube iframe instead.
+  // Audio cue routed through the broadcast tab. `channel` separates the looping
+  // ambient sequencer from one-shot SFX so they don't cut each other.
+  //
+  // Ambient is queue-driven: `action:'play'` sends the whole `queue` and a start
+  // `index`; the broadcast tab runs the sequencer (crossfade, auto-advance, loop)
+  // because the playback timers live in that tab. Transport actions (pause/resume/
+  // next/prev/seek/volume/stop) steer the running sequence. SFX `play` is a single
+  // one-shot (`assetId`/`src`), played on a pooled element so shots can overlap.
   | {
       kind: 'audio';
+      channel: 'ambient' | 'sfx';
+      action: 'play' | 'stop' | 'seek' | 'pause' | 'resume' | 'next' | 'prev' | 'volume';
+      /** ambient play: ordered items to run through (native audio + YouTube). */
+      queue?: AudioQueueItem[];
+      /** ambient play/jump: index into `queue` to start at. */
+      index?: number;
+      /** sfx one-shot source (or a single ambient source). */
       src?: string;
       assetId?: string;
       youtubeId?: string;
       /** YouTube only: play sound but hide the video (offscreen iframe). */
       audioOnly?: boolean;
-      loop: boolean;
-      action: 'play' | 'stop' | 'seek';
-      channel: 'ambient' | 'sfx';
+      /** repeat the current track instead of advancing. */
+      loopTrack?: boolean;
+      /** wrap to the start of the queue after the last track. */
+      loopList?: boolean;
+      /** crossfade duration (ms) between ambient tracks. 0 = hard cut. */
+      crossfadeMs?: number;
+      /** action 'seek': move the ambient playhead to this many seconds. */
       seek?: number;
+      /** effective channel volume 0..1 (master × channel, precomputed by the GM). */
+      volume?: number;
+      /** sfx: duck the ambient bed while this shot plays. */
+      duck?: boolean;
     };
 
 export type DisplayMode = 'cinematic' | 'plain';
@@ -103,5 +136,9 @@ export type BusMessage =
       current: number;
       duration: number;
       playing: boolean;
+      /** index of the on-air ambient track within the queue (if sequencing). */
+      index?: number;
+      /** total tracks in the running ambient queue. */
+      count?: number;
       at: number;
     };

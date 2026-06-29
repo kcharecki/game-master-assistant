@@ -4,7 +4,7 @@ import Desktop from './Desktop.svelte';
 const audio: ModuleManifest = {
   id: 'audio',
   title: 'Audio',
-  size: { w: 320, h: 280 },
+  size: { w: 360, h: 560 },
   desktop: Desktop,
   broadcastable: true,
 };

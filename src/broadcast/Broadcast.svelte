@@ -3,7 +3,8 @@
   import { createBus } from '../lib/bus';
   import { kvGet, assetUrl } from '../lib/db';
   import { lang, t } from '../lib/i18n';
-  import type { BroadcastPayload, DisplayMode } from '../lib/types';
+  import type { AudioQueueItem, BroadcastPayload, DisplayMode } from '../lib/types';
+  import { advanceIndex, crossfadeGains, effectiveVolume } from '../modules/audio/logic';
   import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
   import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
   import { clampCols, gridAssetIds } from './grid';
@@ -20,17 +21,40 @@
   let laser = $state<{ x: number; y: number } | null>(null);
   const CELL = 48; // viewBox cell size; aspect-ratio only, scales to fit
 
-  // Audio routed here so it plays in the shared tab (not throttled when GM tab hides).
-  let ambientEl: HTMLAudioElement;
-  let sfxEl: HTMLAudioElement;
+  // --- Ambient sequencer (native audio) -------------------------------------
+  // Two ambient elements A/B let us crossfade between tracks; `activeIdx` marks
+  // the foreground one. The queue + flags are handed over by the GM; the timers
+  // that drive auto-advance/crossfade live here (this tab isn't throttled).
+  let ambientA: HTMLAudioElement;
+  let ambientB: HTMLAudioElement;
+  let ambientEls: HTMLAudioElement[] = [];
+  let activeIdx = 0;
+  let queue: AudioQueueItem[] = [];
+  let qIndex = 0;
+  let loopTrack = false;
+  let loopList = true;
+  let crossfadeMs = 0;
+  let chanVol = 1; // effective ambient channel volume (master×ambient)
+  let duckFactor = 1; // <1 while an SFX ducks the bed
+  let curGain = 1; // on-air track's per-track gain
+  let fading = false; // crossfade in progress
+  const elUrl = ['', '']; // object URL per element (revoke on replace)
+  let fadeTimer: ReturnType<typeof setInterval> | undefined;
+  let lastPlayCue: Extract<BroadcastPayload, { kind: 'audio' }> | null = null;
+
+  // One-shot SFX play on a small pool so rapid triggers overlap instead of
+  // cutting each other off. Created in onMount (needs `window`).
+  let sfxPool: HTMLAudioElement[] = [];
+  let sfxRR = 0;
+  let sfxActive = 0; // live shots, for duck release
+
   // Browsers block audio until the user interacts with THIS tab. Until unlocked,
   // we hold the last cue and replay it once the keeper clicks to enable sound.
   let audioLocked = $state(false);
   let pendingCue: Extract<BroadcastPayload, { kind: 'audio' }> | null = null;
-  // Object URLs are created in THIS tab from shared-IndexedDB blobs; revoke on replace.
-  let ambientUrl = '';
-  // YouTube ambient: rendered as an iframe (the autoplay/loop embed). Seek scrubbing
-  // would need the JS IFrame API (out of scope) — Rewind re-mounts via `youtubeNonce`.
+
+  // YouTube ambient: rendered as an iframe (autoplay/loop embed). No JS seek
+  // (IFrame API out of scope); Rewind/skip re-mounts via `youtubeNonce`.
   let youtubeId = $state<string | null>(null);
   let youtubeNonce = $state(0);
   // Sound-only mode: keep the iframe playing but hidden offscreen (players see
@@ -52,17 +76,28 @@
   let statusBus: ReturnType<typeof createBus> | null = null;
   let lastStatusAt = 0;
 
+  const active = () => ambientEls[activeIdx];
+  const idle = () => ambientEls[1 - activeIdx];
+  const targetVol = (gain: number) => effectiveVolume(chanVol, gain, duckFactor);
+  function applyActiveVol() {
+    const el = active();
+    if (el && !fading) el.volume = targetVol(curGain);
+  }
+
   function postAmbientStatus(force = false) {
-    if (!statusBus || !ambientEl) return;
+    if (!statusBus) return;
+    const el = active();
     const now = Date.now();
     if (!force && now - lastStatusAt < 500) return; // throttle timeupdate to ~2/s
     lastStatusAt = now;
-    const duration = Number.isFinite(ambientEl.duration) ? ambientEl.duration : 0;
+    const duration = el && Number.isFinite(el.duration) ? el.duration : 0;
     statusBus.sendAudioStatus({
       channel: 'ambient',
-      current: ambientEl.currentTime,
+      current: el ? el.currentTime : 0,
       duration,
-      playing: !ambientEl.paused,
+      playing: youtubeId ? true : !!el && !el.paused,
+      index: qIndex,
+      count: queue.length,
     });
   }
 
@@ -151,77 +186,258 @@
     pingTimer = setTimeout(() => (ping = null), 1500);
   }
 
-  async function handleAudio(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
-    // Preview mirror: reflect the YouTube video state (muted, via the iframe)
-    // but never touch native <audio> or post status — stay silent.
-    if (isPreview) {
-      if (cue.channel !== 'ambient') return;
-      if (cue.action === 'stop') youtubeId = null;
-      else if (cue.action === 'play') {
-        if (cue.youtubeId) {
-          youtubeId = cue.youtubeId;
-          youtubeAudioOnly = !!cue.audioOnly;
-          ytVideoFg = !cue.audioOnly;
-          youtubeNonce += 1;
-        } else {
-          youtubeId = null;
-        }
-      }
+  const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+  // Load an ambient queue item's blob into an element, revoking the URL the slot
+  // held before. Returns false if the asset can't be resolved.
+  async function loadInto(el: HTMLAudioElement, item: AudioQueueItem): Promise<boolean> {
+    const slot = ambientEls.indexOf(el);
+    if (slot >= 0 && elUrl[slot]) {
+      URL.revokeObjectURL(elUrl[slot]);
+      elUrl[slot] = '';
+    }
+    const url = item.assetId ? await assetUrl(item.assetId) : item.src;
+    if (!url) return false;
+    if (slot >= 0 && item.assetId) elUrl[slot] = url;
+    el.src = url;
+    el.loop = loopTrack;
+    return true;
+  }
+
+  // Mount a YouTube ambient item (pauses native ambience; (re)mounts the iframe).
+  function mountYouTube(item: AudioQueueItem) {
+    for (const el of ambientEls) el.pause();
+    youtubeId = item.youtubeId ?? null;
+    youtubeAudioOnly = !!item.audioOnly;
+    ytVideoFg = !item.audioOnly;
+    youtubeNonce += 1;
+  }
+
+  // Move the ambient sequencer to queue[index], crossfading over `cf` ms (0 = cut).
+  async function goTo(index: number, cf: number) {
+    const item = queue[index];
+    if (!item) return;
+    qIndex = index;
+    if (item.youtubeId) {
+      mountYouTube(item);
+      postAmbientStatus(true);
       return;
     }
-    const el = cue.channel === 'ambient' ? ambientEl : sfxEl;
+    youtubeId = null; // switching to native audio tears down any iframe
+    const incoming = idle();
+    const outgoing = active();
+    if (!(await loadInto(incoming, item))) return;
+    curGain = item.gain ?? 1;
+    incoming.currentTime = 0;
+    incoming.volume = cf > 0 ? 0 : targetVol(curGain);
+    try {
+      await incoming.play();
+    } catch {
+      pendingCue = lastPlayCue; // autoplay blocked — hold the scene, prompt unlock
+      audioLocked = true;
+      return;
+    }
+    if (cf > 0 && !outgoing.paused) {
+      crossfade(outgoing, incoming, cf);
+    } else {
+      outgoing.pause();
+      activeIdx = 1 - activeIdx;
+    }
+    postAmbientStatus(true);
+  }
+
+  // Linear crossfade: ramp `outEl` down from its level and `inEl` up to target.
+  function crossfade(outEl: HTMLAudioElement, inEl: HTMLAudioElement, ms: number) {
+    fading = true;
+    clearInterval(fadeTimer);
+    const start = performance.now();
+    const outStart = outEl.volume;
+    const tv = targetVol(curGain);
+    fadeTimer = setInterval(() => {
+      const e = performance.now() - start;
+      const g = crossfadeGains(e, ms);
+      outEl.volume = clamp01(outStart * g.out);
+      inEl.volume = clamp01(tv * g.in);
+      if (e >= ms) {
+        clearInterval(fadeTimer);
+        outEl.pause();
+        outEl.volume = 0;
+        activeIdx = ambientEls.indexOf(inEl);
+        fading = false;
+      }
+    }, 30);
+  }
+
+  // Short fade-out then halt both elements (avoids a jarring hard cut on Stop).
+  function fadeOutStop() {
+    clearInterval(fadeTimer);
+    const el = active();
+    youtubeId = null;
     if (!el) return;
-    if (cue.action === 'stop') {
-      el.pause();
-      if (cue.channel === 'ambient') {
-        youtubeId = null; // tear down any YT iframe
-        if (ambientUrl) {
-          URL.revokeObjectURL(ambientUrl);
-          ambientUrl = '';
-        }
+    const start = performance.now();
+    const v0 = el.volume;
+    const ms = 400;
+    fading = true;
+    fadeTimer = setInterval(() => {
+      const e = performance.now() - start;
+      el.volume = Math.max(0, v0 * (1 - e / ms));
+      if (e >= ms) {
+        clearInterval(fadeTimer);
+        fading = false;
+        for (const a of ambientEls) a.pause();
         postAmbientStatus(true);
       }
-      return;
-    }
-    if (cue.action === 'seek') {
-      // Fine seek applies to native <audio> only (ambient). YouTube has no JS
-      // seek here (IFrame API out of scope) — the GM uses Rewind, which re-mounts.
-      if (cue.channel === 'ambient' && !youtubeId) {
-        const dur = Number.isFinite(ambientEl.duration) ? ambientEl.duration : Infinity;
-        ambientEl.currentTime = Math.min(Math.max(0, cue.seek ?? 0), dur);
-        postAmbientStatus(true);
-      }
-      return;
-    }
-    // play action.
-    if (cue.channel === 'ambient' && cue.youtubeId) {
-      // YouTube ambient: pause native audio and (re)mount the iframe.
-      el.pause();
-      if (ambientUrl) {
-        URL.revokeObjectURL(ambientUrl);
-        ambientUrl = '';
-      }
-      youtubeId = cue.youtubeId;
-      youtubeAudioOnly = !!cue.audioOnly;
-      ytVideoFg = !cue.audioOnly; // video mode → the video takes the foreground
-      youtubeNonce += 1;
-      return;
-    }
-    if (cue.channel === 'ambient') youtubeId = null; // switching back to native audio
-    // Resolve the blob locally (assetId), or fall back to an external src.
+    }, 30);
+  }
+
+  // One-shot SFX on the pool — overlaps ambience and (optionally) ducks it.
+  async function playOneShot(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
+    if (isPreview || !sfxPool.length) return;
     const url = cue.assetId ? await assetUrl(cue.assetId) : cue.src;
     if (!url) return;
-    if (cue.channel === 'ambient') {
-      if (ambientUrl) URL.revokeObjectURL(ambientUrl);
-      ambientUrl = cue.assetId ? url : '';
-    }
-    el.loop = cue.loop;
+    const el = sfxPool[sfxRR++ % sfxPool.length];
+    el.pause();
     el.src = url;
+    el.loop = false;
+    el.volume = clamp01(cue.volume ?? 1);
+    if (cue.duck) {
+      sfxActive++;
+      duckFactor = 0.4;
+      applyActiveVol();
+    }
+    const release = () => {
+      el.removeEventListener('ended', release);
+      if (cue.assetId) URL.revokeObjectURL(url);
+      if (cue.duck) {
+        sfxActive = Math.max(0, sfxActive - 1);
+        if (sfxActive === 0) {
+          duckFactor = 1;
+          applyActiveVol();
+        }
+      }
+    };
+    el.addEventListener('ended', release);
     el.play().catch(() => {
-      // Autoplay blocked — surface the unlock prompt and remember the cue.
       pendingCue = cue;
       audioLocked = true;
+      release();
     });
+  }
+
+  // Preview mirror: reflect only the YouTube video state; stay silent otherwise.
+  function previewAmbient(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
+    const showItem = (item?: AudioQueueItem) => {
+      if (item?.youtubeId) {
+        youtubeId = item.youtubeId;
+        youtubeAudioOnly = !!item.audioOnly;
+        ytVideoFg = !item.audioOnly;
+        youtubeNonce += 1;
+      } else {
+        youtubeId = null;
+      }
+    };
+    if (cue.action === 'stop') youtubeId = null;
+    else if (cue.action === 'play') {
+      queue = cue.queue ?? [];
+      qIndex = cue.index ?? 0;
+      showItem(queue[qIndex]);
+    } else if (cue.action === 'next' || cue.action === 'prev') {
+      const n = advanceIndex(qIndex, queue.length, { loopList: true }, cue.action === 'next' ? 1 : -1);
+      if (n >= 0) {
+        qIndex = n;
+        showItem(queue[n]);
+      }
+    }
+  }
+
+  async function handleAudio(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
+    if (cue.channel === 'sfx') {
+      if (cue.action === 'play') void playOneShot(cue);
+      return;
+    }
+    // ambient channel
+    if (isPreview) {
+      previewAmbient(cue);
+      return;
+    }
+    switch (cue.action) {
+      case 'play':
+        queue = cue.queue ?? [];
+        loopTrack = !!cue.loopTrack;
+        loopList = cue.loopList ?? true;
+        crossfadeMs = cue.crossfadeMs ?? 0;
+        chanVol = cue.volume ?? 1;
+        lastPlayCue = cue;
+        await goTo(cue.index ?? 0, 0);
+        break;
+      case 'stop':
+        fadeOutStop();
+        queue = [];
+        qIndex = 0;
+        break;
+      case 'pause': {
+        const el = active();
+        if (el && youtubeId === null) el.pause();
+        postAmbientStatus(true);
+        break;
+      }
+      case 'resume': {
+        const el = active();
+        if (el && youtubeId === null)
+          void el.play().catch(() => {
+            pendingCue = lastPlayCue;
+            audioLocked = true;
+          });
+        postAmbientStatus(true);
+        break;
+      }
+      case 'next': {
+        const n = advanceIndex(qIndex, queue.length, { loopList: true }, 1);
+        if (n >= 0) await goTo(n, crossfadeMs);
+        break;
+      }
+      case 'prev': {
+        const n = advanceIndex(qIndex, queue.length, { loopList: true }, -1);
+        if (n >= 0) await goTo(n, crossfadeMs);
+        break;
+      }
+      case 'seek': {
+        const el = active();
+        if (el && youtubeId === null) {
+          const dur = Number.isFinite(el.duration) ? el.duration : Infinity;
+          el.currentTime = Math.min(Math.max(0, cue.seek ?? 0), dur);
+          postAmbientStatus(true);
+        }
+        break;
+      }
+      case 'volume':
+        chanVol = cue.volume ?? chanVol;
+        applyActiveVol();
+        break;
+    }
+  }
+
+  // Auto-advance: near a track's end, start the crossfade to the next item.
+  function onAmbientTimeUpdate(el: HTMLAudioElement) {
+    postAmbientStatus();
+    if (el !== active() || youtubeId || fading || loopTrack || crossfadeMs <= 0) return;
+    const remaining = (Number.isFinite(el.duration) ? el.duration : Infinity) - el.currentTime;
+    if (remaining <= crossfadeMs / 1000 && el.currentTime > crossfadeMs / 1000) {
+      const n = advanceIndex(qIndex, queue.length, { loopList }, 1);
+      if (n >= 0) void goTo(n, crossfadeMs);
+    }
+  }
+  // Hard-cut advance when a track ends without a crossfade window.
+  function onAmbientEnded(el: HTMLAudioElement) {
+    if (el !== active() || youtubeId) return;
+    if (loopTrack) {
+      el.currentTime = 0;
+      void el.play();
+      return;
+    }
+    const n = advanceIndex(qIndex, queue.length, { loopList }, 1);
+    if (n >= 0) void goTo(n, 0);
+    else postAmbientStatus(true);
   }
 
   // First user gesture in this tab unlocks audio; replay any held cue.
@@ -234,6 +450,9 @@
 
   onMount(() => {
     void lang.load();
+    // Wire the ambient element pair + a small SFX pool (needs `window`).
+    ambientEls = [ambientA, ambientB];
+    sfxPool = isPreview ? [] : Array.from({ length: 6 }, () => new Audio());
     // Rehydrate last shared state + display mode, then listen for live GM pushes.
     void kvGet<BroadcastPayload>('broadcastState').then((saved) => {
       if (saved) payload = saved;
@@ -264,7 +483,9 @@
       bus.close();
       statusBus = null;
       clearTimeout(pingTimer);
-      if (ambientUrl) URL.revokeObjectURL(ambientUrl);
+      clearInterval(fadeTimer);
+      for (const u of elUrl) if (u) URL.revokeObjectURL(u);
+      for (const el of sfxPool) el.pause();
     };
   });
 </script>
@@ -431,16 +652,25 @@
     {/key}
   {/if}
 
-  <!-- Audio routed through this shared tab; hidden, GM-controlled via the bus.
-       Ambient posts position back over the reverse bus channel for the transport. -->
+  <!-- Ambient element pair (A/B) for crossfade; hidden, GM-controlled via the bus.
+       Ambient posts position/index back over the reverse channel for the transport.
+       SFX play on a JS-created pool (not declared here) so shots can overlap. -->
   <audio
-    bind:this={ambientEl}
-    ontimeupdate={() => postAmbientStatus()}
+    bind:this={ambientA}
+    ontimeupdate={() => onAmbientTimeUpdate(ambientA)}
     ondurationchange={() => postAmbientStatus(true)}
     onplay={() => postAmbientStatus(true)}
     onpause={() => postAmbientStatus(true)}
+    onended={() => onAmbientEnded(ambientA)}
   ></audio>
-  <audio bind:this={sfxEl}></audio>
+  <audio
+    bind:this={ambientB}
+    ontimeupdate={() => onAmbientTimeUpdate(ambientB)}
+    ondurationchange={() => postAmbientStatus(true)}
+    onplay={() => postAmbientStatus(true)}
+    onpause={() => postAmbientStatus(true)}
+    onended={() => onAmbientEnded(ambientB)}
+  ></audio>
 </div>
 
 <style>

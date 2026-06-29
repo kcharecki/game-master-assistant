@@ -5,6 +5,8 @@ export interface Track {
   /** 11-char YouTube video id; plays via an embedded iframe in the broadcast tab */
   youtubeId?: string;
   label: string;
+  /** per-track gain trim 0..1 (defaults to 1) so loud/quiet imports can be levelled */
+  gain?: number;
 }
 
 export interface Playlist {
@@ -18,6 +20,20 @@ export interface Sfx {
   id: string;
   assetId: string;
   label: string;
+  /** optional board group, e.g. 'combat' | 'ambient' | 'voice' */
+  group?: string;
+  /** per-sfx gain trim 0..1 (defaults to 1) */
+  gain?: number;
+}
+
+/** Move the item at `from` to `to` in a copy of `arr` (bounds-clamped). Pure. */
+export function reorder<T>(arr: T[], from: number, to: number): T[] {
+  const out = arr.slice();
+  if (from < 0 || from >= out.length) return out;
+  const t = Math.min(Math.max(0, to), out.length - 1);
+  const [item] = out.splice(from, 1);
+  out.splice(t, 0, item);
+  return out;
 }
 
 /**
@@ -37,6 +53,33 @@ export function crossfadeGains(
 export function nextIndex(current: number, length: number): number {
   if (length <= 0) return 0;
   return (current + 1) % length;
+}
+
+/**
+ * Resolve the next ambient index for the sequencer. `dir` is +1 (advance) or -1
+ * (previous). `loopList` wraps past the ends; without it, stepping off either end
+ * returns -1 ("stop"). `loopTrack` repeats the current index regardless of dir.
+ * Pure + bounds-safe — the broadcast engine's only branching logic.
+ */
+export function advanceIndex(
+  current: number,
+  length: number,
+  opts: { loopTrack?: boolean; loopList?: boolean } = {},
+  dir: 1 | -1 = 1
+): number {
+  if (length <= 0) return -1;
+  if (opts.loopTrack) return Math.min(Math.max(0, current), length - 1);
+  const next = current + dir;
+  if (next >= 0 && next < length) return next;
+  if (opts.loopList) return ((next % length) + length) % length;
+  return -1;
+}
+
+/** Multiply a set of 0..1 gain factors into one clamped channel volume. */
+export function effectiveVolume(...factors: number[]): number {
+  let v = 1;
+  for (const f of factors) v *= Number.isFinite(f) ? f : 1;
+  return Math.min(1, Math.max(0, v));
 }
 
 /** Format seconds as `m:ss` (clamps NaN/negative to 0:00). Pure, DOM-free. */
