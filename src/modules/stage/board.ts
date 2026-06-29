@@ -1,0 +1,247 @@
+import type { GridCell, GridArea, BroadcastPayload } from '../../lib/types';
+import type { PublicNpc } from '../npcs/public';
+
+// The stage is a fixed grid the GM lays tiles onto. 12 columns is the de-facto
+// layout unit (matches the broadcast aspect well); rows give vertical structure.
+export const STAGE_COLS = 12;
+export const STAGE_ROWS = 8;
+
+export type TileKind = 'image' | 'text' | 'npc';
+
+/** One placed element on the stage. Placement is 1-based, CSS-grid semantics. */
+export interface Tile {
+  id: string;
+  kind: TileKind;
+  col: number; // start column (1..cols)
+  row: number; // start row (1..rows)
+  cw: number; // column span
+  rh: number; // row span
+  hidden?: boolean; // staged but withheld from the broadcast
+  // image content:
+  assetId?: string;
+  src?: string;
+  caption?: string;
+  // text content:
+  title?: string;
+  body?: string;
+  // npc content:
+  npcId?: string;
+}
+
+export interface Scene {
+  id: string;
+  name: string;
+  cols: number;
+  rows: number;
+  tiles: Tile[];
+}
+
+/** A reusable layout: tile slots (kind + placement) with no content. */
+export interface Preset {
+  id: string;
+  name: string;
+  cols: number;
+  rows: number;
+  slots: { kind: TileKind; col: number; row: number; cw: number; rh: number }[];
+}
+
+function uid(): string {
+  return crypto.randomUUID();
+}
+
+export function newScene(name: string): Scene {
+  return { id: uid(), name, cols: STAGE_COLS, rows: STAGE_ROWS, tiles: [] };
+}
+
+/** Clamp a tile's placement so it stays fully inside the scene grid. */
+export function clampTile(tile: Tile, cols: number, rows: number): Tile {
+  const cw = Math.max(1, Math.min(tile.cw, cols));
+  const rh = Math.max(1, Math.min(tile.rh, rows));
+  const col = Math.max(1, Math.min(tile.col, cols - cw + 1));
+  const row = Math.max(1, Math.min(tile.row, rows - rh + 1));
+  return { ...tile, col, row, cw, rh };
+}
+
+/** True when two tile rectangles overlap (used to find a free drop spot). */
+function overlaps(a: { col: number; row: number; cw: number; rh: number }, b: Tile): boolean {
+  return (
+    a.col < b.col + b.cw && a.col + a.cw > b.col && a.row < b.row + b.rh && a.row + a.rh > b.row
+  );
+}
+
+/**
+ * First free top-left cell that fits a `cw`×`rh` rectangle without overlapping
+ * existing tiles, scanning row-major. Falls back to (1,1) when the grid is full.
+ */
+export function firstFree(scene: Scene, cw: number, rh: number): { col: number; row: number } {
+  for (let row = 1; row <= scene.rows - rh + 1; row++) {
+    for (let col = 1; col <= scene.cols - cw + 1; col++) {
+      const rect = { col, row, cw, rh };
+      if (!scene.tiles.some((t) => overlaps(rect, t))) return { col, row };
+    }
+  }
+  return { col: 1, row: 1 };
+}
+
+/** Default span for a new tile of a given kind. */
+function defaultSpan(kind: TileKind): { cw: number; rh: number } {
+  if (kind === 'text') return { cw: 6, rh: 2 };
+  return { cw: 6, rh: 4 };
+}
+
+export function makeTile(kind: TileKind, scene: Scene, patch: Partial<Tile> = {}): Tile {
+  const { cw, rh } = defaultSpan(kind);
+  const spot = firstFree(scene, cw, rh);
+  return clampTile(
+    { id: uid(), kind, col: spot.col, row: spot.row, cw, rh, ...patch },
+    scene.cols,
+    scene.rows,
+  );
+}
+
+/**
+ * Player-safe projection of one tile to a broadcast grid cell, carrying its
+ * placement as a `GridArea`. NPC tiles read only the public projection (never
+ * gmNotes/equipment). Returns null for hidden tiles or empty/unresolved content.
+ */
+export function tileToCell(
+  tile: Tile,
+  npcLookup: (id: string) => PublicNpc | undefined,
+): GridCell | null {
+  if (tile.hidden) return null;
+  const area: GridArea = { col: tile.col, row: tile.row, cw: tile.cw, rh: tile.rh };
+
+  if (tile.kind === 'npc') {
+    if (!tile.npcId) return null;
+    const pub = npcLookup(tile.npcId);
+    if (!pub) return null;
+    if (pub.portraitId) {
+      const caption = pub.role ? `${pub.name} — ${pub.role}` : pub.name;
+      return { kind: 'image', assetId: pub.portraitId, caption, area };
+    }
+    const body = [pub.role, pub.blurb].filter(Boolean).join(' — ');
+    return { kind: 'text', title: pub.name, body, area };
+  }
+  if (tile.kind === 'image') {
+    if (!tile.assetId && !tile.src) return null;
+    const cell: GridCell = { kind: 'image', area };
+    if (tile.assetId) cell.assetId = tile.assetId;
+    if (tile.src) cell.src = tile.src;
+    if (tile.caption) cell.caption = tile.caption;
+    return cell;
+  }
+  // text
+  if (!tile.title && !tile.body) return null;
+  const cell: GridCell = { kind: 'text', area };
+  if (tile.title) cell.title = tile.title;
+  if (tile.body) cell.body = tile.body;
+  return cell;
+}
+
+/**
+ * Compose a scene into a broadcast grid payload, or null when nothing visible
+ * resolves. Cells carry explicit placement so the broadcast mirrors the board.
+ */
+export function sceneToPayload(
+  scene: Scene,
+  npcLookup: (id: string) => PublicNpc | undefined,
+): Extract<BroadcastPayload, { kind: 'grid' }> | null {
+  const cells: GridCell[] = [];
+  for (const tile of scene.tiles) {
+    const cell = tileToCell(tile, npcLookup);
+    if (cell) cells.push(cell);
+  }
+  if (cells.length === 0) return null;
+  return { kind: 'grid', cols: scene.cols, rows: scene.rows, cells };
+}
+
+/** Derive a content-free preset from a scene's current layout. */
+export function presetFromScene(scene: Scene, name: string): Preset {
+  return {
+    id: uid(),
+    name,
+    cols: scene.cols,
+    rows: scene.rows,
+    slots: scene.tiles.map((t) => ({ kind: t.kind, col: t.col, row: t.row, cw: t.cw, rh: t.rh })),
+  };
+}
+
+/** Instantiate a preset as a fresh scene of empty, positioned tiles. */
+export function sceneFromPreset(preset: Preset, name: string): Scene {
+  return {
+    id: uid(),
+    name,
+    cols: preset.cols,
+    rows: preset.rows,
+    tiles: preset.slots.map((s) => ({ id: uid(), ...s })),
+  };
+}
+
+/** A named snap region expressed as a grid area, for Windows-11-style drop. */
+export interface SnapZone {
+  id: string;
+  label: string;
+  area: GridArea;
+}
+
+/**
+ * Windows-11-like snap zones for a cols×rows grid: full, halves, quadrants and
+ * vertical thirds. Computed from the grid size so they stay proportional.
+ */
+export function snapZones(cols = STAGE_COLS, rows = STAGE_ROWS): SnapZone[] {
+  const halfC = Math.round(cols / 2);
+  const halfR = Math.round(rows / 2);
+  const third = Math.round(cols / 3);
+  return [
+    { id: 'full', label: 'Full', area: { col: 1, row: 1, cw: cols, rh: rows } },
+    { id: 'left', label: 'Left', area: { col: 1, row: 1, cw: halfC, rh: rows } },
+    { id: 'right', label: 'Right', area: { col: halfC + 1, row: 1, cw: cols - halfC, rh: rows } },
+    { id: 'top', label: 'Top', area: { col: 1, row: 1, cw: cols, rh: halfR } },
+    { id: 'bottom', label: 'Bottom', area: { col: 1, row: halfR + 1, cw: cols, rh: rows - halfR } },
+    { id: 'tl', label: 'Top-left', area: { col: 1, row: 1, cw: halfC, rh: halfR } },
+    { id: 'tr', label: 'Top-right', area: { col: halfC + 1, row: 1, cw: cols - halfC, rh: halfR } },
+    {
+      id: 'bl',
+      label: 'Bottom-left',
+      area: { col: 1, row: halfR + 1, cw: halfC, rh: rows - halfR },
+    },
+    {
+      id: 'br',
+      label: 'Bottom-right',
+      area: { col: halfC + 1, row: halfR + 1, cw: cols - halfC, rh: rows - halfR },
+    },
+    {
+      id: 'c3',
+      label: 'Centre third',
+      area: { col: third + 1, row: 1, cw: cols - 2 * third, rh: rows },
+    },
+  ];
+}
+
+/**
+ * Windows-11-style edge snapping: given a pointer position as fractions of the
+ * board (fx,fy ∈ 0..1), return the snap area when the pointer is near an edge or
+ * corner, or null in the middle (caller does free grid placement instead).
+ */
+export function zoneAt(
+  fx: number,
+  fy: number,
+  cols = STAGE_COLS,
+  rows = STAGE_ROWS,
+): GridArea | null {
+  const halfC = Math.round(cols / 2);
+  const halfR = Math.round(rows / 2);
+  const L = fx < 0.18;
+  const R = fx > 0.82;
+  const T = fy < 0.18;
+  const B = fy > 0.82;
+  if (L && T) return { col: 1, row: 1, cw: halfC, rh: halfR };
+  if (R && T) return { col: halfC + 1, row: 1, cw: cols - halfC, rh: halfR };
+  if (L && B) return { col: 1, row: halfR + 1, cw: halfC, rh: rows - halfR };
+  if (R && B) return { col: halfC + 1, row: halfR + 1, cw: cols - halfC, rh: rows - halfR };
+  if (L) return { col: 1, row: 1, cw: halfC, rh: rows };
+  if (R) return { col: halfC + 1, row: 1, cw: cols - halfC, rh: rows };
+  if (T) return { col: 1, row: 1, cw: cols, rh: halfR };
+  if (B) return { col: 1, row: halfR + 1, cw: cols, rh: rows - halfR };
+  return null;
+}

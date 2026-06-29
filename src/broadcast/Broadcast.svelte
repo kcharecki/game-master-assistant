@@ -39,9 +39,7 @@
   // foregrounds that content (and backgrounds the video). The video also shows
   // when the stage is clear. Audio-only is always hidden in the background.
   let ytVideoFg = $state(false);
-  const ytBackground = $derived(
-    youtubeAudioOnly || (!ytVideoFg && payload.kind !== 'clear')
-  );
+  const ytBackground = $derived(youtubeAudioOnly || (!ytVideoFg && payload.kind !== 'clear'));
 
   // Preview mode (?preview=1): a silent visual mirror embedded on the GM desktop.
   // It renders all on-air visuals (incl. a muted YouTube video) but never plays
@@ -286,10 +284,7 @@
          rect so image/grid/fog/tokens align with the GM. -->
     {@const vf = payload.view ?? { x: 0, y: 0, w: cols * CELL, h: rows * CELL }}
     <div class="mapview">
-      <svg
-        viewBox="{vf.x} {vf.y} {vf.w} {vf.h}"
-        preserveAspectRatio="xMidYMid meet"
-      >
+      <svg viewBox="{vf.x} {vf.y} {vf.w} {vf.h}" preserveAspectRatio="xMidYMid meet">
         <defs>
           <pattern id="bgrid" width={CELL} height={CELL} patternUnits="userSpaceOnUse">
             <path
@@ -302,7 +297,14 @@
         </defs>
         {#if mapSrc}
           {@const im = payload.img ?? { x: vf.x, y: vf.y, w: vf.w, h: vf.h }}
-          <image href={mapSrc} x={im.x} y={im.y} width={im.w} height={im.h} preserveAspectRatio="none" />
+          <image
+            href={mapSrc}
+            x={im.x}
+            y={im.y}
+            width={im.w}
+            height={im.h}
+            preserveAspectRatio="none"
+          />
         {/if}
         <!-- battle grid (1 cell = 1 metre) -->
         <rect x={vf.x} y={vf.y} width={vf.w} height={vf.h} fill="url(#bgrid)" />
@@ -312,10 +314,12 @@
           {#if payload.reveal[tk.gy]?.[tk.gx] === 1}
             <g transform="translate({tk.gx * CELL} {tk.gy * CELL})">
               <circle cx={CELL / 2} cy={CELL / 2} r={CELL / 2 - 4} fill={tk.color} />
-              <text x={CELL / 2} y={CELL / 2 + 4} text-anchor="middle" class="tlbl">{tk.label}</text>
+              <text x={CELL / 2} y={CELL / 2 + 4} text-anchor="middle" class="tlbl">{tk.label}</text
+              >
               {#each tk.conditions ?? [] as cid, j (cid)}
                 <text x={CELL / 2} y={CELL + 12 + j * 13} text-anchor="middle" class="tcond">
-                  {conditionGlyph(cid)} {conditionMeta(cid)?.label ?? cid}
+                  {conditionGlyph(cid)}
+                  {conditionMeta(cid)?.label ?? cid}
                 </text>
               {/each}
             </g>
@@ -333,19 +337,26 @@
       </svg>
     </div>
   {:else if payload.kind === 'grid'}
+    {@const placed = payload.cells.some((c) => c.area)}
     <div
       class="grid"
-      style="grid-template-columns: repeat({clampCols(payload.cols, payload.cells.length)}, 1fr)"
+      class:placed
+      style={placed
+        ? `grid-template-columns: repeat(${payload.cols}, 1fr); grid-template-rows: repeat(${payload.rows ?? 1}, 1fr)`
+        : `grid-template-columns: repeat(${clampCols(payload.cols, payload.cells.length)}, 1fr)`}
     >
       {#each payload.cells as cell, i (i)}
+        {@const area = cell.area
+          ? `grid-column:${cell.area.col} / span ${cell.area.cw}; grid-row:${cell.area.row} / span ${cell.area.rh}`
+          : ''}
         {#if cell.kind === 'image'}
           {@const url = cell.assetId ? gridUrls[cell.assetId] : cell.src}
-          <figure class="gcell">
+          <figure class="gcell" style={area}>
             {#if url}<img src={url} alt={cell.caption ?? ''} />{/if}
             {#if cell.caption}<figcaption>{cell.caption}</figcaption>{/if}
           </figure>
         {:else}
-          <div class="gcell gtext">
+          <div class="gcell gtext" style={area}>
             {#if cell.title}<h2>{cell.title}</h2>{/if}
             {#if cell.body}<p>{cell.body}</p>{/if}
           </div>
@@ -479,6 +490,26 @@
     max-height: 84vh;
     align-content: center;
     justify-items: center;
+  }
+  /* Stage layout: explicit placement fills the whole stage; cells stretch into
+     their grid area instead of centering by content size. */
+  .grid.placed {
+    width: 92vw;
+    height: 84vh;
+    max-width: 92vw;
+    max-height: 84vh;
+    align-content: stretch;
+    justify-items: stretch;
+  }
+  .grid.placed .gcell {
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .grid.placed .gcell img {
+    max-height: 100%;
+    max-width: 100%;
   }
   .gcell {
     display: flex;
