@@ -340,27 +340,51 @@
         {/each}
       </svg>
     </div>
+  {:else if payload.kind === 'grid' && payload.cells.some((c) => c.area)}
+    <!-- Stage: aspect-locked to the GM board (1280x800) so every cell has the
+         same geometry and the laser/crops line up exactly with what the GM sees. -->
+    <div class="stagebox">
+      <div
+        class="grid placed"
+        style="grid-template-columns: repeat({payload.cols}, 1fr); grid-template-rows: repeat({payload.rows ??
+          1}, 1fr)"
+      >
+        {#each payload.cells as cell, i (i)}
+          {@const area = cell.area
+            ? `grid-column:${cell.area.col} / span ${cell.area.cw}; grid-row:${cell.area.row} / span ${cell.area.rh}`
+            : ''}
+          {#if cell.kind === 'image'}
+            {@const url = cell.assetId ? gridUrls[cell.assetId] : cell.src}
+            <figure class="gcell" style={area}>
+              {#if url}<img src={url} alt={cell.caption ?? ''} />{/if}
+              {#if cell.caption}<figcaption>{cell.caption}</figcaption>{/if}
+            </figure>
+          {:else}
+            <div class="gcell gtext" style={area}>
+              {#if cell.title}<h2>{cell.title}</h2>{/if}
+              {#if cell.body}<p>{cell.body}</p>{/if}
+            </div>
+          {/if}
+        {/each}
+      </div>
+      {#if laser}
+        <div class="laser" style="left:{laser.x * 100}%; top:{laser.y * 100}%"></div>
+      {/if}
+    </div>
   {:else if payload.kind === 'grid'}
-    {@const placed = payload.cells.some((c) => c.area)}
     <div
       class="grid"
-      class:placed
-      style={placed
-        ? `grid-template-columns: repeat(${payload.cols}, 1fr); grid-template-rows: repeat(${payload.rows ?? 1}, 1fr)`
-        : `grid-template-columns: repeat(${clampCols(payload.cols, payload.cells.length)}, 1fr)`}
+      style="grid-template-columns: repeat({clampCols(payload.cols, payload.cells.length)}, 1fr)"
     >
       {#each payload.cells as cell, i (i)}
-        {@const area = cell.area
-          ? `grid-column:${cell.area.col} / span ${cell.area.cw}; grid-row:${cell.area.row} / span ${cell.area.rh}`
-          : ''}
         {#if cell.kind === 'image'}
           {@const url = cell.assetId ? gridUrls[cell.assetId] : cell.src}
-          <figure class="gcell" style={area}>
+          <figure class="gcell">
             {#if url}<img src={url} alt={cell.caption ?? ''} />{/if}
             {#if cell.caption}<figcaption>{cell.caption}</figcaption>{/if}
           </figure>
         {:else}
-          <div class="gcell gtext" style={area}>
+          <div class="gcell gtext">
             {#if cell.title}<h2>{cell.title}</h2>{/if}
             {#if cell.body}<p>{cell.body}</p>{/if}
           </div>
@@ -378,7 +402,8 @@
     <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
   {/if}
 
-  {#if laser}
+  {#if laser && !(payload.kind === 'grid' && payload.cells.some((c) => c.area))}
+    <!-- Fallback dot for non-stage content (spotlight image/text): page fraction. -->
     <div class="laser" style="left:{laser.x * 100}%; top:{laser.y * 100}%"></div>
   {/if}
 
@@ -499,34 +524,51 @@
     align-content: center;
     justify-items: center;
   }
-  /* Stage layout: explicit placement fills the whole stage; cells stretch into
-     their grid area instead of centering by content size. */
-  .grid.placed {
-    width: 92vw;
-    height: 84vh;
-    max-width: 92vw;
+  /* Stage box: locked to the GM board's aspect ratio (1280x800) and fitted into
+     the player window, so every cell has the same geometry as the GM board —
+     identical crops and laser alignment. */
+  .stagebox {
+    position: relative;
+    aspect-ratio: 1280 / 800;
+    width: min(92vw, calc(84vh * 1280 / 800));
     max-height: 84vh;
+  }
+  .grid.placed {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    gap: 0;
     align-content: stretch;
     justify-items: stretch;
   }
+  /* Mirror the GM tile: image covers the whole cell (same crop), caption overlays
+     the bottom instead of taking flow space. */
   .grid.placed .gcell {
+    position: relative;
     width: 100%;
     height: 100%;
     justify-content: center;
     overflow: hidden;
   }
-  /* The image flexes to fill leftover space so a caption (auto height) is never
-     squeezed out of the cell when it's resized small. */
   .grid.placed .gcell img {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    max-width: none;
+    object-fit: cover;
   }
   .grid.placed .gcell figcaption {
-    flex: 0 0 auto;
-    margin-top: 6px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 4px 8px;
+    background: rgba(5, 9, 10, 0.6);
+    color: #e9f3ed;
+    font-style: normal;
+    font-size: clamp(11px, 1.4vw, 18px);
   }
   .gcell {
     display: flex;

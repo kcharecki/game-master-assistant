@@ -450,93 +450,49 @@
             onpointermove={onMove}
             onpointerup={endMove}
           >
-            <div class="thead">
+            <!-- Full-bleed content: a faithful preview of the broadcast cell. -->
+            <div class="content">
+              {#if tl.kind === 'text'}
+                {#if tl.title || tl.body}
+                  <div class="ttext">
+                    {#if tl.title}<strong>{tl.title}</strong>{/if}
+                    {#if tl.body}<span>{tl.body}</span>{/if}
+                  </div>
+                {:else}
+                  <div class="ph">{t('stage.bodyPlaceholder')}</div>
+                {/if}
+              {:else}
+                {@const img = tileImg(tl)}
+                {#if img}
+                  <img class="timg" src={img} alt={tl.caption ?? ''} />
+                  {#if tl.kind === 'npc' || tl.caption}
+                    <div class="tcap">
+                      {tl.kind === 'npc' ? npcCaption(tl) : tl.caption}
+                    </div>
+                  {/if}
+                {:else if tl.kind === 'npc'}
+                  <div class="ttext"><strong>{npcCaption(tl)}</strong></div>
+                {:else}
+                  <div class="ph">{t('stage.dropHere')}</div>
+                {/if}
+              {/if}
+            </div>
+
+            <!-- Chrome overlay (hover / selected only) — never on the broadcast. -->
+            <div class="chrome" data-control>
               <span class="tk"
                 >{t('stage.kind' + tl.kind.charAt(0).toUpperCase() + tl.kind.slice(1))}</span
               >
               <button
                 class="ti"
-                data-control
                 aria-label={tl.hidden ? t('stage.show') : t('stage.hide')}
                 onclick={() => stage.toggleHidden(tl.id)}>{tl.hidden ? '🚫' : '👁'}</button
               >
               <button
                 class="ti"
-                data-control
                 aria-label={t('stage.remove')}
                 onclick={() => stage.removeTile(tl.id)}>✕</button
               >
-            </div>
-
-            <div class="tbody" data-control>
-              {#if tl.kind === 'image'}
-                {@const img = tileImg(tl)}
-                {#if img}
-                  <img class="timg" src={img} alt={tl.caption ?? ''} />
-                {:else}
-                  <label class="drop-mini">
-                    {t('stage.chooseImage')}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      onchange={(e) => pickImage(e, tl.id)}
-                    />
-                  </label>
-                  <input
-                    class="in"
-                    placeholder={t('stage.imageUrlPlaceholder')}
-                    value={tl.src ?? ''}
-                    oninput={(e) =>
-                      stage.patchTile(tl.id, {
-                        src: (e.currentTarget as HTMLInputElement).value || undefined,
-                      })}
-                  />
-                {/if}
-                <input
-                  class="in cap"
-                  placeholder={t('stage.captionPlaceholder')}
-                  value={tl.caption ?? ''}
-                  oninput={(e) =>
-                    stage.patchTile(tl.id, {
-                      caption: (e.currentTarget as HTMLInputElement).value || undefined,
-                    })}
-                />
-              {:else if tl.kind === 'text'}
-                <input
-                  class="in tt"
-                  placeholder={t('stage.titlePlaceholder')}
-                  value={tl.title ?? ''}
-                  oninput={(e) =>
-                    stage.patchTile(tl.id, {
-                      title: (e.currentTarget as HTMLInputElement).value || undefined,
-                    })}
-                />
-                <textarea
-                  class="in ta"
-                  placeholder={t('stage.bodyPlaceholder')}
-                  value={tl.body ?? ''}
-                  oninput={(e) =>
-                    stage.patchTile(tl.id, {
-                      body: (e.currentTarget as HTMLTextAreaElement).value || undefined,
-                    })}
-                ></textarea>
-              {:else}
-                <select
-                  class="in"
-                  value={tl.npcId ?? ''}
-                  onchange={(e) =>
-                    stage.patchTile(tl.id, {
-                      npcId: (e.currentTarget as HTMLSelectElement).value || undefined,
-                    })}
-                >
-                  <option value="">{t('stage.pickNpc')}</option>
-                  {#each npcs.list as n (n.id)}<option value={n.id}>{n.name}</option>{/each}
-                </select>
-                {@const img = tileImg(tl)}
-                {#if img}<img class="timg" src={img} alt="" />{/if}
-                <span class="cap muted">{npcCaption(tl)}</span>
-              {/if}
             </div>
 
             <button
@@ -583,6 +539,67 @@
         <option value="text">{t('stage.kindText')}</option>
         <option value="npc">{t('stage.kindNpc')}</option>
       </select>
+
+      {#if sel.kind === 'image'}
+        <label class="btn sm"
+          >{t('stage.chooseImage')}<input
+            type="file"
+            accept="image/*"
+            hidden
+            onchange={(e) => pickImage(e, sel.id)}
+          /></label
+        >
+        <input
+          class="in grow"
+          placeholder={t('stage.imageUrlPlaceholder')}
+          value={sel.src ?? ''}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              src: (e.currentTarget as HTMLInputElement).value || undefined,
+            })}
+        />
+        <input
+          class="in grow"
+          placeholder={t('stage.captionPlaceholder')}
+          value={sel.caption ?? ''}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              caption: (e.currentTarget as HTMLInputElement).value || undefined,
+            })}
+        />
+      {:else if sel.kind === 'text'}
+        <input
+          class="in grow"
+          placeholder={t('stage.titlePlaceholder')}
+          value={sel.title ?? ''}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              title: (e.currentTarget as HTMLInputElement).value || undefined,
+            })}
+        />
+        <input
+          class="in grow"
+          placeholder={t('stage.bodyPlaceholder')}
+          value={sel.body ?? ''}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              body: (e.currentTarget as HTMLInputElement).value || undefined,
+            })}
+        />
+      {:else}
+        <select
+          class="in narrow"
+          value={sel.npcId ?? ''}
+          onchange={(e) =>
+            stage.patchTile(sel.id, {
+              npcId: (e.currentTarget as HTMLSelectElement).value || undefined,
+            })}
+        >
+          <option value="">{t('stage.pickNpc')}</option>
+          {#each npcs.list as n (n.id)}<option value={n.id}>{n.name}</option>{/each}
+        </select>
+      {/if}
+
       <span class="snaps" title={t('stage.snapHint')}>
         {#each zones as z (z.id)}
           <button class="zbtn" onclick={() => snapSelected(z)} title={z.label}>{z.label}</button>
@@ -859,7 +876,7 @@
     aspect-ratio: 1280 / 800;
     max-height: 100%;
     display: grid;
-    gap: 2px;
+    gap: 0;
     border-radius: 8px;
     border: 1px solid var(--line2);
     background-color: #05090a;
@@ -889,37 +906,110 @@
     z-index: 50;
   }
 
+  /* A tile is a faithful preview of its broadcast cell: full-bleed content,
+     editing chrome overlaid only on hover/select. */
   .tile {
     position: relative;
-    display: flex;
-    flex-direction: column;
     min-width: 0;
     min-height: 0;
-    border-radius: 6px;
-    border: 1px solid var(--line2);
-    background: rgba(20, 28, 22, 0.75);
+    border: 1px solid transparent;
+    background: rgba(20, 28, 22, 0.4);
     overflow: hidden;
     cursor: move;
   }
   .tile.sel {
     border-color: var(--gold);
     box-shadow: 0 0 0 1px var(--gold);
+    z-index: 2;
   }
   .tile.hidden {
-    opacity: 0.45;
-    border-style: dashed;
+    opacity: 0.4;
   }
-  .thead {
+  .tile.hidden::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 6px,
+      rgba(0, 0, 0, 0.25) 6px,
+      rgba(0, 0, 0, 0.25) 12px
+    );
+    pointer-events: none;
+  }
+  .content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .timg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .tcap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 3px 6px;
+    background: rgba(5, 9, 10, 0.6);
+    color: #e9f3ed;
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ttext {
+    padding: 6px 8px;
+    text-align: center;
+    color: var(--txt);
+    overflow: hidden;
+  }
+  .ttext strong {
+    display: block;
+    font-family: Georgia, serif;
+    color: var(--green);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .ttext span {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .ph {
+    color: var(--faint);
+    font-size: 11px;
+    text-align: center;
+    padding: 6px;
+  }
+  .chrome {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     gap: 4px;
     height: 18px;
     padding: 0 4px;
-    background: rgba(199, 164, 78, 0.14);
+    background: rgba(9, 16, 13, 0.78);
     font-size: 9px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .tile:hover .chrome,
+  .tile.sel .chrome {
+    opacity: 1;
   }
   .tk {
     flex: 1;
@@ -938,57 +1028,6 @@
   .ti:hover {
     color: var(--txt);
   }
-  .tbody {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding: 4px;
-    cursor: default;
-    overflow: auto;
-  }
-  .timg {
-    width: 100%;
-    flex: 1;
-    min-height: 0;
-    object-fit: cover;
-    border-radius: 4px;
-  }
-  .in {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 3px 5px;
-    font: inherit;
-    font-size: 11px;
-    border-radius: 4px;
-    border: 1px solid var(--line2);
-    background: #11160f;
-    color: var(--txt);
-  }
-  .ta {
-    flex: 1;
-    min-height: 28px;
-    resize: none;
-  }
-  .cap {
-    flex: 0 0 auto;
-  }
-  .drop-mini {
-    display: grid;
-    place-items: center;
-    flex: 1;
-    min-height: 30px;
-    border: 1px dashed var(--line2);
-    border-radius: 4px;
-    color: var(--muted);
-    font-size: 11px;
-    cursor: pointer;
-  }
-  .cap.muted {
-    color: var(--muted);
-    font-size: 11px;
-  }
   .rsz {
     position: absolute;
     right: 0;
@@ -999,10 +1038,12 @@
     border: 0;
     background: linear-gradient(135deg, transparent 50%, var(--gold) 50%);
     cursor: nwse-resize;
-    opacity: 0.7;
+    opacity: 0;
+    transition: opacity 0.1s;
   }
-  .rsz:hover {
-    opacity: 1;
+  .tile:hover .rsz,
+  .tile.sel .rsz {
+    opacity: 0.85;
   }
 
   /* footer */
@@ -1016,6 +1057,20 @@
   .flbl {
     color: var(--muted);
     font-size: 11px;
+  }
+  .in {
+    box-sizing: border-box;
+    padding: 4px 7px;
+    font: inherit;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line2);
+    background: #11160f;
+    color: var(--txt);
+  }
+  .grow {
+    flex: 1 1 120px;
+    min-width: 90px;
   }
   .narrow {
     width: auto;
