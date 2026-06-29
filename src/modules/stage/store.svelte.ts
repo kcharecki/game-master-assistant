@@ -5,6 +5,7 @@ import {
   newScene,
   clampTile,
   makeTile,
+  tileToCell,
   sceneToPayload,
   presetFromScene,
   sceneFromPreset,
@@ -62,7 +63,7 @@ class StageStore {
       this.state.activeId = id;
       this.selected = null;
       this.clearHistory();
-      this.persist();
+      this.persistLive();
     }
   }
 
@@ -71,7 +72,7 @@ class StageStore {
     this.state.scenes = [...this.state.scenes, s];
     this.state.activeId = s.id;
     this.clearHistory();
-    this.persist();
+    this.persistLive();
     return s;
   }
 
@@ -89,7 +90,7 @@ class StageStore {
     this.state.scenes = next;
     this.state.activeId = copy.id;
     this.clearHistory();
-    this.persist();
+    this.persistLive();
     return copy;
   }
 
@@ -109,7 +110,7 @@ class StageStore {
     this.state.scenes = next;
     if (this.state.activeId === id) this.state.activeId = next[Math.min(i, next.length - 1)].id;
     this.clearHistory();
-    this.persist();
+    this.persistLive();
   }
 
   // --- tiles ----------------------------------------------------------------
@@ -186,7 +187,7 @@ class StageStore {
     this.state.scenes = [...this.state.scenes, scene];
     this.state.activeId = scene.id;
     this.clearHistory();
-    this.persist();
+    this.persistLive();
   }
 
   removePreset(presetId: string): void {
@@ -204,14 +205,41 @@ class StageStore {
     if (payload && this.onAir) this.onAir(payload);
   }
 
+  /**
+   * Push a single tile fullscreen (focus), using the cinematic single-image /
+   * single-text broadcast layouts. To-Air returns to the full scene layout.
+   */
+  spotlight(id: string): void {
+    const tile = this.active.tiles.find((t) => t.id === id);
+    if (!tile || !this.onAir) return;
+    const cell = tileToCell({ ...tile, hidden: false }, this.npcLookup);
+    if (!cell) return;
+    if (cell.kind === 'image') {
+      this.onAir({
+        kind: 'image',
+        ...(cell.assetId ? { assetId: cell.assetId } : {}),
+        ...(cell.src ? { src: cell.src } : {}),
+        ...(cell.caption ? { caption: cell.caption } : {}),
+      });
+    } else {
+      this.onAir({ kind: 'text', title: cell.title, body: cell.body ?? cell.title ?? '' });
+    }
+  }
+
   toggleLive(): void {
     this.live = !this.live;
-    if (this.live) this.broadcast();
+    this.syncLive();
+  }
+
+  /** When live, push the active scene — clearing the broadcast if it's empty. */
+  private syncLive(): void {
+    if (!this.live || !this.onAir) return;
+    this.onAir(this.preview ?? { kind: 'clear' });
   }
 
   private persistLive(): void {
     this.persist();
-    if (this.live) this.broadcast();
+    this.syncLive();
   }
 
   // --- undo / redo ----------------------------------------------------------

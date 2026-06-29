@@ -16,6 +16,8 @@
   // Transient ping marker (normalized 0..1) that overlays current content.
   let ping = $state<{ x: number; y: number } | null>(null);
   let pingTimer: ReturnType<typeof setTimeout> | undefined;
+  // Steady laser dot (normalized 0..1), shown until the GM turns it off.
+  let laser = $state<{ x: number; y: number } | null>(null);
   const CELL = 48; // viewBox cell size; aspect-ratio only, scales to fit
 
   // Audio routed here so it plays in the shared tab (not throttled when GM tab hides).
@@ -249,6 +251,8 @@
       if (m.type === 'display') mode = m.mode;
       else if (m.type === 'mood') mood = moodById(m.moodId);
       else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
+      else if (m.payload.kind === 'laser')
+        laser = m.payload.on ? { x: m.payload.x, y: m.payload.y } : null;
       else if (m.payload.kind === 'audio') handleAudio(m.payload);
       else {
         payload = m.payload;
@@ -372,6 +376,10 @@
 
   {#if ping}
     <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
+  {/if}
+
+  {#if laser}
+    <div class="laser" style="left:{laser.x * 100}%; top:{laser.y * 100}%"></div>
   {/if}
 
   {#if audioLocked}
@@ -507,9 +515,18 @@
     justify-content: center;
     overflow: hidden;
   }
+  /* The image flexes to fill leftover space so a caption (auto height) is never
+     squeezed out of the cell when it's resized small. */
   .grid.placed .gcell img {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: 100%;
     max-width: 100%;
+    object-fit: contain;
+  }
+  .grid.placed .gcell figcaption {
+    flex: 0 0 auto;
+    margin-top: 6px;
   }
   .gcell {
     display: flex;
@@ -597,6 +614,20 @@
     box-shadow: 0 0 18px var(--green);
     pointer-events: none;
     animation: pingpulse 1.5s ease-out forwards;
+  }
+  .laser {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff5a5a 0%, #ff2d2d 45%, rgba(255, 45, 45, 0) 72%);
+    box-shadow: 0 0 14px 4px rgba(255, 45, 45, 0.7);
+    pointer-events: none;
+    z-index: 3;
+    transition:
+      left 0.05s linear,
+      top 0.05s linear;
   }
   @keyframes pingpulse {
     0% {

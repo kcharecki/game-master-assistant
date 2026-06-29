@@ -5,6 +5,7 @@
   import { npcs } from '../npcs/store.svelte';
   import { assetPut, assetUrl } from '../../lib/db';
   import { putOnAir, clearBroadcast, setDisplayMode, setMood } from '../reveal/bus-actions';
+  import { sendLaser } from './bus-actions';
   import { DEFAULT_DISPLAY_MODE } from '../../broadcast/display';
   import { MOODS, DEFAULT_MOOD } from '../../broadcast/mood';
   import type { DisplayMode, GridArea } from '../../lib/types';
@@ -14,6 +15,12 @@
   let hovered = $state(false);
   let display = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
   let moodId = $state(DEFAULT_MOOD.id);
+  // Auto edge-snapping. Off = always free grid placement; hold Alt while
+  // dragging to bypass snapping for one move without toggling.
+  let snap = $state(true);
+  // Laser pointer mode: while on, cursor over the board drives a live dot on air.
+  let laserOn = $state(false);
+  let lastLaser = 0;
 
   const cols = $derived(stage.active.cols);
   const rows = $derived(stage.active.rows);
@@ -108,7 +115,7 @@
   function onMove(e: PointerEvent) {
     if (moving) {
       const { fx, fy } = frac(e);
-      armedZone = zoneAt(fx, fy, cols, rows);
+      armedZone = snap && !e.altKey ? zoneAt(fx, fy, cols, rows) : null;
       if (!armedZone) {
         const c = cellAt(e);
         const tl = stage.tiles.find((x) => x.id === moving)!;
@@ -243,6 +250,20 @@
     }
   }
 
+  // --- laser pointer --------------------------------------------------------
+  function toggleLaser() {
+    laserOn = !laserOn;
+    if (!laserOn) sendLaser(0, 0, false);
+  }
+  function boardLaser(e: PointerEvent) {
+    if (!laserOn) return;
+    const now = performance.now();
+    if (now - lastLaser < 30) return; // ~33 Hz is plenty for a smooth dot
+    lastLaser = now;
+    const { fx, fy } = frac(e);
+    sendLaser(fx, fy, true);
+  }
+
   // --- scene tab rename -----------------------------------------------------
   let editingScene = $state<string | null>(null);
 
@@ -271,6 +292,18 @@
       onclick={() => stage.redo()}
       title={t('stage.redo')}>↷</button
     >
+    <span class="sep"></span>
+    <button
+      class="btn sm"
+      class:on={snap}
+      onclick={() => (snap = !snap)}
+      title={t('stage.snapToggleHint')}
+    >
+      {snap ? t('stage.snapOn') : t('stage.snapOff')}
+    </button>
+    <button class="btn sm" class:laser={laserOn} onclick={toggleLaser} title={t('stage.laserHint')}>
+      {t('stage.laser')}
+    </button>
     <span class="sep"></span>
     <button
       class="btn sm"
@@ -390,10 +423,15 @@
       <div
         class="board"
         class:over={dragOver}
+        class:lasermode={laserOn}
         bind:this={board}
         style="grid-template-columns: repeat({cols}, 1fr); grid-template-rows: repeat({rows}, 1fr)"
         onpointerenter={() => (hovered = true)}
-        onpointerleave={() => (hovered = false)}
+        onpointermove={boardLaser}
+        onpointerleave={() => {
+          hovered = false;
+          if (laserOn) sendLaser(0, 0, false);
+        }}
         ondragover={(e) => {
           e.preventDefault();
           dragOver = true;
@@ -527,6 +565,11 @@
   <!-- inspector / snap + mood + display -->
   <div class="foot">
     {#if sel}
+      <button
+        class="btn sm solid"
+        onclick={() => stage.spotlight(sel.id)}
+        title={t('stage.spotlightHint')}>{t('stage.spotlight')}</button
+      >
       <span class="flbl">{t('stage.swapKind')}</span>
       <select
         class="in narrow"
@@ -607,6 +650,14 @@
     border-color: var(--gold);
     background: rgba(199, 164, 78, 0.2);
     color: var(--gold);
+  }
+  .btn.sm.laser {
+    border-color: #ff5a5a;
+    background: rgba(255, 45, 45, 0.18);
+    color: #ff8a8a;
+  }
+  .board.lasermode {
+    cursor: crosshair;
   }
   .btn.sm.solid {
     background: var(--green-dim);

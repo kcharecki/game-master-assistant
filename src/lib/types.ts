@@ -64,6 +64,10 @@ export type BroadcastPayload =
   // auto-flow grids (Composer) omit it.
   | { kind: 'grid'; cols: number; rows?: number; cells: GridCell[] }
   | { kind: 'ping'; x: number; y: number }
+  // Laser pointer: a steady dot at normalized (x,y) that overlays the current
+  // on-air content and tracks the GM's cursor. `on:false` hides it. Like `ping`
+  // it is transient/live-only and never clobbers `broadcastState`.
+  | { kind: 'laser'; x: number; y: number; on: boolean }
   // Audio cue routed through the broadcast tab's <audio> element. `channel`
   // separates looping ambience from one-shot SFX so they don't cut each other.
   // `seek` (action 'seek') moves the ambient playhead to `seek` seconds (rewind
