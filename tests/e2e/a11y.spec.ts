@@ -22,10 +22,10 @@ test('icon-only window controls expose accessible names', async ({ page }) => {
   await expect(win.getByRole('button', { name: 'Close' })).toBeVisible();
 });
 
-test('spawned widget icon buttons have labels (conditions add)', async ({ page }) => {
+test('spawned widget icon buttons have labels (initiative controls)', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: '＋ Widget' }).click();
-  await page.getByRole('menuitem', { name: 'Conditions' }).click();
-  const win = page.locator('[data-win]').filter({ hasText: 'Conditions' }).last();
-  await expect(win.getByRole('button', { name: 'Add effect' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Initiative Tracker' }).click();
+  const win = page.locator('[data-win]').filter({ hasText: 'Initiative Tracker' }).last();
+  await expect(win.getByRole('button', { name: 'Remove' }).first()).toBeVisible();
 });

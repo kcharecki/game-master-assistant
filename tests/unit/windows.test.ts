@@ -42,7 +42,7 @@ describe('WindowManager', () => {
   });
 
   it('raises z-index on focus', () => {
-    const a = wm.add('scene');
+    const a = wm.add('lore');
     const b = wm.add('npcs');
     wm.focus(a.id);
     // Read via the store: $state holds proxies, not the raw returned objects.
@@ -109,7 +109,7 @@ describe('WindowManager', () => {
 
   it('tile skips minimized windows', () => {
     const a = wm.add('roller');
-    const b = wm.add('scene');
+    const b = wm.add('lore');
     wm.toggleMin(b.id); // b is minimized -> skipped
     wm.move(b.id, 555, 444);
     wm.tile(1000, 1000);

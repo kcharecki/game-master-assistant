@@ -168,23 +168,6 @@ button {
 .bar:active {
   cursor: grabbing;
 }
-.bar .dots {
-  display: flex;
-  gap: 5px;
-}
-.bar .dots i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: block;
-  background: #24332c;
-  border: 1px solid rgba(95, 150, 120, 0.3);
-}
-.bar .dots i.on {
-  background: var(--green-dim);
-  border-color: var(--eye);
-  box-shadow: 0 0 5px rgba(70, 232, 154, 0.5);
-}
 .bar .t {
   font-size: 10px;
   letter-spacing: 0.15em;

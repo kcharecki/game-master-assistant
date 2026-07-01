@@ -3,8 +3,6 @@ import { moduleList } from '../../lib/registry';
 import { npcs } from '../npcs/store.svelte';
 import { lore } from '../lore/store.svelte';
 import { notebook } from '../notebook/store.svelte';
-import { quests } from '../quests/store.svelte';
-import { tables } from '../tables/store.svelte';
 import { handouts } from '../handouts/store.svelte';
 import { rulesEntries } from '../rules/data';
 import { forSystem } from '../rules/logic';
@@ -36,18 +34,6 @@ export function collectSources(): PaletteItem[] {
       module: 'notebook',
       kind: 'open',
     });
-  }
-  // Quests
-  for (const q of quests.quests) {
-    out.push({ id: `quest-${q.id}`, label: q.title, detail: `${q.status} quest`, module: 'quests', kind: 'open' });
-  }
-  // Random tables
-  for (const t of tables.tables) {
-    out.push({ id: `table-${t.id}`, label: t.name, detail: 'Random table', module: 'tables', kind: 'open' });
-  }
-  // Rulings
-  for (const r of tables.rulings) {
-    out.push({ id: `ruling-${r.id}`, label: r.question, detail: 'Ruling', module: 'tables', kind: 'open' });
   }
   // Handouts
   for (const h of handouts.list) {

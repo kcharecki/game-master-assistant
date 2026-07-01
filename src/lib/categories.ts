@@ -17,43 +17,27 @@ export const FALLBACK: CategoryInfo = { category: 'Other', icon: '🔹' };
 export const categoryMap: Record<ModuleId, CategoryInfo> = {
   // Combat
   initiative: { category: 'Combat', icon: '⚔️' },
-  conditions: { category: 'Combat', icon: '🔖' },
-  statblock: { category: 'Combat', icon: '📕' },
-  reminders: { category: 'Combat', icon: '🐉' },
   sanity: { category: 'Combat', icon: '🧠' },
   // NPCs & World
   npcs: { category: 'NPCs & World', icon: '🧑' },
-  factions: { category: 'NPCs & World', icon: '🕸️' },
   lore: { category: 'NPCs & World', icon: '📜' },
   calendar: { category: 'NPCs & World', icon: '🗓️' },
   schedule: { category: 'NPCs & World', icon: '⏱️' },
   // Maps & Broadcast
   map: { category: 'Maps & Broadcast', icon: '🗺️' },
   reveal: { category: 'Maps & Broadcast', icon: '🖼️' },
-  composer: { category: 'Maps & Broadcast', icon: '🎛️' },
   stage: { category: 'Maps & Broadcast', icon: '🎚️' },
   preview: { category: 'Maps & Broadcast', icon: '📺' },
   handouts: { category: 'Maps & Broadcast', icon: '✉️' },
   // Atmosphere
   audio: { category: 'Atmosphere', icon: '🎵' },
-  scene: { category: 'Atmosphere', icon: '🎬' },
   // Dice & Rules
   roller: { category: 'Dice & Rules', icon: '🎲' },
-  skillcheck: { category: 'Dice & Rules', icon: '✅' },
   rules: { category: 'Dice & Rules', icon: '📖' },
-  tables: { category: 'Dice & Rules', icon: '🎰' },
   // Prep & Notes
   notebook: { category: 'Prep & Notes', icon: '📝' },
-  quests: { category: 'Prep & Notes', icon: '🧭' },
-  beats: { category: 'Prep & Notes', icon: '🗂️' },
-  improv: { category: 'Prep & Notes', icon: '💡' },
-  // Investigation
-  clues: { category: 'Investigation', icon: '🧵' },
-  dashboard: { category: 'Investigation', icon: '📊' },
-  spotlight: { category: 'Investigation', icon: '🔦' },
   // Utility
   palette: { category: 'Utility', icon: '⌘' },
-  archive: { category: 'Utility', icon: '🗃️' },
   // Timer lives with Utility — a session-pacing tool.
   timer: { category: 'Utility', icon: '⏲️' },
 };

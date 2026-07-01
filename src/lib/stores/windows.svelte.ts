@@ -107,18 +107,21 @@ class WindowManager {
    * at its saved geometry. New ids/z are minted so windows stay interactive.
    */
   restore(layout: { kind: WindowKind; x: number; y: number; w: number; h: number }[]): void {
-    this.windows = layout.map((p) => ({
-      id: crypto.randomUUID(),
-      kind: p.kind,
-      title: getModule(p.kind).title,
-      x: p.x,
-      y: p.y,
-      w: p.w,
-      h: p.h,
-      z: ++this.#z,
-      minimized: false,
-      collapsed: false,
-    }));
+    // Drop placements for modules that no longer exist (removed features).
+    this.windows = layout
+      .filter((p) => getModule(p.kind))
+      .map((p) => ({
+        id: crypto.randomUUID(),
+        kind: p.kind,
+        title: getModule(p.kind).title,
+        x: p.x,
+        y: p.y,
+        w: p.w,
+        h: p.h,
+        z: ++this.#z,
+        minimized: false,
+        collapsed: false,
+      }));
     this.persist();
   }
 
@@ -129,9 +132,10 @@ class WindowManager {
   async load(): Promise<void> {
     const saved = await kvGet<WindowState[]>('windows');
     if (saved?.length) {
-      // Older saved windows predate `collapsed`; coerce missing to false.
-      this.windows = saved.map((w) => ({ ...w, collapsed: w.collapsed ?? false }));
-      this.#z = Math.max(...saved.map((w) => w.z), 10);
+      // Drop windows for removed modules; older saves predate `collapsed`.
+      const live = saved.filter((w) => getModule(w.kind));
+      this.windows = live.map((w) => ({ ...w, collapsed: w.collapsed ?? false }));
+      this.#z = Math.max(...live.map((w) => w.z), 10);
     }
   }
 }

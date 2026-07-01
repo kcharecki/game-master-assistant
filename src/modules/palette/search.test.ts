@@ -5,7 +5,7 @@ const items: PaletteItem[] = [
   { id: 'npcs', label: 'NPC Roster', module: 'npcs', kind: 'open' },
   { id: 'et', label: 'Captain Eli Thorne', detail: 'Harbormaster', module: 'npcs', kind: 'editor' },
   { id: 'l1', label: 'Innsmouth', detail: 'A decaying fishing town', module: 'lore', kind: 'editor' },
-  { id: 'q1', label: 'The Innsmouth Gold', detail: 'open quest', module: 'quests', kind: 'open' },
+  { id: 'q1', label: 'The Innsmouth Gold', detail: 'session note', module: 'notebook', kind: 'open' },
   { id: 'spawn-map', label: 'Spawn Battle Map window', module: 'map', kind: 'spawn' },
 ];
 

@@ -20,13 +20,11 @@ describe('systemConfig', () => {
 });
 
 describe('isRelevantTo', () => {
-  it('routes statblock to D&D, sanity/clues to CoC', () => {
-    expect(isRelevantTo('statblock', 'dnd5e')).toBe(true);
+  it('routes initiative to D&D, sanity to CoC', () => {
     expect(isRelevantTo('initiative', 'dnd5e')).toBe(true);
     expect(isRelevantTo('sanity', 'dnd5e')).toBe(false);
 
     expect(isRelevantTo('sanity', 'coc7e')).toBe(true);
-    expect(isRelevantTo('clues', 'coc7e')).toBe(true);
-    expect(isRelevantTo('statblock', 'coc7e')).toBe(false);
+    expect(isRelevantTo('initiative', 'coc7e')).toBe(false);
   });
 });

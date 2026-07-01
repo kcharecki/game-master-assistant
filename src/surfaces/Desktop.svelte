@@ -14,11 +14,10 @@
   });
 
   function seed() {
-    wm.add('scene', 22, 20);
-    wm.add('initiative', 384, 20);
-    wm.add('roller', 702, 20);
-    wm.add('npcs', 384, 338);
-    wm.add('handouts', 702, 356);
+    wm.add('initiative', 22, 20);
+    wm.add('roller', 384, 20);
+    wm.add('npcs', 702, 20);
+    wm.add('handouts', 384, 338);
     wm.add('notebook', 22, 470);
   }
 </script>

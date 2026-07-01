@@ -51,7 +51,6 @@
     onpointerdown={() => wm.focus(win.id)}
   >
     <div class="bar" use:dragHandle={(x, y) => wm.move(win.id, x, y)}>
-      <span class="dots"><i class="on"></i><i></i><i></i></span>
       <span class="t">{title}</span>
       <span class="ctrl">
         <button

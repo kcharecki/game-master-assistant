@@ -20,13 +20,13 @@ const CONFIGS: Record<GameSystem, SystemConfig> = {
     id: 'dnd5e',
     label: 'D&D 5e',
     diceMode: 'd20',
-    relevantModules: ['statblock', 'initiative'],
+    relevantModules: ['initiative'],
   },
   coc7e: {
     id: 'coc7e',
     label: 'CoC 7e',
     diceMode: 'd100',
-    relevantModules: ['sanity', 'clues'],
+    relevantModules: ['sanity'],
   },
 };
 
