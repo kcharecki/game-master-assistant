@@ -26,8 +26,18 @@
     const offStatus = audio.subscribeStatus();
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
-      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
-      if (e.key >= '1' && e.key <= '9') audio.playSfxByHotkey(Number(e.key));
+      if (el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable)) return;
+      if (e.key === ' ' && audio.playingScene) {
+        e.preventDefault();
+        audio.togglePause();
+        return;
+      }
+      if (e.key >= '1' && e.key <= '9') {
+        // Index the *visible* soundboard so hotkeys match the on-screen badges
+        // even when a group filter is active.
+        const s = shownSfx[Number(e.key) - 1];
+        if (s) audio.playSfx(s.id);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => {
@@ -59,8 +69,22 @@
   function onAddYouTube() {
     if (audio.addYouTube(pickPlaylist, ytUrl)) ytUrl = '';
   }
-  function onSeek(e: Event) {
-    audio.seek((e.currentTarget as HTMLInputElement).valueAsNumber);
+  // While the user drags the seek thumb, hold `seeking` so incoming audioStatus
+  // reports don't yank the thumb back to the live position mid-drag.
+  let seeking = $state(false);
+  let seekPos = $state(0);
+  const seekValue = $derived(seeking ? seekPos : audio.position);
+  function onSeekInput(e: Event) {
+    seekPos = (e.currentTarget as HTMLInputElement).valueAsNumber;
+  }
+  function onSeekStart() {
+    seekPos = audio.position;
+    seeking = true;
+  }
+  function onSeekCommit() {
+    if (!seeking) return;
+    seeking = false;
+    audio.seek(seekPos);
   }
   function newScene() {
     const pl = audio.addPlaylist('New scene');
@@ -231,8 +255,13 @@
           min="0"
           max={audio.duration || 0}
           step="0.1"
-          value={audio.position}
-          oninput={onSeek}
+          value={seekValue}
+          oninput={onSeekInput}
+          onpointerdown={onSeekStart}
+          onpointerup={onSeekCommit}
+          onkeydown={onSeekStart}
+          onkeyup={onSeekCommit}
+          onchange={onSeekCommit}
           disabled={audio.playingYouTube || audio.duration <= 0}
           aria-label={t('audio.seek')}
         />

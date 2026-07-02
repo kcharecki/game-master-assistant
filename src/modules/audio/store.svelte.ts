@@ -464,7 +464,9 @@ class AudioStore {
       duckSfx?: boolean;
     }>('audio');
     if (!saved) return;
-    if (saved.playlists?.length) this.playlists = saved.playlists;
+    // Presence, not length: an empty array means the GM deleted every scene —
+    // honour that instead of resurrecting the seed list on reload.
+    if (Array.isArray(saved.playlists)) this.playlists = saved.playlists;
     if (saved.sfx) this.sfx = saved.sfx;
     if (typeof saved.ytAudioOnly === 'boolean') this.ytAudioOnly = saved.ytAudioOnly;
     if (typeof saved.masterVol === 'number') this.masterVol = clamp01(saved.masterVol);

@@ -37,4 +37,16 @@ describe('audio store persistence', () => {
     expect(track?.youtubeId).toBe('dQw4w9WgXcQ');
     expect(track?.label).toBe('Tavern loop');
   });
+
+  it('does not resurrect seed playlists after all are deleted', async () => {
+    audio.removePlaylist('tavern');
+    audio.removePlaylist('dungeon');
+    audio.removePlaylist('boss');
+    expect(audio.playlists).toHaveLength(0);
+
+    // Simulate a refresh with a non-empty in-memory seed, then load.
+    audio.playlists = [{ id: 'tavern', scene: 'Tavern', tracks: [] }];
+    await audio.load();
+    expect(audio.playlists).toHaveLength(0);
+  });
 });
