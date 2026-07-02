@@ -321,6 +321,15 @@
       title={t('stage.redo')}>↷</button
     >
     <span class="sep"></span>
+    <button
+      class="btn sm"
+      disabled={stage.tiles.length === 0}
+      onclick={() => stage.distribute()}
+      title={t('stage.distributeHint')}
+    >
+      <Icon name="tile" /> {t('stage.distribute')}
+    </button>
+    <span class="sep"></span>
     <button class="btn sm" class:laser={laserOn} onclick={toggleLaser} title={t('stage.laserHint')}>
       {t('stage.laser')}
     </button>

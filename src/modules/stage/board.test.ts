@@ -8,6 +8,7 @@ import {
   sceneToPayload,
   presetFromScene,
   sceneFromPreset,
+  distributeAreas,
   formatCountdown,
   STAGE_COLS,
   STAGE_ROWS,
@@ -226,5 +227,43 @@ describe('presets', () => {
     expect(scene2.tiles[0]).toMatchObject({ kind: 'image', col: 2, row: 3, cw: 4, rh: 2 });
     expect(scene2.tiles[0].src).toBeUndefined(); // content stripped
     expect(scene2.id).not.toBe(s.id);
+  });
+});
+
+describe('distributeAreas', () => {
+  it('returns nothing for an empty board', () => {
+    expect(distributeAreas(0, 12, 8)).toEqual([]);
+  });
+
+  it('gives one tile the whole board', () => {
+    expect(distributeAreas(1, 12, 8)).toEqual([{ col: 1, row: 1, cw: 12, rh: 8 }]);
+  });
+
+  it('splits four tiles into equal quadrants', () => {
+    expect(distributeAreas(4, 12, 8)).toEqual([
+      { col: 1, row: 1, cw: 6, rh: 4 },
+      { col: 7, row: 1, cw: 6, rh: 4 },
+      { col: 1, row: 5, cw: 6, rh: 4 },
+      { col: 7, row: 5, cw: 6, rh: 4 },
+    ]);
+  });
+
+  it('fills the board with no gaps or overlaps for any count', () => {
+    for (let n = 1; n <= 20; n++) {
+      const cells = new Set<string>();
+      for (const a of distributeAreas(n, 12, 8)) {
+        expect(a.cw).toBeGreaterThanOrEqual(1);
+        expect(a.rh).toBeGreaterThanOrEqual(1);
+        expect(a.col + a.cw - 1).toBeLessThanOrEqual(12);
+        expect(a.row + a.rh - 1).toBeLessThanOrEqual(8);
+        for (let c = a.col; c < a.col + a.cw; c++)
+          for (let r = a.row; r < a.row + a.rh; r++) {
+            const key = `${c},${r}`;
+            expect(cells.has(key)).toBe(false); // no overlap
+            cells.add(key);
+          }
+      }
+      expect(cells.size).toBe(12 * 8); // fills the board completely
+    }
   });
 });

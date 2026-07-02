@@ -246,3 +246,37 @@ export function sceneFromPreset(preset: Preset, name: string): Scene {
     tiles: preset.slots.map((s) => ({ id: uid(), ...s })),
   };
 }
+
+/**
+ * Even "tile" layout: split the board into `count` equal grid areas that fill
+ * it edge-to-edge with no gaps or overlaps. Uses a near-square ncols×nrows grid;
+ * a short final row stretches its tiles across the full width. Pure — the caller
+ * maps areas onto tiles in order. Returns [] for count ≤ 0.
+ */
+export function distributeAreas(
+  count: number,
+  cols = STAGE_COLS,
+  rows = STAGE_ROWS,
+): GridArea[] {
+  if (count <= 0) return [];
+  const ncols = Math.ceil(Math.sqrt(count));
+  const nrows = Math.ceil(count / ncols);
+  const areas: GridArea[] = [];
+  for (let i = 0; i < count; i++) {
+    const r = Math.floor(i / ncols);
+    const rowStart = r * ncols;
+    const inRow = Math.min(ncols, count - rowStart);
+    const c = i - rowStart;
+    const col = 1 + Math.round((c * cols) / inRow);
+    const colEnd = 1 + Math.round(((c + 1) * cols) / inRow);
+    const row = 1 + Math.round((r * rows) / nrows);
+    const rowEnd = 1 + Math.round(((r + 1) * rows) / nrows);
+    areas.push({
+      col,
+      row,
+      cw: Math.max(1, colEnd - col),
+      rh: Math.max(1, rowEnd - row),
+    });
+  }
+  return areas;
+}

@@ -9,6 +9,7 @@ import {
   sceneToPayload,
   presetFromScene,
   sceneFromPreset,
+  distributeAreas,
   type Scene,
   type Tile,
   type TileKind,
@@ -169,6 +170,18 @@ class StageStore {
       t.id === id ? clampTile({ ...t, ...place }, this.active.cols, this.active.rows) : t,
     );
     this.persistLive();
+  }
+
+  /** Tile all elements into an equal grid partition that fills the board. */
+  distribute(): void {
+    const tiles = this.active.tiles;
+    if (tiles.length === 0) return;
+    this.snapshot();
+    const areas = distributeAreas(tiles.length, this.active.cols, this.active.rows);
+    this.active.tiles = tiles.map((t, i) =>
+      clampTile({ ...t, ...areas[i] }, this.active.cols, this.active.rows),
+    );
+    this.commit();
   }
 
   removeTile(id: string): void {
