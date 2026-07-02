@@ -126,6 +126,20 @@ export type BroadcastPayload =
       volume?: number;
       /** sfx: duck the ambient bed while this shot plays. */
       duck?: boolean;
+    }
+  // Public dice roll shown as a big animated result card. Only ever sent for
+  // NON-hidden rolls — hidden GM rolls never become a card and never cross the
+  // bus. Carries only player-safe fields (dice faces, kept, modifier, total);
+  // `outcome` is the CoC d100 success tier when applicable.
+  | {
+      kind: 'roll';
+      label?: string;
+      expr: string;
+      rolls: number[];
+      kept: number[];
+      modifier: number;
+      total: number;
+      outcome?: string;
     };
 
 export type DisplayMode = 'cinematic' | 'plain';

@@ -86,6 +86,55 @@ export function roll(
   return spec ? rollDice(spec, mode, hidden, rng) : null;
 }
 
+/**
+ * Player-safe card model for a public roll: exactly the fields sent to the
+ * broadcast. Never carries `hidden` (hidden rolls stay GM-only and are never
+ * turned into a card). `outcome` holds the CoC d100 success tier when relevant.
+ */
+export interface RollCard {
+  label?: string;
+  expr: string;
+  rolls: number[];
+  kept: number[];
+  modifier: number;
+  total: number;
+  outcome?: string;
+}
+
+/**
+ * Build the player-safe card model from a RollResult. Strips `hidden`. For a
+ * single-die d100 roll, attaches the CoC success tier text as `outcome`.
+ */
+export function rollCardModel(result: RollResult, expr: string, label?: string): RollCard {
+  const spec = parseDice(expr);
+  const card: RollCard = {
+    ...(label ? { label } : {}),
+    expr,
+    rolls: result.rolls,
+    kept: result.kept,
+    modifier: result.modifier,
+    total: result.total,
+  };
+  if (spec && spec.count === 1 && spec.sides === 100 && result.kept.length === 1) {
+    card.outcome = rollOutcome(result.kept[0]);
+  }
+  return card;
+}
+
+/** One entry in the roller history log. Kept GM-side; may be re-aired if public. */
+export interface HistoryEntry {
+  id: string;
+  expr: string;
+  label?: string;
+  result: RollResult;
+  at: number;
+}
+
+/** Prepend `entry` and trim history to the newest `max` entries. Pure. */
+export function trimHistory(history: HistoryEntry[], entry: HistoryEntry, max = 20): HistoryEntry[] {
+  return [entry, ...history].slice(0, max);
+}
+
 export interface Macro {
   id: string;
   label: string;

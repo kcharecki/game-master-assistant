@@ -14,6 +14,14 @@ export const dicerules = {
     'roller.advantage': 'Advantage',
     'roller.disadvantage': 'Disadvantage',
     'roller.hidden': 'Hidden (GM)',
+    'roller.rollPublic': 'Roll public',
+    'roller.airThis': 'Air on broadcast',
+    'roller.reair': 'Re-air',
+    'roller.hiddenNoAir': 'hidden — not aired',
+    'roller.history': 'History',
+    'roller.noHistory': 'No rolls yet.',
+    'roller.label': 'Label (optional)',
+    'roller.labelPlaceholder': 'Label…',
 
     // rules
     'rules.lookup': 'Look up a rule…',
@@ -58,6 +66,14 @@ export const dicerules = {
     'roller.advantage': 'Przewaga',
     'roller.disadvantage': 'Utrudnienie',
     'roller.hidden': 'Ukryty (MG)',
+    'roller.rollPublic': 'Rzut publiczny',
+    'roller.airThis': 'Pokaż na ekranie',
+    'roller.reair': 'Pokaż ponownie',
+    'roller.hiddenNoAir': 'ukryty — nie pokazano',
+    'roller.history': 'Historia',
+    'roller.noHistory': 'Brak rzutów.',
+    'roller.label': 'Etykieta (opcjonalnie)',
+    'roller.labelPlaceholder': 'Etykieta…',
 
     // rules
     'rules.lookup': 'Wyszukaj zasadę…',

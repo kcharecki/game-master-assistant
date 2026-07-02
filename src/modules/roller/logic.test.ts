@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { rollOutcome, rollD100, parseDice, rollDice, roll } from './logic';
+import {
+  rollOutcome,
+  rollD100,
+  parseDice,
+  rollDice,
+  roll,
+  rollCardModel,
+  trimHistory,
+  type HistoryEntry,
+  type RollResult,
+} from './logic';
 
 describe('roller logic', () => {
   it('classifies outcomes against a skill of 50', () => {
@@ -82,5 +92,60 @@ describe('roll', () => {
 
   it('returns null for a bad expression', () => {
     expect(roll('nope')).toBeNull();
+  });
+});
+
+describe('rollCardModel', () => {
+  it('strips the hidden flag and copies the roll fields', () => {
+    const r: RollResult = { rolls: [4, 5], kept: [4, 5], modifier: 2, total: 11, hidden: true };
+    const card = rollCardModel(r, '2d6+2', 'Attack');
+    expect(card).toEqual({
+      label: 'Attack',
+      expr: '2d6+2',
+      rolls: [4, 5],
+      kept: [4, 5],
+      modifier: 2,
+      total: 11,
+    });
+    expect('hidden' in card).toBe(false);
+  });
+
+  it('omits an empty label', () => {
+    const r: RollResult = { rolls: [3], kept: [3], modifier: 0, total: 3, hidden: false };
+    expect(rollCardModel(r, '1d20').label).toBeUndefined();
+  });
+
+  it('attaches a CoC outcome tier for a single d100', () => {
+    const r: RollResult = { rolls: [5], kept: [5], modifier: 0, total: 5, hidden: false };
+    expect(rollCardModel(r, '1d100').outcome).toBe('Extreme Success');
+    const fail: RollResult = { rolls: [80], kept: [80], modifier: 0, total: 80, hidden: false };
+    expect(rollCardModel(fail, 'd100').outcome).toBe('Failure');
+  });
+
+  it('does not attach an outcome for non-d100 rolls', () => {
+    const r: RollResult = { rolls: [12], kept: [12], modifier: 0, total: 12, hidden: false };
+    expect(rollCardModel(r, '1d20').outcome).toBeUndefined();
+  });
+});
+
+describe('trimHistory', () => {
+  const mk = (id: string): HistoryEntry => ({
+    id,
+    expr: '1d20',
+    result: { rolls: [1], kept: [1], modifier: 0, total: 1, hidden: false },
+    at: 0,
+  });
+
+  it('prepends the newest entry', () => {
+    const out = trimHistory([mk('a')], mk('b'), 20);
+    expect(out.map((e) => e.id)).toEqual(['b', 'a']);
+  });
+
+  it('trims to the newest max entries', () => {
+    let hist: HistoryEntry[] = [];
+    for (let i = 0; i < 25; i++) hist = trimHistory(hist, mk(String(i)), 20);
+    expect(hist).toHaveLength(20);
+    expect(hist[0].id).toBe('24');
+    expect(hist[19].id).toBe('5');
   });
 });

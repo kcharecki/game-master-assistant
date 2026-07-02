@@ -557,6 +557,27 @@
       {#if imgSrc}<img src={imgSrc} alt={payload.caption ?? ''} />{/if}
       {#if payload.caption}<figcaption>{payload.caption}</figcaption>{/if}
     </figure>
+  {:else if payload.kind === 'roll'}
+    <!-- Public dice roll: a large centered card that tumbles/counts in. `#key`
+         on the payload identity retriggers the CSS animation on each new roll.
+         Motion is disabled under prefers-reduced-motion (see styles). -->
+    {#key payload}
+      <div class="rollcard">
+        {#if payload.label}<div class="rlabel">{payload.label}</div>{/if}
+        <div class="rexpr">{payload.expr}</div>
+        <div class="rtotal">{payload.total}</div>
+        <div class="rdice">
+          [{payload.kept.join(', ')}]{payload.modifier
+            ? (payload.modifier > 0 ? ' +' : ' ') + payload.modifier
+            : ''}
+        </div>
+        {#if payload.outcome}
+          <div class="routcome" class:crit={payload.outcome === 'Extreme Success'} class:fumble={payload.outcome === 'Fumble'}>
+            {payload.outcome}
+          </div>
+        {/if}
+      </div>
+    {/key}
   {:else if payload.kind === 'map'}
     {@const cols = payload.reveal[0]?.length ?? 0}
     {@const rows = payload.reveal.length}
@@ -913,6 +934,97 @@
   .gtext p {
     font-size: clamp(13px, 1.7vw, 19px);
     line-height: 1.5;
+  }
+
+  /* Public roll result card: large, centered, animated in. */
+  .rollcard {
+    text-align: center;
+    animation: cardin 0.55s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  }
+  .rlabel {
+    font-family: Georgia, serif;
+    color: var(--muted);
+    font-size: clamp(16px, 2.4vw, 28px);
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .rexpr {
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: clamp(12px, 1.4vw, 16px);
+    margin-bottom: 10px;
+  }
+  .rtotal {
+    font-family: Georgia, serif;
+    color: var(--green);
+    font-weight: 700;
+    line-height: 1;
+    font-size: clamp(72px, 18vw, 220px);
+    text-shadow: 0 0 40px rgba(47, 138, 102, 0.45);
+    animation: tumble 0.7s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  }
+  .rdice {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: clamp(16px, 2.2vw, 28px);
+  }
+  .routcome {
+    margin-top: 16px;
+    font-family: Georgia, serif;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: clamp(18px, 3vw, 40px);
+    color: var(--txt);
+    animation: fadein 0.5s 0.35s ease both;
+  }
+  .routcome.crit {
+    color: var(--green);
+    text-shadow: 0 0 24px rgba(47, 138, 102, 0.5);
+  }
+  .routcome.fumble {
+    color: var(--red);
+    text-shadow: 0 0 24px rgba(220, 70, 70, 0.45);
+  }
+  @keyframes cardin {
+    from {
+      opacity: 0;
+      transform: scale(0.86);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes tumble {
+    0% {
+      opacity: 0;
+      transform: rotate(-18deg) scale(0.5);
+    }
+    55% {
+      transform: rotate(8deg) scale(1.12);
+    }
+    100% {
+      opacity: 1;
+      transform: rotate(0) scale(1);
+    }
+  }
+  @keyframes fadein {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rollcard,
+    .rtotal,
+    .routcome {
+      animation: none;
+    }
   }
 
   .mood {
