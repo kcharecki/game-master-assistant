@@ -372,6 +372,19 @@ class MapStore {
     }
   }
 
+  /**
+   * Live drag move: update a token's cell in memory only (no IndexedDB write),
+   * skipping when the snapped cell hasn't changed. The caller persists once on
+   * drop via `persist()`, so a drag no longer floods the DB every pointermove.
+   */
+  setTokenPos(id: string, gx: number, gy: number): void {
+    const t = this.tokens.find((x) => x.id === id);
+    if (t && (t.gx !== gx || t.gy !== gy)) {
+      t.gx = gx;
+      t.gy = gy;
+    }
+  }
+
   removeToken(id: string): void {
     this.tokens = this.tokens.filter((t) => t.id !== id);
     this.persist();

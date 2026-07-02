@@ -214,7 +214,7 @@
       curStroke = [...curStroke, { x, y }];
     } else if (dragId) {
       const { gx, gy } = toCell(svg, e.clientX, e.clientY);
-      map.moveToken(dragId, gx, gy);
+      map.setTokenPos(dragId, gx, gy);
     } else if (panning) {
       map.pan(e.clientX - lastX, e.clientY - lastY);
       lastX = e.clientX;
@@ -291,6 +291,10 @@
       curStroke = null;
       persistDraw();
     }
+    // Persist a token drag once, on drop (moves were in-memory during the drag).
+    if (dragId) map.persist();
+    // Persist brush-painted fog once, on release.
+    if (fogTool === 'reveal' || fogTool === 'hide') map.persistFog();
     dragId = null;
     panning = false;
   }
