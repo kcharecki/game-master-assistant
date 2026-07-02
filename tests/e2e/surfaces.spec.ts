@@ -5,8 +5,6 @@ test('editor surface: opening NPCs renders the roster authoring view', async ({ 
   // Left rail links open editor tabs (surface 2). The roster editor has its own heading.
   await page.getByRole('link', { name: 'NPCs' }).click();
   await expect(page.getByRole('heading', { name: 'NPC Roster' })).toBeVisible();
-  // A tab for the open editor appears in the tab strip and can be closed.
-  await expect(page.getByRole('button', { name: 'Close tab' })).toBeVisible();
 });
 
 test('window system: resize a spawned widget changes its width', async ({ page }) => {
@@ -32,20 +30,20 @@ test('window system: resize a spawned widget changes its width', async ({ page }
   expect(after.width).toBeGreaterThan(before.width + 50);
 });
 
-test('window system: minimize to dock then restore', async ({ page }) => {
+test('dock: clicking a widget tile toggles its window hidden then visible', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Battle Map', exact: true }).click();
+  const tile = page.getByRole('button', { name: 'Battle Map', exact: true });
 
-  const win = page.locator('[data-win]').filter({ hasText: 'Battle Map' }).last();
+  // First click spawns the window.
+  await tile.click();
+  const win = page.locator('[data-win]').filter({ hasText: 'Battle Map' });
   await expect(win).toBeVisible();
 
-  // Minimize collapses the window to a dock chip.
-  await win.getByRole('button', { name: 'Minimize' }).click();
-  await expect(win).toBeHidden();
-  const chip = page.locator('.minchip').filter({ hasText: 'Battle Map' });
-  await expect(chip).toBeVisible();
+  // Clicking the tile again hides it (no minimize chip — it just disappears).
+  await tile.click();
+  await expect(win).toHaveCount(0);
 
-  // Clicking the chip restores the window.
-  await chip.click();
-  await expect(page.locator('[data-win]').filter({ hasText: 'Battle Map' }).last()).toBeVisible();
+  // A third click brings it back.
+  await tile.click();
+  await expect(page.locator('[data-win]').filter({ hasText: 'Battle Map' })).toBeVisible();
 });

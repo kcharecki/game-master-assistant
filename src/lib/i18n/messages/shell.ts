@@ -62,7 +62,6 @@ export const shell = {
     'win.delete': 'Delete',
     'win.collapse': 'Collapse',
     'win.expand': 'Expand',
-    'win.minimize': 'Minimize',
     'win.close': 'Close',
 
     // Broadcast idle screen.
@@ -86,8 +85,6 @@ export const shell = {
     'sidebar.storageSep': ' / ',
     'sidebar.nearLimit': ' · near limit',
     'sidebar.checkStorage': 'Check storage usage',
-    'tabs.desktop': 'Desktop',
-    'tabs.closeTab': 'Close tab',
 
     // App-wide toast + palette verb hint.
     'toast.undo': 'Undo',
@@ -159,7 +156,6 @@ export const shell = {
     'win.delete': 'Usuń',
     'win.collapse': 'Zwiń',
     'win.expand': 'Rozwiń',
-    'win.minimize': 'Minimalizuj',
     'win.close': 'Zamknij',
 
     // Broadcast idle screen.
@@ -183,8 +179,6 @@ export const shell = {
     'sidebar.storageSep': ' / ',
     'sidebar.nearLimit': ' · blisko limitu',
     'sidebar.checkStorage': 'Sprawdź użycie pamięci',
-    'tabs.desktop': 'Pulpit',
-    'tabs.closeTab': 'Zamknij kartę',
 
     // App-wide toast + palette verb hint.
     'toast.undo': 'Cofnij',

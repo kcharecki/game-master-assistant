@@ -17,8 +17,7 @@ test('icon-only window controls expose accessible names', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.desktop')).toBeVisible();
   const win = page.locator('[data-win]').first();
-  // The dash/✕ glyph controls must be reachable by name, not just by sight.
-  await expect(win.getByRole('button', { name: 'Minimize' })).toBeVisible();
+  // The ✕ glyph control must be reachable by name, not just by sight.
   await expect(win.getByRole('button', { name: 'Close' })).toBeVisible();
 });
 
