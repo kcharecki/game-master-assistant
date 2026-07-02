@@ -12,6 +12,21 @@
   const conditionCatalog = $derived(conditionsFor(system.current));
   let statesOpen = $state(false);
 
+  // Visible canvas size (px), bound on the wrapper below. Lets us size the grid
+  // overlay to just the viewport instead of a giant fixed rect — a big perf win,
+  // since a huge patterned rect re-rasterises thousands of tiles on every
+  // pan/zoom/measure frame.
+  let vw = $state(0);
+  let vh = $state(0);
+  const gridRect = $derived.by(() => {
+    const { panX, panY, zoom } = map.transform;
+    const G = GRID_SIZE;
+    const m = G * 2; // margin so lines cover the edges while panning
+    const x = Math.floor(-panX / zoom / G) * G - m;
+    const y = Math.floor(-panY / zoom / G) * G - m;
+    return { x, y, w: vw / zoom + m * 2, h: vh / zoom + m * 2 };
+  });
+
   let selected = $state<string | null>(null);
   let dragId: string | null = null;
   let panning = false;
@@ -324,7 +339,7 @@
   }
 </script>
 
-<div class="map-wrap" data-no-drag>
+<div class="map-wrap" data-no-drag bind:clientWidth={vw} bind:clientHeight={vh}>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <svg
     class="canvas"
@@ -356,7 +371,7 @@
           preserveAspectRatio="none"
         />
       {/if}
-      <rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#grid)" />
+      <rect x={gridRect.x} y={gridRect.y} width={gridRect.w} height={gridRect.h} fill="url(#grid)" />
 
       <!-- Fog: hidden cells dimmed on the GM view (players see them opaque). -->
       {#each map.fog as fogRow, row (row)}
