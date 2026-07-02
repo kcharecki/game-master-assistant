@@ -95,6 +95,15 @@ export const shell = {
     'sidebar.checkStorage': 'Check storage usage',
     'tabs.desktop': 'Desktop',
     'tabs.closeTab': 'Close tab',
+
+    // App-wide toast + palette verb hint.
+    'toast.undo': 'Undo',
+    'toast.dismiss': 'Dismiss',
+    'toast.sceneDeleted': 'Scene deleted',
+    'toast.handoutDeleted': 'Handout deleted',
+    'toast.npcDeleted': 'NPC deleted',
+    'toast.loreDeleted': 'Lore page deleted',
+    'palette.verbRun': 'Press Enter to run this command',
   },
   pl: {
     // Module titles.
@@ -190,5 +199,14 @@ export const shell = {
     'sidebar.checkStorage': 'Sprawdź użycie pamięci',
     'tabs.desktop': 'Pulpit',
     'tabs.closeTab': 'Zamknij kartę',
+
+    // App-wide toast + palette verb hint.
+    'toast.undo': 'Cofnij',
+    'toast.dismiss': 'Odrzuć',
+    'toast.sceneDeleted': 'Usunięto scenę',
+    'toast.handoutDeleted': 'Usunięto materiał',
+    'toast.npcDeleted': 'Usunięto BN',
+    'toast.loreDeleted': 'Usunięto stronę wiedzy',
+    'palette.verbRun': 'Naciśnij Enter, aby wykonać polecenie',
   },
 };

@@ -57,6 +57,12 @@
         oninput={(e) => palette.setQuery((e.currentTarget as HTMLInputElement).value)}
         onkeydown={onKeydown}
       />
+      {#if palette.verb}
+        <div class="verbhint">
+          <span class="vk">⏎</span>
+          <span>{t('palette.verbRun')}</span>
+        </div>
+      {/if}
       <div class="results" role="listbox">
         {#each palette.results as hit, i (hit.id)}
           <button
@@ -111,6 +117,22 @@
     font: inherit;
     font-size: 15px;
     outline: none;
+  }
+  .verbhint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--line);
+    color: var(--green, #6fd0a0);
+    font-size: 12px;
+  }
+  .vk {
+    border: 1px solid var(--line2);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    color: var(--muted);
   }
   .results {
     overflow-y: auto;

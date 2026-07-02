@@ -2,6 +2,11 @@ import type { WindowState, WindowKind } from '../types';
 import { kvGet, kvSet } from '../db';
 import { getModule } from '../registry';
 
+/** kv key: last size (w/h) the GM left a module's window at, keyed by module id. */
+const SIZES_KEY = 'windowSizes';
+
+type SizeMap = Partial<Record<WindowKind, { w: number; h: number }>>;
+
 /** Reactive desktop window manager. One instance shared across the GM app. */
 class WindowManager {
   static readonly MIN_W = 200;
@@ -9,17 +14,20 @@ class WindowManager {
 
   windows = $state<WindowState[]>([]);
   #z = 10;
+  /** per-module remembered size, so a new window opens where the last one sat. */
+  #sizes: SizeMap = {};
 
   add(kind: WindowKind, x = 40, y = 40): WindowState {
     const mod = getModule(kind);
+    const remembered = this.#sizes[kind];
     const win: WindowState = {
       id: crypto.randomUUID(),
       kind,
       title: mod.title,
       x,
       y,
-      w: mod.size.w,
-      h: mod.size.h,
+      w: remembered?.w ?? mod.size.w,
+      h: remembered?.h ?? mod.size.h,
       z: ++this.#z,
       minimized: false,
       collapsed: false,
@@ -42,12 +50,14 @@ class WindowManager {
     }
   }
 
-  /** Resize a window, clamping to sane minimums. */
+  /** Resize a window, clamping to sane minimums. Remembers the size per module. */
   resize(id: string, w: number, h: number): void {
     const win = this.windows.find((win) => win.id === id);
     if (!win) return;
     win.w = Math.max(WindowManager.MIN_W, Math.round(w));
     win.h = Math.max(WindowManager.MIN_H, Math.round(h));
+    this.#sizes[win.kind] = { w: win.w, h: win.h };
+    void kvSet(SIZES_KEY, this.#sizes);
     this.persist();
   }
 
@@ -130,6 +140,8 @@ class WindowManager {
   }
 
   async load(): Promise<void> {
+    const sizes = await kvGet<SizeMap>(SIZES_KEY);
+    if (sizes) this.#sizes = sizes;
     const saved = await kvGet<WindowState[]>('windows');
     if (saved?.length) {
       // Drop windows for removed modules; older saves predate `collapsed`.

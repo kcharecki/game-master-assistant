@@ -37,6 +37,15 @@ import {
   exportCampaign,
   importCampaign,
   CAMPAIGN_VERSION,
+  buildSnapshot,
+  pushSnapshot,
+  mergeSnapshot,
+  makeSnapshot,
+  restoreSnapshot,
+  listSnapshots,
+  SNAPSHOTS_KEY,
+  MAX_SNAPSHOTS,
+  type Snapshot,
 } from './backup';
 
 describe('base64 round-trip', () => {
@@ -93,5 +102,65 @@ describe('campaignToJson', () => {
   it('produces parseable JSON', () => {
     const f = buildCampaign({}, {}, []);
     expect(parseCampaign(JSON.parse(campaignToJson(f)))).toEqual(f);
+  });
+});
+
+describe('snapshot pure helpers', () => {
+  it('buildSnapshot stamps id/label from time', () => {
+    const s = buildSnapshot({ a: 1 }, { notes: [] }, 1000);
+    expect(s.id).toBe('snap-1000');
+    expect(s.at).toBe(1000);
+    expect(s.label).toBe(new Date(1000).toISOString());
+    expect(s.kv.a).toBe(1);
+  });
+
+  it('pushSnapshot keeps newest-first and caps length', () => {
+    let ring: Snapshot[] = [];
+    for (let i = 1; i <= MAX_SNAPSHOTS + 2; i++) {
+      ring = pushSnapshot(ring, buildSnapshot({}, {}, i));
+    }
+    expect(ring).toHaveLength(MAX_SNAPSHOTS);
+    expect(ring[0].at).toBe(MAX_SNAPSHOTS + 2); // newest first
+  });
+
+  it('mergeSnapshot lets snapshot rows win but keeps live-only rows', () => {
+    const live = {
+      kv: { system: 'coc', extra: 1 },
+      stores: { notes: [{ id: 'a', body: 'live-a' }, { id: 'b', body: 'live-b' }] },
+    };
+    const snap = buildSnapshot(
+      { system: 'dnd5e' },
+      { notes: [{ id: 'a', body: 'snap-a' }] },
+      5
+    );
+    const merged = mergeSnapshot(live, snap);
+    expect(merged.kv).toEqual({ system: 'dnd5e', extra: 1 });
+    const notes = merged.stores.notes as { id: string; body: string }[];
+    expect(notes.find((n) => n.id === 'a')?.body).toBe('snap-a');
+    expect(notes.find((n) => n.id === 'b')?.body).toBe('live-b');
+  });
+});
+
+describe('snapshot IndexedDB round-trip', () => {
+  it('captures a snapshot, lists it, and restores it', async () => {
+    for (const m of Object.values(stores)) m.clear();
+    stores.kv.set('system', 'coc');
+    stores.notes.set('n1', { id: 'n1', body: 'original', at: 1 });
+
+    const snap = await makeSnapshot('my session');
+    expect(snap.label).toBe('my session');
+    expect((stores.kv.get(SNAPSHOTS_KEY) as Snapshot[]).length).toBe(1);
+    // the snapshot ring key must not be captured inside the snapshot
+    expect(SNAPSHOTS_KEY in snap.kv).toBe(false);
+
+    const list = await listSnapshots();
+    expect(list[0].id).toBe(snap.id);
+
+    // mutate live data, then roll back
+    stores.notes.set('n1', { id: 'n1', body: 'changed', at: 2 });
+    const ok = await restoreSnapshot(snap.id);
+    expect(ok).toBe(true);
+    expect((stores.notes.get('n1') as { body: string }).body).toBe('original');
+    expect(await restoreSnapshot('missing')).toBe(false);
   });
 });

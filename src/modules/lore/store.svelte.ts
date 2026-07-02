@@ -1,5 +1,7 @@
 import { kvSet, kvGet } from '../../lib/db';
 import { backlinks, parseLinks, resolveLink, type Page } from './logic';
+import { toast } from '../../lib/stores/toast.svelte';
+import { t } from '../../lib/i18n';
 
 export type { Page } from './logic';
 
@@ -61,9 +63,20 @@ class LoreStore {
   }
 
   remove(id: string): void {
+    const i = this.pages.findIndex((p) => p.id === id);
+    if (i < 0) return;
+    const removed = $state.snapshot(this.pages[i]) as Page;
+    const prevSelected = this.selectedId;
     this.pages = this.pages.filter((p) => p.id !== id);
     if (this.selectedId === id) this.selectedId = this.pages[0]?.id ?? '';
     this.persist();
+    toast.undoable(t('toast.loreDeleted'), () => {
+      const back = this.pages.slice();
+      back.splice(i, 0, removed);
+      this.pages = back;
+      this.selectedId = prevSelected;
+      this.persist();
+    });
   }
 
   select(id: string): void {

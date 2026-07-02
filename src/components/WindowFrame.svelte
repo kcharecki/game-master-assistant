@@ -8,6 +8,7 @@
   import { t } from '../lib/i18n';
   import { dragHandle } from '../lib/actions/drag';
   import { resizeHandle } from '../lib/actions/resize';
+  import { collectGuides, snapRect } from '../lib/actions/snap';
   import Stub from './Stub.svelte';
   import Icon from '../lib/components/Icon.svelte';
   import ModuleIcon from './ModuleIcon.svelte';
@@ -22,6 +23,21 @@
   );
 
   onMount(() => void feedback.load());
+
+  const SNAP_THRESHOLD = 9;
+
+  // Snap a dragged position to screen/other-window edges with a little magnetism.
+  function moveSnapped(x: number, y: number): void {
+    const desk = document.getElementById('desktop');
+    const others = wm.windows
+      .filter((w) => w.id !== win.id && !w.minimized)
+      .map((w) => ({ x: w.x, y: w.y, w: w.w, h: w.h }));
+    const vw = desk?.clientWidth ?? window.innerWidth;
+    const vh = desk?.clientHeight ?? window.innerHeight;
+    const guides = collectGuides(vw, vh, others);
+    const snapped = snapRect({ x, y, w: win.w, h: win.h }, guides, SNAP_THRESHOLD);
+    wm.move(win.id, snapped.x, snapped.y);
+  }
 
   // Per-component feedback popover.
   let fbOpen = $state(false);
@@ -58,7 +74,7 @@
       : win.h + 'px'};z-index:{win.z}"
     onpointerdown={() => wm.focus(win.id)}
   >
-    <div class="bar" use:dragHandle={(x, y) => wm.move(win.id, x, y)}>
+    <div class="bar" use:dragHandle={(x, y) => moveSnapped(x, y)}>
       <span class="sigil" aria-hidden="true"><ModuleIcon id={win.kind} size={14} /></span>
       <span class="t">{title}</span>
       <span class="ctrl">

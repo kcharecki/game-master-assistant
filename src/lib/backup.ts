@@ -118,6 +118,123 @@ export function campaignToJson(file: CampaignFile): string {
   return JSON.stringify(file, null, 2);
 }
 
+// --- Session auto-backup snapshots -----------------------------------------
+
+/**
+ * A lightweight session-end snapshot: the campaign's kv + object-store rows
+ * (WITHOUT asset blobs, which are large and already persisted separately).
+ * Kept as a small ring in one kv key so we can roll back a bad session.
+ */
+export interface Snapshot {
+  id: string;
+  at: number;
+  label: string;
+  kv: Record<string, unknown>;
+  stores: Record<string, unknown[]>;
+}
+
+/** kv key holding the snapshot ring. */
+export const SNAPSHOTS_KEY = 'sessionSnapshots';
+/** how many snapshots to retain. */
+export const MAX_SNAPSHOTS = 5;
+
+/**
+ * Build a Snapshot record from dumped kv + stores. Pure — unit-tested.
+ * `label` defaults to a locale-independent ISO-ish timestamp.
+ */
+export function buildSnapshot(
+  kv: Record<string, unknown>,
+  stores: Record<string, unknown[]>,
+  now = Date.now(),
+  id = 'snap-' + now
+): Snapshot {
+  return { id, at: now, label: new Date(now).toISOString(), kv, stores };
+}
+
+/**
+ * Pure ring push: prepend `snap` (newest-first) and keep at most `n`. Used to
+ * cap how many auto-backups we retain. Pure — unit-tested.
+ */
+export function pushSnapshot(ring: Snapshot[], snap: Snapshot, n = MAX_SNAPSHOTS): Snapshot[] {
+  return [snap, ...ring].slice(0, Math.max(0, n));
+}
+
+/**
+ * Merge a snapshot's stores/kv over a live pair of dumps (snapshot wins on key
+ * collisions; live-only rows are preserved). Pure — the core of a rollback.
+ * Rows are keyed by their `id`; kv by its key.
+ */
+export function mergeSnapshot(
+  live: { kv: Record<string, unknown>; stores: Record<string, unknown[]> },
+  snap: Snapshot
+): { kv: Record<string, unknown>; stores: Record<string, unknown[]> } {
+  const kv = { ...live.kv, ...snap.kv };
+  const stores: Record<string, unknown[]> = {};
+  const names = new Set([...Object.keys(live.stores), ...Object.keys(snap.stores)]);
+  for (const name of names) {
+    const byId = new Map<unknown, unknown>();
+    for (const row of live.stores[name] ?? []) byId.set((row as { id: unknown }).id, row);
+    for (const row of snap.stores[name] ?? []) byId.set((row as { id: unknown }).id, row);
+    stores[name] = [...byId.values()];
+  }
+  return { kv, stores };
+}
+
+/** Dump kv + object stores (no asset blobs) for a snapshot. */
+async function dumpForSnapshot(): Promise<{
+  kv: Record<string, unknown>;
+  stores: Record<string, unknown[]>;
+}> {
+  const d = await db();
+  const kv: Record<string, unknown> = {};
+  for (const key of await d.getAllKeys('kv')) {
+    // don't snapshot the snapshot ring itself
+    if (String(key) === SNAPSHOTS_KEY) continue;
+    kv[String(key)] = await d.get('kv', key);
+  }
+  const stores: Record<string, unknown[]> = {};
+  for (const s of STORES) stores[s] = await d.getAll(s);
+  return { kv, stores };
+}
+
+/**
+ * Capture a session-end snapshot and push it onto the retained ring in kv.
+ * Returns the new snapshot. Safe to call on `beforeunload` / "end session".
+ */
+export async function makeSnapshot(label?: string): Promise<Snapshot> {
+  const d = await db();
+  const dump = await dumpForSnapshot();
+  const snap = buildSnapshot(dump.kv, dump.stores);
+  if (label) snap.label = label;
+  const ring = ((await d.get('kv', SNAPSHOTS_KEY)) as Snapshot[] | undefined) ?? [];
+  await d.put('kv', pushSnapshot(ring, snap), SNAPSHOTS_KEY);
+  return snap;
+}
+
+/** List retained snapshots, newest first. */
+export async function listSnapshots(): Promise<Snapshot[]> {
+  const d = await db();
+  return ((await d.get('kv', SNAPSHOTS_KEY)) as Snapshot[] | undefined) ?? [];
+}
+
+/**
+ * Restore a snapshot by id back into IndexedDB (merge over current data). Rows
+ * present in the snapshot overwrite; live-only rows are left alone. Returns true
+ * if the snapshot existed. Caller reloads to re-hydrate stores.
+ */
+export async function restoreSnapshot(id: string): Promise<boolean> {
+  const d = await db();
+  const ring = ((await d.get('kv', SNAPSHOTS_KEY)) as Snapshot[] | undefined) ?? [];
+  const snap = ring.find((s) => s.id === id);
+  if (!snap) return false;
+  for (const [k, v] of Object.entries(snap.kv)) await d.put('kv', v, k);
+  for (const [s, rows] of Object.entries(snap.stores)) {
+    if (!(STORES as readonly string[]).includes(s)) continue;
+    for (const row of rows) await d.put(s as (typeof STORES)[number], row as never);
+  }
+  return true;
+}
+
 export interface QuotaInfo {
   usage: number;
   quota: number;

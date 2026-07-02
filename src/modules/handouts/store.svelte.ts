@@ -1,6 +1,8 @@
 import { kvGet, kvSet, assetPut, assetUrl } from '../../lib/db';
 import { putOnAir } from '../reveal/bus-actions';
 import { handoutPayload, type Handout } from './logic';
+import { toast } from '../../lib/stores/toast.svelte';
+import { t } from '../../lib/i18n';
 
 export type { Handout } from './logic';
 
@@ -39,8 +41,17 @@ class HandoutStore {
   }
 
   remove(id: string): void {
+    const i = this.list.findIndex((h) => h.id === id);
+    if (i < 0) return;
+    const removed = $state.snapshot(this.list[i]) as Handout;
     this.list = this.list.filter((h) => h.id !== id);
     this.persist();
+    toast.undoable(t('toast.handoutDeleted'), () => {
+      const back = this.list.slice();
+      back.splice(i, 0, removed);
+      this.list = back;
+      this.persist();
+    });
   }
 
   /** Attach an uploaded image to a handout, storing it in the asset store. */

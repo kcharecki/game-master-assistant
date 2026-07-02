@@ -11,6 +11,12 @@
   import { palette } from './modules/palette/store.svelte';
   import { density } from './lib/stores/density.svelte';
   import Icon from './lib/components/Icon.svelte';
+  import Toast from './components/Toast.svelte';
+  import { resolveWikilink } from './lib/wikilink';
+  import { lore } from './modules/lore/store.svelte';
+  import { npcs } from './modules/npcs/store.svelte';
+  import { toast } from './lib/stores/toast.svelte';
+  import { makeSnapshot } from './lib/backup';
 
   // Surface 1 (desktop) + surface 2 (editor tabs) live here. Surface 3 (broadcast) is a separate page.
   let view = $state<'desktop' | ModuleId>('desktop');
@@ -24,6 +30,36 @@
   onMount(() => {
     void lang.load();
     void density.load();
+
+    // Resolve notebook [[wikilinks]] to a lore page or NPC and jump there.
+    function onWikilink(e: Event) {
+      const name = (e as CustomEvent<{ name: string }>).detail?.name;
+      if (!name) return;
+      const hit = resolveWikilink(
+        name,
+        lore.pages.map((p) => ({ id: p.id, name: p.title })),
+        npcs.list.map((n) => ({ id: n.id, name: n.name })),
+      );
+      if (!hit) {
+        toast.show(`No lore page or NPC named “${name}”`);
+        return;
+      }
+      openEditor(hit.module);
+      if (hit.module === 'lore') lore.select(hit.id);
+      else npcs.focus(hit.id);
+    }
+    window.addEventListener('notebook:wikilink', onWikilink);
+
+    // Auto-backup: snapshot campaign state when the tab is about to unload.
+    function onUnload() {
+      void makeSnapshot();
+    }
+    window.addEventListener('beforeunload', onUnload);
+
+    return () => {
+      window.removeEventListener('notebook:wikilink', onWikilink);
+      window.removeEventListener('beforeunload', onUnload);
+    };
   });
 
   // Let the command palette open editor tabs when a result targets one.
@@ -51,6 +87,7 @@
 <svelte:window onkeydown={onGlobalKeydown} />
 
 <Palette />
+<Toast />
 
 <div class="app">
   <Topbar onOpenBroadcast={openBroadcast} />

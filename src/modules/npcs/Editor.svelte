@@ -14,6 +14,20 @@
   // Which cards have their detail panel expanded.
   let open = $state<Record<string, boolean>>({});
 
+  // Cross-module focus (e.g. from a notebook [[wikilink]]): clear the filter so
+  // the target card is visible, expand + highlight it, and scroll it into view.
+  let gridEl: HTMLElement | undefined = $state();
+  $effect(() => {
+    const id = npcs.focusId;
+    if (!id) return;
+    query = '';
+    open[id] = true;
+    npcs.focusId = null;
+    queueMicrotask(() => {
+      gridEl?.querySelector(`[data-npc="${id}"]`)?.scrollIntoView({ block: 'center' });
+    });
+  });
+
   // Resolve every referenced asset id (primary + gallery) -> object URL,
   // revoking old ones on change.
   let urls = $state<Record<string, string>>({});
@@ -71,9 +85,9 @@
     <Empty text={t('npcs.empty')} actionLabel={t('npcs.newNpc')} onAction={() => npcs.add()} />
   {/if}
 
-  <div class="grid">
+  <div class="grid" bind:this={gridEl}>
     {#each shown as n (n.id)}
-      <div class="card">
+      <div class="card" data-npc={n.id}>
         <div class="portrow">
           <label class="port" title={t('npcs.uploadPortrait')}>
             {#if n.portraitId && urls[n.portraitId]}

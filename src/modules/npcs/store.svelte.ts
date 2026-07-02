@@ -1,5 +1,7 @@
 import { kvSet, kvGet } from '../../lib/db';
 import { generateNpc, type Rng } from './generator';
+import { toast } from '../../lib/stores/toast.svelte';
+import { t } from '../../lib/i18n';
 
 export type Disposition = 'ally' | 'neutral' | 'hostile';
 
@@ -44,6 +46,13 @@ const SEED: Npc[] = [
 /** NPC roster state. Shared by the NPC desktop widget and the NPC editor tab. */
 class NpcStore {
   list = $state<Npc[]>([...SEED]);
+  /** id a cross-module jump (e.g. notebook wikilink) asked the editor to focus. */
+  focusId = $state<string | null>(null);
+
+  /** Request the editor focus/scroll to an NPC (cleared once consumed). */
+  focus(id: string): void {
+    if (this.list.some((n) => n.id === id)) this.focusId = id;
+  }
 
   add(name = 'New NPC'): Npc {
     const npc: Npc = { id: crypto.randomUUID(), name, role: '', disposition: 'neutral' };
@@ -74,8 +83,17 @@ class NpcStore {
   }
 
   remove(id: string): void {
+    const i = this.list.findIndex((n) => n.id === id);
+    if (i < 0) return;
+    const removed = $state.snapshot(this.list[i]) as Npc;
     this.list = this.list.filter((n) => n.id !== id);
     this.persist();
+    toast.undoable(t('toast.npcDeleted'), () => {
+      const back = this.list.slice();
+      back.splice(i, 0, removed);
+      this.list = back;
+      this.persist();
+    });
   }
 
   // --- Equipment -----------------------------------------------------------

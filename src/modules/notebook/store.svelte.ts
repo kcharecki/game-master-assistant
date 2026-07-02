@@ -1,6 +1,8 @@
 import { kvSet, kvGet } from '../../lib/db';
 import type { BroadcastPayload } from '../../lib/types';
 import { describeOnAir } from '../../lib/onair';
+import { toast } from '../../lib/stores/toast.svelte';
+import { t } from '../../lib/i18n';
 import { initiative } from '../initiative/store.svelte';
 import { calendar } from '../calendar/store.svelte';
 import { npcs } from '../npcs/store.svelte';
@@ -129,13 +131,14 @@ class NotebookStore {
     this.persist();
   }
 
-  /** Soft-delete: archive + remember for undo. */
+  /** Soft-delete: archive + remember for undo. Surfaces an app-wide undo toast. */
   remove(id: string): void {
     const note = this.notes.find((n) => n.id === id);
     if (!note) return;
     note.archived = true;
     this.lastArchivedId = id;
     this.persist();
+    toast.undoable(t('notebook.deleted'), () => this.undo());
   }
 
   /** Undo the most recent archive (toast action). */

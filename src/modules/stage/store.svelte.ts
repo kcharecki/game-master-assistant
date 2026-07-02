@@ -15,6 +15,9 @@ import {
   type Preset,
 } from './board';
 import type { BroadcastPayload } from '../../lib/types';
+import { putOnAir } from '../reveal/bus-actions';
+import { toast } from '../../lib/stores/toast.svelte';
+import { t } from '../../lib/i18n';
 
 const KV_SCENES = 'stageScenes';
 // Presets live under their own key so they persist across campaigns/sessions.
@@ -106,11 +109,20 @@ class StageStore {
     if (this.state.scenes.length <= 1) return;
     const i = this.state.scenes.findIndex((s) => s.id === id);
     if (i < 0) return;
+    const removed = $state.snapshot(this.state.scenes[i]) as Scene;
+    const prevActive = this.state.activeId;
     const next = this.state.scenes.filter((s) => s.id !== id);
     this.state.scenes = next;
     if (this.state.activeId === id) this.state.activeId = next[Math.min(i, next.length - 1)].id;
     this.clearHistory();
     this.persistLive();
+    toast.undoable(t('toast.sceneDeleted'), () => {
+      const back = this.state.scenes.slice();
+      back.splice(i, 0, removed);
+      this.state.scenes = back;
+      this.state.activeId = prevActive;
+      this.persistLive();
+    });
   }
 
   // --- tiles ----------------------------------------------------------------
@@ -213,6 +225,31 @@ class StageStore {
   broadcast(): void {
     const payload = this.preview;
     if (payload && this.onAir) this.onAir(payload);
+  }
+
+  /**
+   * Air a scene selected by 0-based index or name (case-insensitive, exact then
+   * substring). Used by the command palette so it works even when the Stage
+   * window isn't mounted (routes through `onAir` if set, else `putOnAir`).
+   * Returns the aired scene, or null when no scene matched.
+   */
+  airSceneByRef(ref: { index?: number; name?: string }): Scene | null {
+    let scene: Scene | undefined;
+    if (typeof ref.index === 'number') {
+      scene = this.state.scenes[ref.index];
+    } else if (ref.name) {
+      const q = ref.name.trim().toLowerCase();
+      scene =
+        this.state.scenes.find((s) => s.name.toLowerCase() === q) ??
+        this.state.scenes.find((s) => s.name.toLowerCase().includes(q));
+    }
+    if (!scene) return null;
+    this.setActive(scene.id);
+    const payload = sceneToPayload(scene, this.npcLookup);
+    if (!payload) return null;
+    if (this.onAir) this.onAir(payload);
+    else putOnAir(payload);
+    return scene;
   }
 
   /**

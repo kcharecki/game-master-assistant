@@ -1,6 +1,9 @@
 import { wm } from '../../lib/stores/windows.svelte';
 import { search, type PaletteHit, type PaletteItem } from './search';
 import { collectSources } from './sources';
+import { parseVerb } from './verbs';
+import { dispatchVerb } from './dispatch';
+import { toast } from '../../lib/stores/toast.svelte';
 
 /**
  * Command palette overlay state. Opened by a global Ctrl/Cmd+K (wired in
@@ -47,8 +50,23 @@ class PaletteStore {
     this.selected = (this.selected + delta + n) % n;
   }
 
+  /** True when the current query parses as a verb command (drives the hint row). */
+  get verb() {
+    return parseVerb(this.query);
+  }
+
   /** Run the currently highlighted result (or one passed explicitly). */
   run(hit?: PaletteHit): void {
+    // Verb commands take precedence over noun search when no explicit hit given.
+    if (!hit) {
+      const intent = this.verb;
+      if (intent) {
+        const msg = dispatchVerb(intent);
+        toast.show(msg ?? 'No match for that command');
+        this.hide();
+        return;
+      }
+    }
     const target = hit ?? this.results[this.selected];
     if (!target) return;
     if (target.kind === 'editor') {
