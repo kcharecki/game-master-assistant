@@ -9,9 +9,11 @@
   const spawnable = moduleList.filter((m) => m.desktop);
   const groups = categorized(spawnable);
 
-  // Which modules currently have a window (open or minimized) — drives the
-  // running-dot indicator, like a macOS dock.
-  const open = $derived(new Set(wm.windows.map((w) => w.kind)));
+  // Which modules currently have a *visible* window — drives the running-dot
+  // indicator (dot on when open, off when hidden/closed), like a macOS dock.
+  const open = $derived(
+    new Set(wm.windows.filter((w) => !w.minimized).map((w) => w.kind)),
+  );
 </script>
 
 <div class="dock">
