@@ -8,8 +8,6 @@ import {
   sceneToPayload,
   presetFromScene,
   sceneFromPreset,
-  snapZones,
-  zoneAt,
   formatCountdown,
   STAGE_COLS,
   STAGE_ROWS,
@@ -228,36 +226,5 @@ describe('presets', () => {
     expect(scene2.tiles[0]).toMatchObject({ kind: 'image', col: 2, row: 3, cw: 4, rh: 2 });
     expect(scene2.tiles[0].src).toBeUndefined(); // content stripped
     expect(scene2.id).not.toBe(s.id);
-  });
-});
-
-describe('snapZones', () => {
-  it('produces in-bounds areas', () => {
-    for (const z of snapZones(12, 8)) {
-      expect(z.area.col).toBeGreaterThanOrEqual(1);
-      expect(z.area.col + z.area.cw - 1).toBeLessThanOrEqual(12);
-      expect(z.area.row + z.area.rh - 1).toBeLessThanOrEqual(8);
-    }
-  });
-
-  it('includes a full-stage zone', () => {
-    expect(snapZones(12, 8).find((z) => z.id === 'full')!.area).toEqual({
-      col: 1,
-      row: 1,
-      cw: 12,
-      rh: 8,
-    });
-  });
-});
-
-describe('zoneAt', () => {
-  it('returns null in the centre (free placement)', () => {
-    expect(zoneAt(0.5, 0.5, 12, 8)).toBeNull();
-  });
-  it('snaps left half on the left edge', () => {
-    expect(zoneAt(0.05, 0.5, 12, 8)).toEqual({ col: 1, row: 1, cw: 6, rh: 8 });
-  });
-  it('snaps a corner quadrant', () => {
-    expect(zoneAt(0.95, 0.05, 12, 8)).toEqual({ col: 7, row: 1, cw: 6, rh: 4 });
   });
 });

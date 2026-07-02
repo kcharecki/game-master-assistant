@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { stage, type Tile, type TileKind } from './store.svelte';
-  import { snapZones, zoneAt, formatCountdown, type SnapZone } from './board';
+  import { formatCountdown } from './board';
   import { npcs } from '../npcs/store.svelte';
   import { calendar } from '../calendar/store.svelte';
   import { schedule } from '../schedule/store.svelte';
@@ -21,16 +21,12 @@
   let hovered = $state(false);
   let display = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
   let moodId = $state(DEFAULT_MOOD.id);
-  // Auto edge-snapping. Off = always free grid placement; hold Alt while
-  // dragging to bypass snapping for one move without toggling.
-  let snap = $state(true);
   // Laser pointer mode: while on, cursor over the board drives a live dot on air.
   let laserOn = $state(false);
   let lastLaser = 0;
 
   const cols = $derived(stage.active.cols);
   const rows = $derived(stage.active.rows);
-  const zones = $derived(snapZones(cols, rows));
 
   onMount(() => {
     stage.onAir = putOnAir;
@@ -105,7 +101,6 @@
   let moving = $state<string | null>(null);
   let grabCol = 0;
   let grabRow = 0;
-  let armedZone = $state<GridArea | null>(null);
 
   function startMove(e: PointerEvent, tl: Tile) {
     if ((e.target as HTMLElement).closest('[data-control]')) return;
@@ -121,18 +116,14 @@
   }
   function onMove(e: PointerEvent) {
     if (moving) {
-      const { fx, fy } = frac(e);
-      armedZone = snap && !e.altKey ? zoneAt(fx, fy, cols, rows) : null;
-      if (!armedZone) {
-        const c = cellAt(e);
-        const tl = stage.tiles.find((x) => x.id === moving)!;
-        stage.placeTile(moving, {
-          col: c.col - grabCol,
-          row: c.row - grabRow,
-          cw: tl.cw,
-          rh: tl.rh,
-        });
-      }
+      const c = cellAt(e);
+      const tl = stage.tiles.find((x) => x.id === moving)!;
+      stage.placeTile(moving, {
+        col: c.col - grabCol,
+        row: c.row - grabRow,
+        cw: tl.cw,
+        rh: tl.rh,
+      });
     } else if (resizing) {
       const c = cellAt(e);
       const tl = stage.tiles.find((x) => x.id === resizing)!;
@@ -145,10 +136,6 @@
     }
   }
   function endMove(e: PointerEvent) {
-    if (moving && armedZone) {
-      stage.placeTile(moving, armedZone);
-    }
-    armedZone = null;
     moving = null;
     resizing = null;
     (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
@@ -291,13 +278,6 @@
   function refreshDate(tl: Tile) {
     stage.patchTile(tl.id, { date: calendar.label, time: schedule.clock, moon: calendar.moon });
   }
-  function snapSelected(z: SnapZone) {
-    if (stage.selected) {
-      stage.beginGesture();
-      stage.placeTile(stage.selected, z.area);
-    }
-  }
-
   // --- laser pointer --------------------------------------------------------
   function toggleLaser() {
     laserOn = !laserOn;
@@ -316,9 +296,6 @@
   let editingScene = $state<string | null>(null);
 
   const sel = $derived(stage.tiles.find((tl) => tl.id === stage.selected) ?? null);
-  function pct(a: GridArea) {
-    return `left:${((a.col - 1) / cols) * 100}%; top:${((a.row - 1) / rows) * 100}%; width:${(a.cw / cols) * 100}%; height:${(a.rh / rows) * 100}%`;
-  }
 </script>
 
 <div class="stage">
@@ -344,14 +321,6 @@
       title={t('stage.redo')}>↷</button
     >
     <span class="sep"></span>
-    <button
-      class="btn sm"
-      class:on={snap}
-      onclick={() => (snap = !snap)}
-      title={t('stage.snapToggleHint')}
-    >
-      {snap ? t('stage.snapOn') : t('stage.snapOff')}
-    </button>
     <button class="btn sm" class:laser={laserOn} onclick={toggleLaser} title={t('stage.laserHint')}>
       {t('stage.laser')}
     </button>
@@ -581,11 +550,6 @@
         {#if stage.tiles.length === 0}
           <div class="empty">{t('stage.dropHere')}</div>
         {/if}
-
-        <!-- armed snap zone overlay -->
-        {#if armedZone}
-          <div class="zone" style={pct(armedZone)}></div>
-        {/if}
       </div>
     </div>
   </div>
@@ -781,11 +745,6 @@
         </select>
       {/if}
 
-      <span class="snaps" title={t('stage.snapHint')}>
-        {#each zones as z (z.id)}
-          <button class="zbtn" onclick={() => snapSelected(z)} title={z.label}>{z.label}</button>
-        {/each}
-      </span>
     {:else}
       <span class="flbl">{t('stage.display')}</span>
       <div class="seg">
@@ -1090,14 +1049,6 @@
     letter-spacing: 0.08em;
     pointer-events: none;
   }
-  .zone {
-    position: absolute;
-    border-radius: 8px;
-    background: rgba(47, 138, 102, 0.22);
-    border: 2px solid var(--green);
-    pointer-events: none;
-    z-index: 50;
-  }
 
   /* A tile is a faithful preview of its broadcast cell: full-bleed content,
      editing chrome overlaid only on hover/select. */
@@ -1310,25 +1261,6 @@
   .narrow {
     width: auto;
     flex: 0 0 auto;
-  }
-  .snaps {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px;
-  }
-  .zbtn {
-    padding: 3px 7px;
-    border-radius: 999px;
-    border: 1px solid var(--line2);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font: inherit;
-    font-size: 11px;
-  }
-  .zbtn:hover {
-    border-color: var(--green-dim);
-    color: var(--txt);
   }
   .seg {
     display: flex;
