@@ -34,26 +34,25 @@
           <span class="d">&#10022;</span>
           <span class="rule"></span>
         </header>
-        <div class="spread">
+        <div class="groups">
           {#each groups as g (g.category)}
             <div class="group">
               <div class="cat">
                 <span class="name">{t('cat.' + g.category)}</span><span class="r"></span>
               </div>
-              <ul>
+              <div class="tiles">
                 {#each g.items as m (m.id)}
-                  <li
+                  <button
+                    class="tile"
                     role="menuitem"
-                    tabindex="0"
                     title={t('mod.' + m.id + '.title')}
                     onclick={() => spawn(m.id)}
-                    onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && spawn(m.id)}
                   >
-                    <span class="ico"><ModuleIcon id={m.id} size={17} /></span>
+                    <span class="ico"><ModuleIcon id={m.id} size={24} /></span>
                     <span class="nm">{t('mod.' + m.id + '.title')}</span>
-                  </li>
+                  </button>
                 {/each}
-              </ul>
+              </div>
             </div>
           {/each}
         </div>
@@ -73,14 +72,14 @@
     position: relative;
   }
 
-  /* ── grimoire two-page-spread widget picker ─────────────────────────────── */
+  /* ── grimoire launchpad: icon-over-label tiles grouped by category ──────── */
   .menu {
     position: absolute;
     bottom: 54px;
     right: 0;
-    width: 468px;
+    width: 480px;
     max-width: 92vw;
-    padding: 18px 22px 18px;
+    padding: 18px 20px 16px;
     border-radius: 12px;
     border: 1px solid var(--line);
     background: linear-gradient(180deg, var(--bg2), var(--bg));
@@ -94,7 +93,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 0 2px 15px;
+    margin: 0 2px 14px;
   }
   .tome-head .title {
     font-variant: small-caps;
@@ -114,27 +113,24 @@
     background: linear-gradient(90deg, var(--line2), transparent);
   }
 
-  .spread {
-    column-count: 2;
-    column-gap: 30px;
-    column-rule: 1px solid var(--line);
+  .groups {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
   .group {
-    break-inside: avoid;
-    margin: 0 0 15px;
-  }
-  .group:last-child {
-    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .cat {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 0 0 5px;
   }
   .cat .name {
-    font-size: 10.5px;
+    font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--green);
@@ -146,51 +142,60 @@
     background: var(--line);
   }
 
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  /* the "dock" strip of tiles for a category */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 78px);
+    gap: 4px;
   }
-  li {
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 78px;
+    padding: 9px 4px 8px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition:
+      background 0.16s,
+      border-color 0.16s,
+      transform 0.12s;
+  }
+  .tile .ico {
     display: flex;
     align-items: center;
-    gap: 9px;
-    padding: 3px 6px 3px 4px;
-    cursor: pointer;
-    border-radius: 2px;
+    justify-content: center;
+    height: 26px;
+    color: var(--faint);
     transition:
       color 0.16s,
-      background 0.16s;
+      transform 0.14s;
   }
-  li .ico {
-    width: 17px;
-    height: 17px;
-    flex: 0 0 17px;
-    color: var(--faint);
-    display: flex;
-    transition: color 0.16s;
-  }
-  li .nm {
-    font-size: 13.5px;
+  .tile .nm {
+    font-size: 10.5px;
+    line-height: 1.15;
+    text-align: center;
     letter-spacing: 0.01em;
     color: var(--muted);
-    line-height: 1.2;
-    transition:
-      color 0.16s,
-      letter-spacing 0.16s;
+    transition: color 0.16s;
   }
-  li:hover,
-  li:focus-visible {
+  .tile:hover,
+  .tile:focus-visible {
     outline: none;
-    background: linear-gradient(90deg, rgba(31, 122, 79, 0.12), transparent);
+    background: radial-gradient(120% 90% at 50% 20%, rgba(31, 122, 79, 0.18), transparent 70%);
+    border-color: var(--line2);
   }
-  li:hover .nm,
-  li:focus-visible .nm {
-    color: var(--green);
-    letter-spacing: 0.03em;
-  }
-  li:hover .ico,
-  li:focus-visible .ico {
+  .tile:hover .ico,
+  .tile:focus-visible .ico {
     color: var(--eye);
+    transform: translateY(-2px);
+  }
+  .tile:hover .nm,
+  .tile:focus-visible .nm {
+    color: var(--green);
   }
 </style>
