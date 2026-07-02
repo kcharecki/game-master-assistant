@@ -743,17 +743,6 @@
               {#if cell.time}<div class="dtime">{cell.time}</div>{/if}
               {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
             </div>
-          {:else if cell.kind === 'roll'}
-            <div class="gcell groll" style={area}>
-              {#if cell.label}<div class="rlbl">{cell.label}</div>{/if}
-              <div class="rtot">{cell.total}</div>
-              <div class="rexp">
-                {cell.expr} [{cell.kept.join(', ')}]{cell.modifier
-                  ? (cell.modifier > 0 ? ' +' : ' ') + cell.modifier
-                  : ''}
-              </div>
-              {#if cell.outcome}<div class="rout">{cell.outcome}</div>{/if}
-            </div>
           {:else}
             <div class="gcell gtext" style={area}>
               {#if cell.title}<h2>{cell.title}</h2>{/if}
@@ -789,17 +778,6 @@
             <div class="ddate">{cell.date}</div>
             {#if cell.time}<div class="dtime">{cell.time}</div>{/if}
             {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
-          </div>
-        {:else if cell.kind === 'roll'}
-          <div class="gcell groll">
-            {#if cell.label}<div class="rlbl">{cell.label}</div>{/if}
-            <div class="rtot">{cell.total}</div>
-            <div class="rexp">
-              {cell.expr} [{cell.kept.join(', ')}]{cell.modifier
-                ? (cell.modifier > 0 ? ' +' : ' ') + cell.modifier
-                : ''}
-            </div>
-            {#if cell.outcome}<div class="rout">{cell.outcome}</div>{/if}
           </div>
         {:else}
           <div class="gcell gtext">
@@ -1053,15 +1031,8 @@
   /* --- new stage tile kinds: countdown clock, in-world date/moon, dice result */
   .gclock,
   .gdate,
-  .groll {
-    text-align: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 6px 10px;
-  }
   .clbl,
-  .dlbl,
-  .rlbl {
+  .dlbl {
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.14em;
@@ -1090,25 +1061,6 @@
   .dmoon {
     color: var(--gold);
     font-size: clamp(12px, 1.6vw, 20px);
-  }
-  .rtot {
-    font-family: Georgia, serif;
-    color: var(--green);
-    font-weight: 700;
-    line-height: 1;
-    font-size: clamp(34px, 8vw, 96px);
-    text-shadow: 0 0 24px rgba(47, 138, 102, 0.4);
-  }
-  .rexp {
-    color: var(--muted);
-    font-size: clamp(11px, 1.4vw, 17px);
-  }
-  .rout {
-    font-family: Georgia, serif;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    font-size: clamp(12px, 1.6vw, 22px);
   }
 
   /* --- scene-to-scene crossfade: each keyed .scene fades/rises in on mount. */

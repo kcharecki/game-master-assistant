@@ -290,7 +290,7 @@ class StageStore {
         ...(cell.theme ? { theme: cell.theme } : {}),
       });
     } else {
-      // clock/date/roll have no fullscreen payload — air them as a single
+      // clock/date have no fullscreen payload — air them as a single
       // full-frame grid cell so they keep their tile rendering.
       const full = { ...cell, area: { col: 1, row: 1, cw: this.active.cols, rh: this.active.rows } };
       this.onAir({ kind: 'grid', cols: this.active.cols, rows: this.active.rows, cells: [full] });

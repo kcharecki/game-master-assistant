@@ -5,7 +5,6 @@
   import { npcs } from '../npcs/store.svelte';
   import { calendar } from '../calendar/store.svelte';
   import { schedule } from '../schedule/store.svelte';
-  import { roll, rollCardModel } from '../roller/logic';
   import { onairHistory } from '../../lib/stores/onairHistory.svelte';
   import { describeOnAir } from '../../lib/onair';
   import { assetPut, assetUrl } from '../../lib/db';
@@ -242,38 +241,6 @@
   function addDateTile() {
     stage.addTile('date', { date: calendar.label, time: schedule.clock, moon: calendar.moon });
   }
-  // Add a dice-result tile, rolling `expr` once and freezing the outcome on it.
-  function addRollTile(expr = '1d20') {
-    const res = roll(expr);
-    if (!res) return;
-    const card = rollCardModel(res, expr);
-    stage.addTile('roll', {
-      title: card.label,
-      roll: {
-        expr: card.expr,
-        total: card.total,
-        kept: card.kept,
-        modifier: card.modifier,
-        outcome: card.outcome,
-      },
-    });
-  }
-  // Re-roll the selected dice tile in place (refreshes its frozen result).
-  function reRoll(tl: Tile) {
-    const expr = tl.roll?.expr ?? '1d20';
-    const res = roll(expr);
-    if (!res) return;
-    const card = rollCardModel(res, expr);
-    stage.patchTile(tl.id, {
-      roll: {
-        expr,
-        total: card.total,
-        kept: card.kept,
-        modifier: card.modifier,
-        outcome: card.outcome,
-      },
-    });
-  }
   // Refresh a date tile from the calendar + Timeline current state.
   function refreshDate(tl: Tile) {
     stage.patchTile(tl.id, { date: calendar.label, time: schedule.clock, moon: calendar.moon });
@@ -306,7 +273,6 @@
     <button class="btn sm" onclick={() => stage.addTile('npc')}>{t('stage.addNpc')}</button>
     <button class="btn sm" onclick={() => stage.addTile('clock', { seconds: 60 })} title={t('stage.addClockHint')}>{t('stage.addClock')}</button>
     <button class="btn sm" onclick={addDateTile} title={t('stage.addDateHint')}>{t('stage.addDate')}</button>
-    <button class="btn sm" onclick={() => addRollTile()} title={t('stage.addRollHint')}>{t('stage.addRoll')}</button>
     <span class="sep"></span>
     <button
       class="btn sm"
@@ -505,12 +471,6 @@
                   {#if tl.time}<span class="ttime">{tl.time}</span>{/if}
                   {#if tl.moon}<span class="tmoon">☾ {tl.moon}</span>{/if}
                 </div>
-              {:else if tl.kind === 'roll'}
-                <div class="tmeta">
-                  {#if tl.title}<span class="tmlbl">{tl.title}</span>{/if}
-                  <strong class="tmbig">{tl.roll?.total ?? '—'}</strong>
-                  <span class="tmsub">{tl.roll?.expr ?? ''}{tl.roll?.outcome ? ` · ${tl.roll.outcome}` : ''}</span>
-                </div>
               {:else}
                 {@const img = tileImg(tl)}
                 {#if img}
@@ -585,7 +545,6 @@
         <option value="npc">{t('stage.kindNpc')}</option>
         <option value="clock">{t('stage.kindClock')}</option>
         <option value="date">{t('stage.kindDate')}</option>
-        <option value="roll">{t('stage.kindRoll')}</option>
       </select>
 
       <!-- z-order (layering: text over image) -->
@@ -708,38 +667,6 @@
             })}
         />
         <button class="btn sm" onclick={() => refreshDate(sel)}>{t('stage.refreshDate')}</button>
-      {:else if sel.kind === 'roll'}
-        <input
-          class="in grow"
-          placeholder={t('stage.titlePlaceholder')}
-          value={sel.title ?? ''}
-          oninput={(e) =>
-            stage.patchTile(sel.id, {
-              title: (e.currentTarget as HTMLInputElement).value || undefined,
-            })}
-        />
-        <input
-          class="in narrow"
-          placeholder="1d20"
-          value={sel.roll?.expr ?? ''}
-          onchange={(e) => {
-            const expr = (e.currentTarget as HTMLInputElement).value || '1d20';
-            const r = roll(expr);
-            if (r) {
-              const c = rollCardModel(r, expr);
-              stage.patchTile(sel.id, {
-                roll: {
-                  expr,
-                  total: c.total,
-                  kept: c.kept,
-                  modifier: c.modifier,
-                  outcome: c.outcome,
-                },
-              });
-            }
-          }}
-        />
-        <button class="btn sm" onclick={() => reRoll(sel)}>{t('stage.reroll')}</button>
       {:else}
         <select
           class="in narrow"
@@ -1142,7 +1069,7 @@
     text-align: center;
     padding: 6px;
   }
-  /* clock / date / roll tile previews */
+  /* clock / date tile previews */
   .tmeta {
     display: flex;
     flex-direction: column;
@@ -1170,10 +1097,6 @@
     font-family: Georgia, serif;
     color: var(--txt);
     font-size: 15px;
-  }
-  .tmsub {
-    color: var(--muted);
-    font-size: 10px;
   }
   .tmoon {
     color: var(--gold);

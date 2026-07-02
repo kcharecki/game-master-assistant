@@ -169,25 +169,6 @@ describe('tileToCell — new kinds + z', () => {
       ),
     ).toMatchObject({ kind: 'date', date: '12 Mirtul', time: '14:05' });
   });
-
-  it('drops a roll tile without a result, keeps one with', () => {
-    expect(
-      tileToCell({ id: 'a', kind: 'roll', col: 1, row: 1, cw: 4, rh: 3 }, noNpc),
-    ).toBeNull();
-    const cell = tileToCell(
-      {
-        id: 'b',
-        kind: 'roll',
-        col: 1,
-        row: 1,
-        cw: 4,
-        rh: 3,
-        roll: { expr: '1d20', total: 17, kept: [17], modifier: 0 },
-      },
-      noNpc,
-    );
-    expect(cell).toMatchObject({ kind: 'roll', expr: '1d20', total: 17, kept: [17] });
-  });
 });
 
 describe('formatCountdown', () => {

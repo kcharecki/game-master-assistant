@@ -12,9 +12,9 @@ import type { PublicNpc } from '../npcs/public';
 export const STAGE_COLS = 12;
 export const STAGE_ROWS = 8;
 
-// image/text/npc are content sources; clock/date/roll are computed/snapshot tiles
+// image/text/npc are content sources; clock/date are computed/snapshot tiles
 // (see IMPROVEMENTS §2 "New tile kinds"). All project to player-safe grid cells.
-export type TileKind = 'image' | 'text' | 'npc' | 'clock' | 'date' | 'roll';
+export type TileKind = 'image' | 'text' | 'npc' | 'clock' | 'date';
 
 /** One placed element on the stage. Placement is 1-based, CSS-grid semantics. */
 export interface Tile {
@@ -44,8 +44,6 @@ export interface Tile {
   // in-world time-of-day snapshot pulled from the Timeline (schedule) store:
   time?: string;
   moon?: string;
-  // roll content (a static public dice result):
-  roll?: { expr: string; total: number; kept: number[]; modifier: number; outcome?: string };
 }
 
 /**
@@ -120,7 +118,6 @@ export function firstFree(scene: Scene, cw: number, rh: number): { col: number; 
 function defaultSpan(kind: TileKind): { cw: number; rh: number } {
   if (kind === 'text') return { cw: 6, rh: 2 };
   if (kind === 'clock' || kind === 'date') return { cw: 4, rh: 2 };
-  if (kind === 'roll') return { cw: 4, rh: 3 };
   return { cw: 6, rh: 4 };
 }
 
@@ -180,21 +177,6 @@ export function tileToCell(
     if (tile.time) cell.time = tile.time;
     if (tile.moon) cell.moon = tile.moon;
     if (tile.title) cell.label = tile.title;
-    if (z !== undefined) cell.z = z;
-    return cell;
-  }
-  if (tile.kind === 'roll') {
-    if (!tile.roll) return null;
-    const cell: GridCell = {
-      kind: 'roll',
-      expr: tile.roll.expr,
-      total: tile.roll.total,
-      kept: tile.roll.kept,
-      modifier: tile.roll.modifier,
-      area,
-    };
-    if (tile.title) cell.label = tile.title;
-    if (tile.roll.outcome) cell.outcome = tile.roll.outcome;
     if (z !== undefined) cell.z = z;
     return cell;
   }

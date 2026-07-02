@@ -68,20 +68,7 @@ export type GridCell =
   | { kind: 'clock'; seconds: number; label?: string; area?: GridArea; z?: number }
   // In-world date/moon tile: a static snapshot of the calendar module's current
   // date + moon phase (GM reads its store when composing; player-safe strings).
-  | { kind: 'date'; date: string; time?: string; moon?: string; label?: string; area?: GridArea; z?: number }
-  // Dice-result tile: a static rendering of a public roll (same fields the `roll`
-  // payload carries), laid into the stage grid rather than shown fullscreen.
-  | {
-      kind: 'roll';
-      label?: string;
-      expr: string;
-      total: number;
-      kept: number[];
-      modifier: number;
-      outcome?: string;
-      area?: GridArea;
-      z?: number;
-    };
+  | { kind: 'date'; date: string; time?: string; moon?: string; label?: string; area?: GridArea; z?: number };
 
 // One entry of the ambient queue handed to the broadcast sequencer. A native
 // clip carries `assetId` (blob resolved tab-locally); a YouTube item carries
