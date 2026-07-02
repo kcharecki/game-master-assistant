@@ -62,6 +62,13 @@
     const mb = n / 1_048_576;
     return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(n / 1024).toFixed(0)} KB`;
   }
+
+  // Silent, scaled-down mirror of the screen-shared broadcast page (?preview=1 →
+  // visuals only, no audio), so the GM always sees exactly what players see.
+  const SRCW = 1280;
+  const SRCH = 800;
+  let pvW = $state(0);
+  const pvScale = $derived(pvW > 0 ? pvW / SRCW : 0);
 </script>
 
 <aside class="sidebar">
@@ -108,6 +115,16 @@
       {/if}
     </button>
     {#if status}<div class="bstatus">{status}</div>{/if}
+
+    <div class="pvwrap" bind:clientWidth={pvW} style="aspect-ratio:{SRCW}/{SRCH}">
+      <iframe
+        class="pvframe"
+        title={t('preview.title')}
+        src="broadcast.html?preview=1"
+        style="width:{SRCW}px;height:{SRCH}px;transform:scale({pvScale})"
+      ></iframe>
+      <span class="pvtag">{t('preview.live')}</span>
+    </div>
   </div>
 
   <KeeperEye />
@@ -170,5 +187,36 @@
     margin-top: 4px;
     color: var(--green);
     font-size: 11px;
+  }
+  .pvwrap {
+    position: relative;
+    width: 100%;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--line2);
+    background: #05090a;
+  }
+  .pvframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: top left;
+    border: 0;
+    /* Read-only mirror — the GM controls from the real windows. */
+    pointer-events: none;
+  }
+  .pvtag {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    color: #ff6b6b;
+    background: rgba(9, 16, 13, 0.7);
+    padding: 1px 5px;
+    border-radius: 999px;
+    pointer-events: none;
   }
 </style>
