@@ -2,35 +2,21 @@
   import { onMount } from 'svelte';
   import { notebook } from './store.svelte';
   import { t } from '../../lib/i18n';
+  import Capture from './Capture.svelte';
+  import NoteView from './NoteView.svelte';
 
   onMount(() => void notebook.load());
 
-  let draft = $state('');
+  const collapsed = $state<Record<number, boolean>>({});
 
-  function submit() {
-    if (notebook.add(draft)) draft = '';
-  }
-
-  function fmt(at: number): string {
-    return new Date(at).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  function sessionLabel(startAt: number, index: number): string {
+    const d = new Date(startAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return `${t('notebook.session')} ${index} — ${d}`;
   }
 </script>
 
 <div class="nb">
-  <div class="add">
-    <input
-      class="in"
-      placeholder={t('notebook.placeholder')}
-      bind:value={draft}
-      onkeydown={(e) => e.key === 'Enter' && submit()}
-    />
-    <button class="btn" onclick={submit}>{t('notebook.add')}</button>
-  </div>
+  <Capture />
 
   <div class="filters">
     <input class="in search" placeholder={t('notebook.search')} bind:value={notebook.query} />
@@ -55,19 +41,33 @@
     </div>
   {/if}
 
-  <ul class="list">
-    {#each notebook.visible as n (n.id)}
-      <li class="note">
-        <div class="meta">
-          <span class="time">{fmt(n.at)}</span>
-          <button class="del" title={t('notebook.delete')} aria-label={t('notebook.deleteNote')} onclick={() => notebook.remove(n.id)}>×</button>
-        </div>
-        <p class="body">{n.body}</p>
-      </li>
+  <div class="list">
+    {#each notebook.sessions as group (group.index)}
+      <div class="sess">
+        <button class="shead" onclick={() => (collapsed[group.index] = !collapsed[group.index])}>
+          <span class="caret">{collapsed[group.index] ? '▸' : '▾'}</span>
+          {sessionLabel(group.startAt, group.index)}
+          <span class="count">{group.notes.length}</span>
+        </button>
+        {#if !collapsed[group.index]}
+          <ul class="notes">
+            {#each group.notes as n (n.id)}
+              <NoteView note={n} />
+            {/each}
+          </ul>
+        {/if}
+      </div>
     {:else}
-      <li class="muted">{t('notebook.noNotes')}</li>
+      <p class="muted">{t('notebook.noNotes')}</p>
     {/each}
-  </ul>
+  </div>
+
+  {#if notebook.lastArchivedId}
+    <div class="toast">
+      <span>{t('notebook.deleted')}</span>
+      <button class="undo" onclick={() => notebook.undo()}>{t('notebook.undo')}</button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -77,8 +77,8 @@
     gap: 8px;
     height: 100%;
     overflow: hidden;
+    position: relative;
   }
-  .add,
   .filters {
     display: flex;
     gap: 6px;
@@ -150,50 +150,71 @@
     line-height: 1;
   }
   .list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: auto;
+  }
+  .shead {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 3px 4px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+  .shead:hover {
+    color: var(--txt);
+  }
+  .caret {
+    width: 10px;
+  }
+  .count {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .notes {
     list-style: none;
-    margin: 0;
+    margin: 4px 0 0;
     padding: 0;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    overflow: auto;
-  }
-  .note {
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 6px 8px;
-    background: rgba(0, 0, 0, 0.18);
-  }
-  .meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .time {
-    color: var(--muted);
-    font-size: 11px;
-  }
-  .del {
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 15px;
-    line-height: 1;
-  }
-  .del:hover {
-    color: var(--txt);
-  }
-  .body {
-    margin: 2px 0 0;
-    font-size: 13px;
-    line-height: 1.4;
-    color: var(--txt);
-    white-space: pre-wrap;
   }
   .muted {
     color: var(--muted);
     font-size: 12px;
-    list-style: none;
+  }
+  .toast {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border: 1px solid var(--green-dim);
+    border-radius: 8px;
+    background: var(--panel2);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    font-size: 12px;
+    color: var(--txt);
+  }
+  .undo {
+    border: none;
+    background: transparent;
+    color: var(--green);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
   }
 </style>
