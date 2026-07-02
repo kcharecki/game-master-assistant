@@ -897,6 +897,7 @@
     top: 8px;
     left: 8px;
     right: 8px;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -1027,6 +1028,7 @@
     bottom: 8px;
     left: 8px;
     right: 8px;
+    z-index: 2;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
