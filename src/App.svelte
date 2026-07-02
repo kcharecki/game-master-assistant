@@ -110,7 +110,7 @@
       </div>
       <div class="surface">
         {#if view === 'desktop'}
-          <Desktop onOpenEditor={openEditor} />
+          <Desktop />
         {:else}
           <EditorHost moduleId={view} />
         {/if}

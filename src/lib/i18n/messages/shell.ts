@@ -51,14 +51,8 @@ export const shell = {
     'onair.panicTitle': 'Black-screen the broadcast and stop audio',
 
     // Dock chrome.
-    'dock.narrate': 'Narrate',
-    'dock.reveal': 'Reveal',
-    'dock.addNpc': 'Add NPC',
-    'dock.roll': 'Roll',
-    'dock.timer': 'Timer',
     'dock.widget': '＋ Widget',
-    'dock.searchWidgets': 'Search widgets…',
-    'dock.noWidgets': 'No matching widgets',
+    'dock.cabinet': 'The Cabinet',
 
     // Window frame chrome.
     'win.feedback': 'Feedback',
@@ -155,14 +149,8 @@ export const shell = {
     'onair.panicTitle': 'Wygaś transmisję i zatrzymaj dźwięk',
 
     // Dock chrome.
-    'dock.narrate': 'Narracja',
-    'dock.reveal': 'Odsłona',
-    'dock.addNpc': 'Dodaj BN',
-    'dock.roll': 'Rzut',
-    'dock.timer': 'Czas',
     'dock.widget': '＋ Widżet',
-    'dock.searchWidgets': 'Szukaj widżetów…',
-    'dock.noWidgets': 'Brak pasujących widżetów',
+    'dock.cabinet': 'Gabinet',
 
     // Window frame chrome.
     'win.feedback': 'Uwagi',

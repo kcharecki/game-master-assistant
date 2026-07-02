@@ -1,12 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ModuleId } from '../lib/module';
   import { wm } from '../lib/stores/windows.svelte';
   import WindowFrame from '../components/WindowFrame.svelte';
   import Dock from '../components/Dock.svelte';
   import { t } from '../lib/i18n';
-
-  let { onOpenEditor }: { onOpenEditor: (id: ModuleId) => void } = $props();
 
   onMount(async () => {
     await wm.load();
@@ -48,7 +45,7 @@
     </div>
   {/if}
 
-  <Dock onReveal={() => onOpenEditor('reveal')} onAdd={(k) => wm.add(k, 120, 120)} />
+  <Dock onAdd={(k) => wm.add(k, 120, 120)} />
 </div>
 
 <style>

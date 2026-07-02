@@ -20,8 +20,8 @@ test('GM reveal reaches the broadcast window', async ({ context }) => {
   const view = await context.newPage();
   await view.goto('/broadcast.html');
 
-  // Dock "Reveal" opens the reveal editor; the GM then pushes it on air.
-  await gm.getByRole('button', { name: 'Reveal' }).click();
+  // Sidebar "Reveal" opens the reveal editor; the GM then pushes it on air.
+  await gm.getByRole('link', { name: 'Reveal' }).click();
   await gm.getByRole('button', { name: 'Send to Broadcast' }).click();
   await expect(view.getByText('A Strange Symbol')).toBeVisible({ timeout: 5000 });
 });

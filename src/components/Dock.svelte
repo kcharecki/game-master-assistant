@@ -5,40 +5,13 @@
   import { t } from '../lib/i18n';
   import ModuleIcon from './ModuleIcon.svelte';
 
-  let {
-    onReveal,
-    onAdd,
-  }: { onReveal: () => void; onAdd: (kind: WindowKind) => void } = $props();
+  let { onAdd }: { onAdd: (kind: WindowKind) => void } = $props();
 
   let menuOpen = $state(false);
-  let query = $state('');
-  let searchEl = $state<HTMLInputElement>();
 
   // Only modules with a live desktop view make sense as spawnable windows.
   const spawnable = moduleList.filter((m) => m.desktop);
   const groups = categorized(spawnable);
-
-  // Live filter by localized title; drop categories left with no matches.
-  const filtered = $derived.by(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return groups;
-    return groups
-      .map((g) => ({
-        ...g,
-        items: g.items.filter((m) => t('mod.' + m.id + '.title').toLowerCase().includes(q)),
-      }))
-      .filter((g) => g.items.length > 0);
-  });
-
-  // Flat list of what's currently shown, in display order — for Enter-to-spawn.
-  const visible = $derived(filtered.flatMap((g) => g.items));
-
-  function open() {
-    menuOpen = true;
-    query = '';
-    // Focus the filter after the menu paints so typing works immediately.
-    requestAnimationFrame(() => searchEl?.focus());
-  }
 
   function spawn(kind: WindowKind) {
     onAdd(kind);
@@ -46,54 +19,42 @@
   }
 
   function onKey(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      menuOpen = false;
-    } else if (e.key === 'Enter' && visible.length) {
-      spawn(visible[0].id);
-    }
+    if (e.key === 'Escape' && menuOpen) menuOpen = false;
   }
 </script>
 
+<svelte:window onkeydown={onKey} />
+
 <div class="dock">
-  <button class="di"><b>{t('dock.narrate')}</b></button>
-  <button class="di" onclick={onReveal}><b>{t('dock.reveal')}</b></button>
-  <button class="di" onclick={() => onAdd('npcs')}><b>{t('dock.addNpc')}</b></button>
-  <button class="di" onclick={() => onAdd('roller')}><b>{t('dock.roll')}</b></button>
-  <button class="di" onclick={() => onAdd('timer')}><b>{t('dock.timer')}</b></button>
-  <div class="sep"></div>
   <div class="widget-wrap">
     {#if menuOpen}
-      <div class="menu" role="menu" aria-label="Add widget">
-        <input
-          class="search"
-          bind:this={searchEl}
-          bind:value={query}
-          onkeydown={onKey}
-          type="text"
-          placeholder={t('dock.searchWidgets')}
-          aria-label={t('dock.searchWidgets')}
-        />
-        <div class="scroll">
-          {#each filtered as g (g.category)}
-            <div class="cat">
-              <div class="cat-head">{t('cat.' + g.category)}</div>
-              <div class="grid">
-                {#each g.items as m (m.id)}
-                  <button
-                    class="tile"
-                    role="menuitem"
-                    title={t('mod.' + m.id + '.title')}
-                    aria-label={t('mod.' + m.id + '.title')}
-                    onclick={() => spawn(m.id)}
-                  >
-                    <span class="glyph"><ModuleIcon id={m.id} /></span>
-                    <span class="label">{t('mod.' + m.id + '.title')}</span>
-                  </button>
-                {/each}
+      <div class="menu" role="menu" aria-label={t('dock.widget')}>
+        <header class="tome-head">
+          <span class="title">{t('dock.cabinet')}</span>
+          <span class="d">&#10022;</span>
+          <span class="rule"></span>
+        </header>
+        <div class="spread">
+          {#each groups as g (g.category)}
+            <div class="group">
+              <div class="cat">
+                <span class="name">{t('cat.' + g.category)}</span><span class="r"></span>
               </div>
+              <ul>
+                {#each g.items as m (m.id)}
+                  <li
+                    role="menuitem"
+                    tabindex="0"
+                    title={t('mod.' + m.id + '.title')}
+                    onclick={() => spawn(m.id)}
+                    onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && spawn(m.id)}
+                  >
+                    <span class="ico"><ModuleIcon id={m.id} size={17} /></span>
+                    <span class="nm">{t('mod.' + m.id + '.title')}</span>
+                  </li>
+                {/each}
+              </ul>
             </div>
-          {:else}
-            <div class="empty">{t('dock.noWidgets')}</div>
           {/each}
         </div>
       </div>
@@ -102,7 +63,7 @@
       class="di add"
       aria-haspopup="menu"
       aria-expanded={menuOpen}
-      onclick={() => (menuOpen ? (menuOpen = false) : open())}><b>{t('dock.widget')}</b></button
+      onclick={() => (menuOpen = !menuOpen)}><b>{t('dock.widget')}</b></button
     >
   </div>
 </div>
@@ -111,97 +72,125 @@
   .widget-wrap {
     position: relative;
   }
+
+  /* ── grimoire two-page-spread widget picker ─────────────────────────────── */
   .menu {
     position: absolute;
     bottom: 54px;
     right: 0;
-    width: 320px;
-    max-height: 60vh;
-    display: flex;
-    flex-direction: column;
-    padding: 8px;
+    width: 468px;
+    max-width: 92vw;
+    padding: 18px 22px 18px;
     border-radius: 12px;
-    border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.96);
-    backdrop-filter: blur(9px);
-    box-shadow: 0 16px 44px -16px rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--bg2), var(--bg));
+    box-shadow:
+      0 24px 60px -18px rgba(0, 0, 0, 0.85),
+      inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    font-family: Georgia, 'Times New Roman', serif;
   }
-  .search {
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 8px;
-    padding: 6px 9px;
-    border-radius: 8px;
-    border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.35);
-    color: var(--txt);
-    font: inherit;
-    font-size: 12px;
-  }
-  .search:focus {
-    outline: none;
-    border-color: var(--green-dim);
-  }
-  .scroll {
-    overflow-y: auto;
+
+  .tome-head {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    gap: 12px;
+    margin: 0 2px 15px;
   }
-  .cat-head {
-    font-size: 9px;
-    font-weight: 700;
+  .tome-head .title {
+    font-variant: small-caps;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 0 2px 3px;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 2px;
-  }
-  .tile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 6px 2px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
+    font-size: 16px;
     color: var(--txt);
-    cursor: pointer;
+    white-space: nowrap;
   }
-  .tile:hover {
-    background: rgba(47, 138, 102, 0.16);
-    border-color: var(--green-dim);
-  }
-  .glyph {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 20px;
-    color: var(--green, #5fbf8f);
+  .tome-head .d {
+    color: var(--gold);
+    font-size: 11px;
     opacity: 0.85;
   }
-  .tile:hover .glyph {
-    color: var(--eye, #46e89a);
-    opacity: 1;
+  .tome-head .rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line2), transparent);
   }
-  .label {
-    font-size: 9px;
-    line-height: 1.15;
-    text-align: center;
+
+  .spread {
+    column-count: 2;
+    column-gap: 30px;
+    column-rule: 1px solid var(--line);
+  }
+  .group {
+    break-inside: avoid;
+    margin: 0 0 15px;
+  }
+  .group:last-child {
+    margin-bottom: 0;
+  }
+
+  .cat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 5px;
+  }
+  .cat .name {
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    white-space: nowrap;
+  }
+  .cat .r {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 3px 6px 3px 4px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition:
+      color 0.16s,
+      background 0.16s;
+  }
+  li .ico {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    color: var(--faint);
+    display: flex;
+    transition: color 0.16s;
+  }
+  li .nm {
+    font-size: 13.5px;
+    letter-spacing: 0.01em;
     color: var(--muted);
+    line-height: 1.2;
+    transition:
+      color 0.16s,
+      letter-spacing 0.16s;
   }
-  .tile:hover .label {
-    color: var(--txt);
+  li:hover,
+  li:focus-visible {
+    outline: none;
+    background: linear-gradient(90deg, rgba(31, 122, 79, 0.12), transparent);
   }
-  .empty {
-    padding: 14px 4px;
-    text-align: center;
-    font-size: 12px;
-    color: var(--faint, #6f6a5c);
+  li:hover .nm,
+  li:focus-visible .nm {
+    color: var(--green);
+    letter-spacing: 0.03em;
+  }
+  li:hover .ico,
+  li:focus-visible .ico {
+    color: var(--eye);
   }
 </style>

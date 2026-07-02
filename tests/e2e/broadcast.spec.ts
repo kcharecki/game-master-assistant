@@ -7,7 +7,7 @@ test('broadcast rehydrates persisted on-air content after reload', async ({ cont
   await view.goto('/broadcast.html');
 
   // Push the reveal on air; it mirrors to IndexedDB kv:broadcastState.
-  await gm.getByRole('button', { name: 'Reveal' }).click();
+  await gm.getByRole('link', { name: 'Reveal' }).click();
   await gm.getByRole('button', { name: 'Send to Broadcast' }).click();
   await expect(view.getByText('A Strange Symbol')).toBeVisible({ timeout: 5000 });
 
