@@ -340,6 +340,22 @@
 </script>
 
 <div class="map-wrap" data-no-drag bind:clientWidth={vw} bind:clientHeight={vh}>
+  <!-- Background image on its own GPU-composited layer, transformed by the same
+       pan/zoom as the SVG. Keeping the (large, scaled) bitmap out of the overlay
+       SVG means measuring/drawing/dragging never re-rasterises it. -->
+  {#if bgUrl && map.bg}
+    <div
+      class="bg-layer"
+      style="transform:translate({map.transform.panX}px,{map.transform.panY}px) scale({map.transform.zoom})"
+    >
+      <img
+        class="bg-img"
+        src={bgUrl}
+        alt=""
+        style="left:{map.bg.dx}px;top:{map.bg.dy}px;width:{map.bg.w * map.bg.scale}px;height:{map.bg.h * map.bg.scale}px"
+      />
+    </div>
+  {/if}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <svg
     class="canvas"
@@ -361,16 +377,6 @@
           />
         </pattern>
       </defs>
-      {#if bgUrl && map.bg}
-        <image
-          href={bgUrl}
-          x={map.bg.dx}
-          y={map.bg.dy}
-          width={map.bg.w * map.bg.scale}
-          height={map.bg.h * map.bg.scale}
-          preserveAspectRatio="none"
-        />
-      {/if}
       <rect x={gridRect.x} y={gridRect.y} width={gridRect.w} height={gridRect.h} fill="url(#grid)" />
 
       <!-- Fog: hidden cells dimmed on the GM view (players see them opaque). -->
@@ -766,11 +772,28 @@
     background: #07100c;
   }
   .canvas {
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: 100%;
     display: block;
     touch-action: none;
     cursor: grab;
+  }
+  /* GPU-composited background layer, transformed with the same pan/zoom as the
+     SVG so it stays aligned but never re-rasterises on overlay updates. */
+  .bg-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    transform-origin: 0 0;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .bg-img {
+    position: absolute;
+    max-width: none;
+    max-height: none;
   }
   .tok {
     cursor: move;
