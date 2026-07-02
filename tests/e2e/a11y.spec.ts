@@ -24,8 +24,7 @@ test('icon-only window controls expose accessible names', async ({ page }) => {
 
 test('spawned widget icon buttons have labels (initiative controls)', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: '＋ Widget' }).click();
-  await page.getByRole('menuitem', { name: 'Initiative Tracker' }).click();
+  await page.getByRole('button', { name: 'Initiative Tracker', exact: true }).click();
   const win = page.locator('[data-win]').filter({ hasText: 'Initiative Tracker' }).last();
   await expect(win.getByRole('button', { name: 'Remove' }).first()).toBeVisible();
 });

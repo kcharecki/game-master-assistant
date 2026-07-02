@@ -13,9 +13,8 @@ test('window system: resize a spawned widget changes its width', async ({ page }
   await page.goto('/');
   await expect(page.locator('.desktop')).toBeVisible();
 
-  // Spawn a fresh Battle Map window via the ＋ Widget menu.
-  await page.getByRole('button', { name: '＋ Widget' }).click();
-  await page.getByRole('menuitem', { name: 'Battle Map' }).click();
+  // Spawn a fresh Battle Map window from the dock.
+  await page.getByRole('button', { name: 'Battle Map', exact: true }).click();
 
   const win = page.locator('[data-win]').filter({ hasText: 'Battle Map' }).last();
   await expect(win).toBeVisible();
@@ -35,8 +34,7 @@ test('window system: resize a spawned widget changes its width', async ({ page }
 
 test('window system: minimize to dock then restore', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: '＋ Widget' }).click();
-  await page.getByRole('menuitem', { name: 'Battle Map' }).click();
+  await page.getByRole('button', { name: 'Battle Map', exact: true }).click();
 
   const win = page.locator('[data-win]').filter({ hasText: 'Battle Map' }).last();
   await expect(win).toBeVisible();

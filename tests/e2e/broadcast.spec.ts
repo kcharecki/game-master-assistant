@@ -23,8 +23,7 @@ test('a second module (Handouts) can take over the broadcast', async ({ context 
   await view.goto('/broadcast.html');
 
   // Spawn the Handouts widget, then send the seeded letter on air.
-  await gm.getByRole('button', { name: '＋ Widget' }).click();
-  await gm.getByRole('menuitem', { name: 'Handouts' }).click();
+  await gm.getByRole('button', { name: 'Handouts', exact: true }).click();
 
   const win = gm.locator('[data-win]').filter({ hasText: 'Handouts' }).last();
   await win.getByText('A Letter from the Order').click();
@@ -35,8 +34,7 @@ test('a second module (Handouts) can take over the broadcast', async ({ context 
 
 test('Broadcast Preview embeds the broadcast page in preview mode', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: '＋ Widget' }).click();
-  await page.getByRole('menuitem', { name: 'Broadcast Preview' }).click();
+  await page.getByRole('button', { name: 'Broadcast Preview', exact: true }).click();
 
   const win = page.locator('[data-win]').filter({ hasText: 'Broadcast Preview' }).last();
   const frame = win.locator('iframe[title="Broadcast preview"]');

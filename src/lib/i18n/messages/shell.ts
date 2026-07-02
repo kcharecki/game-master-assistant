@@ -51,8 +51,7 @@ export const shell = {
     'onair.panicTitle': 'Black-screen the broadcast and stop audio',
 
     // Dock chrome.
-    'dock.widget': '＋ Widget',
-    'dock.cabinet': 'The Cabinet',
+    'dock.widgets': 'Widgets',
 
     // Window frame chrome.
     'win.feedback': 'Feedback',
@@ -149,8 +148,7 @@ export const shell = {
     'onair.panicTitle': 'Wygaś transmisję i zatrzymaj dźwięk',
 
     // Dock chrome.
-    'dock.widget': '＋ Widżet',
-    'dock.cabinet': 'Gabinet',
+    'dock.widgets': 'Widżety',
 
     // Window frame chrome.
     'win.feedback': 'Uwagi',

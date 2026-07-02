@@ -55,9 +55,8 @@ test('GM battle map reaches the broadcast window', async ({ context }) => {
   const view = await context.newPage();
   await view.goto('/broadcast.html');
 
-  // Spawn the Battle Map window via the ＋ Widget menu, then put it on air.
-  await gm.getByRole('button', { name: '＋ Widget' }).click();
-  await gm.getByRole('menuitem', { name: 'Battle Map' }).click();
+  // Spawn the Battle Map window from the dock, then put it on air.
+  await gm.getByRole('button', { name: 'Battle Map', exact: true }).click();
   await gm.getByRole('button', { name: 'On Air' }).click();
   await expect(view.locator('.mapview svg')).toBeVisible({ timeout: 5000 });
 });
