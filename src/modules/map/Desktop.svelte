@@ -20,8 +20,30 @@
   // 'region' = marquee-select a rectangle to reveal; 'ruler' = calibrate scale;
   // 'ping' flashes a marker.
   let fogTool = $state<
-    'off' | 'reveal' | 'hide' | 'region' | 'ruler' | 'gridcal' | 'frame' | 'ping'
+    'off' | 'reveal' | 'hide' | 'region' | 'ruler' | 'gridcal' | 'frame' | 'ping' | 'measure' | 'draw'
   >('off');
+
+  // Measure overlay (GM-side): a line whose length reads in metres, optionally
+  // shown as a circle (burst) or cone (60°) AoE template. Never broadcast.
+  let measure = $state<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  let measureShape = $state<'line' | 'circle' | 'cone'>('line');
+  const measureLenM = $derived(
+    measure ? Math.hypot(measure.x2 - measure.x1, measure.y2 - measure.y1) / GRID_SIZE : 0
+  );
+
+  // GM-only freehand drawing layer (annotations, traps, walls). Never broadcast.
+  let strokes = $state<{ pts: { x: number; y: number }[] }[]>([]);
+  let curStroke = $state<{ x: number; y: number }[] | null>(null);
+  function persistDraw() {
+    void kvSetDraw();
+  }
+  async function kvSetDraw() {
+    const { kvSet } = await import('../../lib/db');
+    await kvSet('mapDraw', $state.snapshot(strokes));
+  }
+  function strokePath(pts: { x: number; y: number }[]): string {
+    return pts.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  }
 
   // Marquee (region reveal) rect in fog-cell indices while dragging.
   let region = $state<{ c0: number; r0: number; c1: number; r1: number } | null>(null);
@@ -80,6 +102,11 @@
 
   onMount(() => {
     void map.load();
+    void (async () => {
+      const { kvGet } = await import('../../lib/db');
+      const saved = await kvGet<{ pts: { x: number; y: number }[] }[]>('mapDraw');
+      if (saved?.length) strokes = saved;
+    })();
   });
 
   // Convert a client-space pointer to map-cell coordinates given current transform.
@@ -178,6 +205,12 @@
     } else if (fogTool === 'frame' && frameBox && panning) {
       const { x, y } = toWorld(svg, e.clientX, e.clientY);
       frameBox = { ...frameBox, x2: x, y2: y };
+    } else if (fogTool === 'measure' && measure && panning) {
+      const { x, y } = toWorld(svg, e.clientX, e.clientY);
+      measure = { ...measure, x2: x, y2: y };
+    } else if (fogTool === 'draw' && curStroke && panning) {
+      const { x, y } = toWorld(svg, e.clientX, e.clientY);
+      curStroke = [...curStroke, { x, y }];
     } else if (dragId) {
       const { gx, gy } = toCell(svg, e.clientX, e.clientY);
       map.moveToken(dragId, gx, gy);
@@ -208,6 +241,12 @@
     } else if (fogTool === 'frame') {
       const { x, y } = toWorld(svg, e.clientX, e.clientY);
       frameBox = { x1: x, y1: y, x2: x, y2: y };
+    } else if (fogTool === 'measure') {
+      const { x, y } = toWorld(svg, e.clientX, e.clientY);
+      measure = { x1: x, y1: y, x2: x, y2: y };
+    } else if (fogTool === 'draw') {
+      const { x, y } = toWorld(svg, e.clientX, e.clientY);
+      curStroke = [{ x, y }];
     } else if (fogTool === 'ping') {
       const { x, y } = normPing(e.clientX, e.clientY, svg.getBoundingClientRect());
       broadcastPing(x, y);
@@ -245,8 +284,23 @@
       map.setView(frameBox.x1, frameBox.y1, frameBox.x2, frameBox.y2);
       frameBox = null;
     }
+    // Commit a freehand annotation stroke on release.
+    if (fogTool === 'draw' && curStroke) {
+      if (curStroke.length > 1) strokes = [...strokes, { pts: curStroke }];
+      curStroke = null;
+      persistDraw();
+    }
     dragId = null;
     panning = false;
+  }
+
+  function clearDrawings() {
+    strokes = [];
+    persistDraw();
+  }
+  function undoDrawing() {
+    strokes = strokes.slice(0, -1);
+    persistDraw();
   }
 
   function onWheel(e: WheelEvent) {
@@ -357,6 +411,36 @@
         <line class="ruler" x1={ruler.x1} y1={ruler.y1} x2={ruler.x2} y2={ruler.y2} />
         <circle class="rulerend" cx={ruler.x1} cy={ruler.y1} r="4" />
         <circle class="rulerend" cx={ruler.x2} cy={ruler.y2} r="4" />
+      {/if}
+
+      <!-- GM-only annotation strokes (never broadcast) -->
+      {#each strokes as st, i (i)}
+        <path class="ink" d={strokePath(st.pts)} />
+      {/each}
+      {#if curStroke && curStroke.length > 1}
+        <path class="ink" d={strokePath(curStroke)} />
+      {/if}
+
+      <!-- Measure overlay: line / circle burst / 60° cone (GM-only) -->
+      {#if measure}
+        {@const dx = measure.x2 - measure.x1}
+        {@const dy = measure.y2 - measure.y1}
+        {@const len = Math.hypot(dx, dy)}
+        {#if measureShape === 'circle'}
+          <circle class="aoe" cx={measure.x1} cy={measure.y1} r={len} />
+        {:else if measureShape === 'cone' && len > 0}
+          {@const ux = dx / len}
+          {@const uy = dy / len}
+          {@const ang = Math.PI / 6}
+          {@const lx = measure.x1 + (ux * Math.cos(ang) - uy * Math.sin(ang)) * len}
+          {@const ly = measure.y1 + (ux * Math.sin(ang) + uy * Math.cos(ang)) * len}
+          {@const rx = measure.x1 + (ux * Math.cos(-ang) - uy * Math.sin(-ang)) * len}
+          {@const ry = measure.y1 + (ux * Math.sin(-ang) + uy * Math.cos(-ang)) * len}
+          <path class="aoe" d="M{measure.x1},{measure.y1} L{lx},{ly} L{rx},{ry} Z" />
+        {:else}
+          <line class="measureline" x1={measure.x1} y1={measure.y1} x2={measure.x2} y2={measure.y2} />
+        {/if}
+        <text class="measuretxt" x={measure.x2 + 6} y={measure.y2 - 6}>{measureLenM.toFixed(1)} m</text>
       {/if}
 
       <!-- Grid-sync calibration box -->
@@ -478,6 +562,21 @@
     </button>
     <button
       class="btn sm"
+      class:on={fogTool === 'measure'}
+      onclick={() => {
+        fogTool = fogTool === 'measure' ? 'off' : 'measure';
+        measure = null;
+      }}
+      title={t('map.measureTitle')}>{t('map.measure')}</button
+    >
+    <button
+      class="btn sm"
+      class:on={fogTool === 'draw'}
+      onclick={() => (fogTool = fogTool === 'draw' ? 'off' : 'draw')}
+      title={t('map.drawTitle')}>{t('map.draw')}</button
+    >
+    <button
+      class="btn sm"
       class:on={libraryOpen}
       onclick={() => {
         libraryOpen = !libraryOpen;
@@ -549,6 +648,25 @@
   {#if fogTool === 'frame'}
     <div class="calib">
       <span class="chint">{t('map.frameHint')}</span>
+    </div>
+  {/if}
+
+  {#if fogTool === 'measure'}
+    <div class="calib">
+      <span class="chint">{t('map.measureHint')}</span>
+      <div class="seg">
+        <button class="btn sm" class:on={measureShape === 'line'} onclick={() => (measureShape = 'line')}>{t('map.aoeLine')}</button>
+        <button class="btn sm" class:on={measureShape === 'circle'} onclick={() => (measureShape = 'circle')}>{t('map.aoeCircle')}</button>
+        <button class="btn sm" class:on={measureShape === 'cone'} onclick={() => (measureShape = 'cone')}>{t('map.aoeCone')}</button>
+      </div>
+    </div>
+  {/if}
+
+  {#if fogTool === 'draw'}
+    <div class="calib">
+      <span class="chint">{t('map.drawHint')}</span>
+      <button class="btn sm" onclick={undoDrawing} disabled={!strokes.length}>{t('map.undoDraw')}</button>
+      <button class="btn sm danger" onclick={clearDrawings} disabled={!strokes.length}>{t('map.clearDraw')}</button>
     </div>
   {/if}
   </div>
@@ -679,6 +797,38 @@
   .rulerend {
     fill: var(--gold);
     pointer-events: none;
+  }
+  .measureline {
+    stroke: #8fd8ff;
+    stroke-width: 2;
+    pointer-events: none;
+  }
+  .aoe {
+    fill: rgba(143, 216, 255, 0.18);
+    stroke: #8fd8ff;
+    stroke-width: 1.5;
+    pointer-events: none;
+  }
+  .measuretxt {
+    fill: #d7f1ff;
+    font-size: 12px;
+    font-weight: 700;
+    paint-order: stroke;
+    stroke: #05090a;
+    stroke-width: 3;
+    pointer-events: none;
+  }
+  .ink {
+    fill: none;
+    stroke: #ffd27a;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .seg {
+    display: inline-flex;
+    gap: 4px;
   }
   .gridbox {
     fill: rgba(199, 164, 78, 0.16);
