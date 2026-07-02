@@ -9,6 +9,14 @@
   import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
   import { clampCols, gridAssetIds } from './grid';
   import { conditionGlyph, conditionMeta } from '../modules/map/conditions';
+  import { hexGridPath } from '../modules/map/hex';
+
+  // A token is shown if any cell under its footprint is revealed to players.
+  function tokenVisible(reveal: number[][], gx: number, gy: number, size: number): boolean {
+    for (let r = gy; r < gy + size; r++)
+      for (let c = gx; c < gx + size; c++) if (reveal[r]?.[c] === 1) return true;
+    return false;
+  }
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
@@ -579,18 +587,29 @@
             preserveAspectRatio="none"
           />
         {/if}
-        <!-- battle grid (1 cell = 1 metre) -->
-        <rect x={vf.x} y={vf.y} width={vf.w} height={vf.h} fill="url(#bgrid)" />
+        <!-- battle grid (1 cell = 1 metre): square, hex, or gridless -->
+        {#if (payload.grid ?? 'square') === 'square'}
+          <rect x={vf.x} y={vf.y} width={vf.w} height={vf.h} fill="url(#bgrid)" />
+        {:else if payload.grid === 'hex'}
+          <path d={hexGridPath(cols, rows, CELL)} fill="none" stroke="rgba(95,150,120,.22)" stroke-width="1" />
+        {/if}
 
-        <!-- tokens (player-safe: position + label only) -->
+        <!-- tokens (player-safe: position + label + footprint). Position is a CSS
+             transform so movement tweens; a status ring shows if any condition. -->
         {#each payload.tokens ?? [] as tk, i (i)}
-          {#if payload.reveal[tk.gy]?.[tk.gx] === 1}
-            <g transform="translate({tk.gx * CELL} {tk.gy * CELL})">
-              <circle cx={CELL / 2} cy={CELL / 2} r={CELL / 2 - 4} fill={tk.color} />
-              <text x={CELL / 2} y={CELL / 2 + 4} text-anchor="middle" class="tlbl">{tk.label}</text
-              >
+          {@const sz = Math.max(1, tk.size ?? 1)}
+          {@const vis = tokenVisible(payload.reveal, tk.gx, tk.gy, sz)}
+          {#if vis}
+            {@const c = (sz * CELL) / 2}
+            {@const r = c - 4}
+            <g class="tok" style="transform:translate({tk.gx * CELL}px,{tk.gy * CELL}px)">
+              {#if (tk.conditions ?? []).length}
+                <circle cx={c} cy={c} r={r + 2} fill="none" stroke="#ffd27a" stroke-width="2.5" class="ring" />
+              {/if}
+              <circle cx={c} cy={c} r={r} fill={tk.color} />
+              <text x={c} y={c + 4} text-anchor="middle" class="tlbl">{tk.label}</text>
               {#each tk.conditions ?? [] as cid, j (cid)}
-                <text x={CELL / 2} y={CELL + 12 + j * 13} text-anchor="middle" class="tcond">
+                <text x={c} y={sz * CELL + 12 + j * 13} text-anchor="middle" class="tcond">
                   {conditionGlyph(cid)}
                   {conditionMeta(cid)?.label ?? cid}
                 </text>
@@ -599,12 +618,19 @@
           {/if}
         {/each}
 
+        <!-- Fog: every cell carries a cover rect whose opacity animates, so
+             newly-revealed cells fade out (no pop) instead of vanishing. -->
         {#each payload.reveal as fogRow, row (row)}
           {#each fogRow as cell, col (col)}
-            {#if cell === 0}
-              <!-- Hidden: fully opaque so players never see beyond the fog. -->
-              <rect x={col * CELL} y={row * CELL} width={CELL} height={CELL} fill="#05090a" />
-            {/if}
+            <rect
+              class="fogcell"
+              x={col * CELL}
+              y={row * CELL}
+              width={CELL}
+              height={CELL}
+              fill="#05090a"
+              opacity={cell === 0 ? 1 : 0}
+            />
           {/each}
         {/each}
       </svg>
@@ -777,6 +803,19 @@
     fill: #06120c;
     font-size: 11px;
     font-weight: 700;
+  }
+  /* Token position tweens on move; fog cover cross-fades on reveal (no pop). */
+  .mapview .tok {
+    transition: transform 0.45s ease;
+  }
+  .mapview .fogcell {
+    transition: opacity 0.6s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mapview .tok,
+    .mapview .fogcell {
+      transition: none;
+    }
   }
   .mapview .tcond {
     fill: #eafff3;

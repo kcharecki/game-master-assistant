@@ -12,7 +12,15 @@ export function broadcastMap(
   ref: {
     assetId?: string;
     src?: string;
-    tokens?: { gx: number; gy: number; label: string; color: string; conditions?: string[] }[];
+    grid?: 'square' | 'hex' | 'none';
+    tokens?: {
+      gx: number;
+      gy: number;
+      label: string;
+      color: string;
+      conditions?: string[];
+      size?: number;
+    }[];
     img?: { x: number; y: number; w: number; h: number };
     view?: { x: number; y: number; w: number; h: number };
   } = {}

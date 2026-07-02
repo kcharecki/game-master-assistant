@@ -87,6 +87,26 @@ describe('MapStore', () => {
     map.zoomBy(100); // clamped
     expect(map.transform.zoom).toBe(4);
   });
+
+  it('clamps token footprint size to 1..4', () => {
+    const t = map.addToken();
+    map.setTokenSize(t.id, 3);
+    expect(map.tokens[0].size).toBe(3);
+    map.setTokenSize(t.id, 9);
+    expect(map.tokens[0].size).toBe(4);
+    map.setTokenSize(t.id, 0);
+    expect(map.tokens[0].size).toBe(1);
+  });
+
+  it('cycles the grid mode square → hex → none → square', () => {
+    map.setGridMode('square');
+    map.cycleGridMode();
+    expect(map.gridMode).toBe('hex');
+    map.cycleGridMode();
+    expect(map.gridMode).toBe('none');
+    map.cycleGridMode();
+    expect(map.gridMode).toBe('square');
+  });
 });
 
 describe('fog of war', () => {

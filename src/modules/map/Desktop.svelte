@@ -37,6 +37,27 @@
   // Broadcast-frame box (world px) while dragging the Frame tool.
   let frameBox = $state<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
 
+  // Map library panel.
+  let libraryOpen = $state(false);
+  let savedMaps = $state<import('./store.svelte').SavedMap[]>([]);
+  let mapName = $state('');
+  async function refreshMaps() {
+    savedMaps = await map.listMaps();
+  }
+  async function saveCurrentMap() {
+    await map.saveMap(mapName || `Map ${savedMaps.length + 1}`);
+    mapName = '';
+    await refreshMaps();
+  }
+  async function loadSavedMap(id: string) {
+    await map.loadMap(id);
+  }
+  async function deleteSavedMap(id: string) {
+    await map.deleteMap(id);
+    await refreshMaps();
+  }
+  const GRID_LABEL = { square: 'map.gridSquare', hex: 'map.gridHex', none: 'map.gridNone' } as const;
+
   // Background image -> tab-local object URL (revoked on change/unmount).
   let bgUrl = $state('');
   $effect(() => {
@@ -201,10 +222,12 @@
       label: tk.label,
       color: tk.color,
       conditions: [...tk.conditions],
+      size: tk.size ?? 1,
     }));
     const bg = map.bg;
     broadcastMap(map.fogPayload(), {
       assetId: bg?.assetId,
+      grid: map.gridMode,
       tokens,
       img: bg ? { x: bg.dx, y: bg.dy, w: bg.w * bg.scale, h: bg.h * bg.scale } : undefined,
       view: map.broadcastView(),
@@ -292,6 +315,7 @@
       {/each}
 
       {#each map.tokens as t (t.id)}
+        {@const tc = ((t.size ?? 1) * GRID_SIZE) / 2}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <g
           class="tok"
@@ -299,15 +323,15 @@
           transform="translate({t.gx * GRID_SIZE} {t.gy * GRID_SIZE})"
           onpointerdown={(e) => onTokenDown(e, t.id)}
         >
-          <circle cx={GRID_SIZE / 2} cy={GRID_SIZE / 2} r={GRID_SIZE / 2 - 4} fill={t.color} />
-          <text x={GRID_SIZE / 2} y={GRID_SIZE / 2 + 4} text-anchor="middle" class="lbl">
+          <circle cx={tc} cy={tc} r={tc - 4} fill={t.color} />
+          <text x={tc} y={tc + 4} text-anchor="middle" class="lbl">
             {t.label}
           </text>
           <!-- full state labels stacked below the token (glyph + name) -->
           {#each t.conditions as cid, i (cid)}
             <text
-              x={GRID_SIZE / 2}
-              y={GRID_SIZE + 12 + i * 13}
+              x={tc}
+              y={(t.size ?? 1) * GRID_SIZE + 12 + i * 13}
               text-anchor="middle"
               class="condlabel"
               role="img"
@@ -449,8 +473,41 @@
         >{t('map.frameFull')}</button
       >
     {/if}
+    <button class="btn sm" onclick={() => map.cycleGridMode()} title={t('map.gridModeTitle')}>
+      ⬡ {t(GRID_LABEL[map.gridMode])}
+    </button>
+    <button
+      class="btn sm"
+      class:on={libraryOpen}
+      onclick={() => {
+        libraryOpen = !libraryOpen;
+        if (libraryOpen) void refreshMaps();
+      }}
+      title={t('map.mapsTitle')}>{t('map.maps')}</button
+    >
     <button class="btn sm solid" onclick={putMapOnAir} title={t('map.onAirTitle')}>{t('map.onAir')}</button>
   </div>
+
+  {#if libraryOpen}
+    <div class="library">
+      <div class="librow">
+        <input class="tname" placeholder={t('map.mapName')} bind:value={mapName} aria-label={t('map.mapName')} />
+        <button class="btn sm solid" onclick={saveCurrentMap}>{t('map.saveMap')}</button>
+      </div>
+      {#if savedMaps.length}
+        <ul class="maplist">
+          {#each savedMaps as m (m.id)}
+            <li>
+              <button class="maploadbtn" onclick={() => loadSavedMap(m.id)}>{m.name}</button>
+              <button class="btn sm danger" onclick={() => deleteSavedMap(m.id)} aria-label={t('map.deleteMap')}>✕</button>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <span class="chint">{t('map.noMaps')}</span>
+      {/if}
+    </div>
+  {/if}
 
   {#if fogTool === 'ruler'}
     <div class="calib">
@@ -507,6 +564,15 @@
       <span class="hp">{sel.hp}/{sel.maxHp}</span>
       <button class="btn sm" onclick={() => damage(sel, -1)}>−1</button>
       <button class="btn sm" onclick={() => damage(sel, 1)}>+1</button>
+      <label class="sizepick" title={t('map.size')}>
+        {t('map.size')}
+        <select value={sel.size ?? 1} onchange={(e) => map.setTokenSize(sel.id, Number((e.currentTarget as HTMLSelectElement).value))} aria-label={t('map.size')}>
+          <option value={1}>1×1</option>
+          <option value={2}>2×2</option>
+          <option value={3}>3×3</option>
+          <option value={4}>4×4</option>
+        </select>
+      </label>
 
       <!-- active states as removable glyph chips -->
       {#each sel.conditions as cid (cid)}
@@ -667,6 +733,68 @@
   }
   .chint {
     color: var(--muted);
+  }
+  .library {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(9, 16, 13, 0.92);
+    border: 1px solid var(--line2);
+    font-size: 12px;
+  }
+  .librow {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .maplist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  .maplist li {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .maploadbtn {
+    flex: 1;
+    text-align: left;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--line2);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--txt);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+  }
+  .maploadbtn:hover {
+    border-color: var(--green-dim);
+    background: rgba(47, 138, 102, 0.16);
+  }
+  .sizepick {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .sizepick select {
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--txt);
+    border: 1px solid var(--line2);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 11px;
+    padding: 2px 4px;
   }
   .clen {
     color: var(--gold);

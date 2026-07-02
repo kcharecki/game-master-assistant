@@ -10,6 +10,23 @@ export interface Token {
   hp: number;
   maxHp: number;
   conditions: string[];
+  /** footprint in cells (1 = 1×1 Medium, 2 = 2×2 Large, 3 = 3×3 Huge). Default 1. */
+  size?: number;
+}
+
+/** Grid overlay style shared with the broadcast map. */
+export type GridMode = 'square' | 'hex' | 'none';
+
+/** A named battle-map snapshot (fog + tokens + background + framing). */
+export interface SavedMap {
+  id: string;
+  name: string;
+  at: number;
+  tokens: Token[];
+  fog: boolean[][];
+  bg: MapBg | null;
+  view: { x: number; y: number; w: number; h: number } | null;
+  grid: GridMode;
 }
 
 export interface Transform {
@@ -184,6 +201,28 @@ class MapStore {
   /** Broadcast frame in world px: the fragment shown on air (fills the player
    *  window, ratio kept). null = auto (whole background, else the fog grid). */
   view = $state<{ x: number; y: number; w: number; h: number } | null>(null);
+  /** Grid overlay style (square / hex / gridless), mirrored to the broadcast. */
+  gridMode = $state<GridMode>('square');
+
+  /** Set the grid overlay style and persist it. */
+  setGridMode(mode: GridMode): void {
+    this.gridMode = mode;
+    void kvSet('mapGrid', mode);
+  }
+
+  /** Cycle square → hex → none → square. */
+  cycleGridMode(): void {
+    const order: GridMode[] = ['square', 'hex', 'none'];
+    this.setGridMode(order[(order.indexOf(this.gridMode) + 1) % order.length]);
+  }
+
+  /** Set a token's footprint in cells (1..4). */
+  setTokenSize(id: string, size: number): void {
+    const t = this.tokens.find((x) => x.id === id);
+    if (!t) return;
+    t.size = Math.max(1, Math.min(4, Math.round(size)));
+    this.persist();
+  }
 
   /** Paint (reveal) or erase (re-hide) a single cell; ignores out-of-bounds. */
   setFog(col: number, row: number, revealed: boolean): void {
@@ -373,6 +412,53 @@ class MapStore {
     this.transform.zoom = clampZoom(this.transform.zoom * factor);
   }
 
+  // ---- map library (save/switch whole battle maps) --------------------------
+
+  /** List saved maps (metadata + payload), newest first. */
+  async listMaps(): Promise<SavedMap[]> {
+    const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
+    return [...lib].sort((a, b) => b.at - a.at);
+  }
+
+  /** Save the current battle map (fog + tokens + bg + framing) under a name. */
+  async saveMap(name: string): Promise<void> {
+    const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
+    lib.push({
+      id: crypto.randomUUID(),
+      name: name.trim() || `Map ${lib.length + 1}`,
+      at: Date.now(),
+      tokens: $state.snapshot(this.tokens),
+      fog: $state.snapshot(this.fog),
+      bg: this.bg ? $state.snapshot(this.bg) : null,
+      view: this.view ? { ...this.view } : null,
+      grid: this.gridMode,
+    });
+    await kvSet('mapLibrary', lib);
+  }
+
+  /** Load a saved map into the live state (does not auto-broadcast). */
+  async loadMap(id: string): Promise<void> {
+    const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
+    const m = lib.find((x) => x.id === id);
+    if (!m) return;
+    this.tokens = m.tokens;
+    this.fog = m.fog;
+    this.bg = m.bg;
+    this.view = m.view;
+    this.gridMode = m.grid ?? 'square';
+    this.persist();
+    this.persistFog();
+    this.persistBg();
+    void kvSet('mapView', this.view);
+    void kvSet('mapGrid', this.gridMode);
+  }
+
+  /** Delete a saved map from the library. */
+  async deleteMap(id: string): Promise<void> {
+    const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
+    await kvSet('mapLibrary', lib.filter((x) => x.id !== id));
+  }
+
   persist(): void {
     void kvSet('mapTokens', $state.snapshot(this.tokens));
   }
@@ -392,6 +478,8 @@ class MapStore {
     if (fog?.length) this.fog = fog;
     const view = await kvGet<{ x: number; y: number; w: number; h: number } | null>('mapView');
     if (view) this.view = view;
+    const grid = await kvGet<GridMode>('mapGrid');
+    if (grid === 'square' || grid === 'hex' || grid === 'none') this.gridMode = grid;
     const bg = await kvGet<MapBg | null>('mapBg');
     if (bg) {
       this.bg = { ...bg, dx: bg.dx ?? 0, dy: bg.dy ?? 0 };

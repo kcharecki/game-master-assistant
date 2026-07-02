@@ -65,7 +65,17 @@ export type BroadcastPayload =
       src?: string;
       assetId?: string;
       reveal: number[][];
-      tokens?: { gx: number; gy: number; label: string; color: string; conditions?: string[] }[];
+      /** grid overlay style on the broadcast map. Defaults to 'square'. */
+      grid?: 'square' | 'hex' | 'none';
+      tokens?: {
+        gx: number;
+        gy: number;
+        label: string;
+        color: string;
+        conditions?: string[];
+        /** token footprint in cells (1 = 1×1, 2 = 2×2, …). Defaults to 1. */
+        size?: number;
+      }[];
       /** background placement in the shared world space (px): top-left (x,y) +
        *  display size (w,h). Grid/fog/tokens use cell coords in that same space,
        *  so the broadcast aligns exactly with the GM canvas. */
