@@ -68,7 +68,7 @@ export type GridCell =
   | { kind: 'clock'; seconds: number; label?: string; area?: GridArea; z?: number }
   // In-world date/moon tile: a static snapshot of the calendar module's current
   // date + moon phase (GM reads its store when composing; player-safe strings).
-  | { kind: 'date'; date: string; moon?: string; label?: string; area?: GridArea; z?: number }
+  | { kind: 'date'; date: string; time?: string; moon?: string; label?: string; area?: GridArea; z?: number }
   // Dice-result tile: a static rendering of a public roll (same fields the `roll`
   // payload carries), laid into the stage grid rather than shown fullscreen.
   | {

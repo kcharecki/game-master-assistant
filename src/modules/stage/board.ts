@@ -41,6 +41,8 @@ export interface Tile {
   seconds?: number; // countdown duration
   // date content (in-world date snapshot pulled from the calendar store):
   date?: string;
+  // in-world time-of-day snapshot pulled from the Timeline (schedule) store:
+  time?: string;
   moon?: string;
   // roll content (a static public dice result):
   roll?: { expr: string; total: number; kept: number[]; modifier: number; outcome?: string };
@@ -175,6 +177,7 @@ export function tileToCell(
   if (tile.kind === 'date') {
     if (!tile.date) return null;
     const cell: GridCell = { kind: 'date', date: tile.date, area };
+    if (tile.time) cell.time = tile.time;
     if (tile.moon) cell.moon = tile.moon;
     if (tile.title) cell.label = tile.title;
     if (z !== undefined) cell.z = z;

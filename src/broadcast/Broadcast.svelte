@@ -740,6 +740,7 @@
             <div class="gcell gdate" style={area}>
               {#if cell.label}<div class="dlbl">{cell.label}</div>{/if}
               <div class="ddate">{cell.date}</div>
+              {#if cell.time}<div class="dtime">{cell.time}</div>{/if}
               {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
             </div>
           {:else if cell.kind === 'roll'}
@@ -786,6 +787,7 @@
           <div class="gcell gdate">
             {#if cell.label}<div class="dlbl">{cell.label}</div>{/if}
             <div class="ddate">{cell.date}</div>
+            {#if cell.time}<div class="dtime">{cell.time}</div>{/if}
             {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
           </div>
         {:else if cell.kind === 'roll'}
@@ -1078,6 +1080,12 @@
     font-family: Georgia, serif;
     color: var(--txt);
     font-size: clamp(18px, 3vw, 40px);
+  }
+  .dtime {
+    color: var(--muted);
+    font-size: clamp(14px, 2vw, 26px);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
   }
   .dmoon {
     color: var(--gold);

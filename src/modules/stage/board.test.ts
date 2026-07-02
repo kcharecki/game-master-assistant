@@ -162,6 +162,15 @@ describe('tileToCell — new kinds + z', () => {
     ).toMatchObject({ kind: 'date', date: '12 Mirtul', moon: 'Full Moon' });
   });
 
+  it('carries the Timeline time onto a date cell when present', () => {
+    expect(
+      tileToCell(
+        { id: 'c', kind: 'date', col: 1, row: 1, cw: 4, rh: 2, date: '12 Mirtul', time: '14:05' },
+        noNpc,
+      ),
+    ).toMatchObject({ kind: 'date', date: '12 Mirtul', time: '14:05' });
+  });
+
   it('drops a roll tile without a result, keeps one with', () => {
     expect(
       tileToCell({ id: 'a', kind: 'roll', col: 1, row: 1, cw: 4, rh: 3 }, noNpc),

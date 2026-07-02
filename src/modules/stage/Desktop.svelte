@@ -4,6 +4,7 @@
   import { snapZones, zoneAt, formatCountdown, type SnapZone } from './board';
   import { npcs } from '../npcs/store.svelte';
   import { calendar } from '../calendar/store.svelte';
+  import { schedule } from '../schedule/store.svelte';
   import { roll, rollCardModel } from '../roller/logic';
   import { onairHistory } from '../../lib/stores/onairHistory.svelte';
   import { describeOnAir } from '../../lib/onair';
@@ -250,9 +251,9 @@
     if (name?.trim()) stage.savePreset(name.trim());
   }
 
-  // Snapshot the calendar module's current in-world date + moon onto a new tile.
+  // Snapshot the calendar's in-world date + moon and the Timeline clock onto a new tile.
   function addDateTile() {
-    stage.addTile('date', { date: calendar.label, moon: calendar.moon });
+    stage.addTile('date', { date: calendar.label, time: schedule.clock, moon: calendar.moon });
   }
   // Add a dice-result tile, rolling `expr` once and freezing the outcome on it.
   function addRollTile(expr = '1d20') {
@@ -286,9 +287,9 @@
       },
     });
   }
-  // Refresh a date tile from the calendar's current state.
+  // Refresh a date tile from the calendar + Timeline current state.
   function refreshDate(tl: Tile) {
-    stage.patchTile(tl.id, { date: calendar.label, moon: calendar.moon });
+    stage.patchTile(tl.id, { date: calendar.label, time: schedule.clock, moon: calendar.moon });
   }
   function snapSelected(z: SnapZone) {
     if (stage.selected) {
@@ -523,6 +524,7 @@
                 <div class="tmeta">
                   {#if tl.title}<span class="tmlbl">{tl.title}</span>{/if}
                   <strong class="tmmid">{tl.date ?? '—'}</strong>
+                  {#if tl.time}<span class="ttime">{tl.time}</span>{/if}
                   {#if tl.moon}<span class="tmoon">☾ {tl.moon}</span>{/if}
                 </div>
               {:else if tl.kind === 'roll'}
@@ -1216,6 +1218,11 @@
   .tmoon {
     color: var(--gold);
     font-size: 11px;
+  }
+  .ttime {
+    color: var(--muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
   }
   .chrome {
     position: absolute;
