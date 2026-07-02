@@ -33,13 +33,22 @@ export const shell = {
     'cat.Other': 'Other',
 
     // Topbar chrome.
-    'topbar.openBroadcast': 'Open Broadcast ↗',
-    'topbar.layouts': 'Layouts ▾',
-    'topbar.tile': '⊞ Tile',
+    'topbar.openBroadcast': 'Open Broadcast',
+    'topbar.layouts': 'Layouts',
+    'topbar.tile': 'Tile',
     'topbar.save': 'Save',
     'topbar.saveAs': 'Save current as…',
     'topbar.noLayouts': 'No saved layouts',
     'topbar.layoutsHeader': 'layouts',
+    'topbar.density': 'Toggle density',
+    'topbar.densityCompact': 'Switch to compact',
+    'topbar.densityComfortable': 'Switch to comfortable',
+
+    // Global ON AIR lamp.
+    'onair.live': 'On Air',
+    'onair.off': 'Off Air',
+    'onair.panic': 'Clear',
+    'onair.panicTitle': 'Black-screen the broadcast and stop audio',
 
     // Dock chrome.
     'dock.narrate': 'Narrate',
@@ -119,13 +128,22 @@ export const shell = {
     'cat.Other': 'Inne',
 
     // Topbar chrome.
-    'topbar.openBroadcast': 'Otwórz transmisję ↗',
-    'topbar.layouts': 'Układy ▾',
-    'topbar.tile': '⊞ Kafelki',
+    'topbar.openBroadcast': 'Otwórz transmisję',
+    'topbar.layouts': 'Układy',
+    'topbar.tile': 'Kafelki',
     'topbar.save': 'Zapisz',
     'topbar.saveAs': 'Zapisz bieżący jako…',
     'topbar.noLayouts': 'Brak zapisanych układów',
     'topbar.layoutsHeader': 'układy',
+    'topbar.density': 'Przełącz gęstość',
+    'topbar.densityCompact': 'Przełącz na zwartą',
+    'topbar.densityComfortable': 'Przełącz na komfortową',
+
+    // Global ON AIR lamp.
+    'onair.live': 'Na antenie',
+    'onair.off': 'Poza anteną',
+    'onair.panic': 'Wyczyść',
+    'onair.panicTitle': 'Wygaś transmisję i zatrzymaj dźwięk',
 
     // Dock chrome.
     'dock.narrate': 'Narracja',

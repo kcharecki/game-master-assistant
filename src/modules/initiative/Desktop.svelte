@@ -1,6 +1,8 @@
 <script lang="ts">
   import { initiative, isBloodied, vagueStatus } from './store.svelte';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
+  import Empty from '../../lib/components/Empty.svelte';
 
   function initials(name: string): string {
     return name
@@ -16,6 +18,14 @@
   <span class="rnd">{t('initiative.round')} {initiative.round}</span>
   <button class="btn solid sm" onclick={() => initiative.nextTurn()}>{t('initiative.nextTurn')}</button>
 </div>
+
+{#if initiative.order.length === 0}
+  <Empty
+    text={t('initiative.empty')}
+    actionLabel={t('initiative.addCombatant')}
+    onAction={() => initiative.add()}
+  />
+{/if}
 
 {#each initiative.order as c, i (c.id)}
   <div class="combatant" class:active={i === initiative.active} class:foe={c.foe}>
@@ -46,12 +56,14 @@
       >
       <button class="ob" onclick={() => initiative.moveUp(c.id)} aria-label={t('initiative.moveUp')}>▲</button>
       <button class="ob" onclick={() => initiative.moveDown(c.id)} aria-label={t('initiative.moveDown')}>▼</button>
-      <button class="ob x" onclick={() => initiative.remove(c.id)} aria-label={t('initiative.remove')}>✕</button>
+      <button class="ob x" onclick={() => initiative.remove(c.id)} aria-label={t('initiative.remove')} title={t('initiative.remove')}><Icon name="close" size={12} /></button>
     </span>
   </div>
 {/each}
 
-<button class="btn sm add" onclick={() => initiative.add()}>{t('initiative.addCombatant')}</button>
+<button class="btn sm add" onclick={() => initiative.add()}
+  ><Icon name="plus" /> {t('initiative.addCombatant')}</button
+>
 
 <style>
   .initbar {

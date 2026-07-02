@@ -3,6 +3,7 @@
   import { schedule } from './store.svelte';
   import type { ScheduledEvent } from './logic';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   onMount(() => void schedule.load());
 
@@ -78,10 +79,10 @@
                 oninput={(e) => schedule.updateEvent(ev.id, { title: e.currentTarget.value })}
                 placeholder={t('schedule.eventPlaceholder')}
               />
-              <button class="evx" onclick={() => schedule.removeEvent(ev.id)} aria-label={t('schedule.removeEvent')}>✕</button>
+              <button class="evx" onclick={() => schedule.removeEvent(ev.id)} aria-label={t('schedule.removeEvent')} title={t('schedule.removeEvent')}><Icon name="close" size={12} /></button>
             </div>
           {/each}
-          <button class="addhr" onclick={() => addAtHour(h)} aria-label={`${t('schedule.addAtPre')}${pad(h)}:00`}>＋</button>
+          <button class="addhr" onclick={() => addAtHour(h)} aria-label={`${t('schedule.addAtPre')}${pad(h)}:00`}><Icon name="plus" size={13} /></button>
         </div>
       </div>
     {/each}

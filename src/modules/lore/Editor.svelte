@@ -1,6 +1,8 @@
 <script lang="ts">
   import { lore } from './store.svelte';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
+  import Empty from '../../lib/components/Empty.svelte';
 
   const sel = $derived(lore.selected);
   const links = $derived(sel ? lore.linksOf(sel.id) : []);
@@ -16,8 +18,11 @@
   <aside class="side">
     <header class="shead">
       <h2>{t('lore.title')}</h2>
-      <button class="btn solid sm" aria-label={t('lore.addPage')} onclick={() => lore.add()}>＋</button>
+      <button class="btn solid sm" aria-label={t('lore.addPage')} title={t('lore.addPage')} onclick={() => lore.add()}><Icon name="plus" /></button>
     </header>
+    {#if lore.pages.length === 0}
+      <Empty text={t('lore.empty')} actionLabel={t('lore.addPage')} onAction={() => lore.add()} />
+    {/if}
     <ul class="plist">
       {#each lore.pages as p (p.id)}
         <li>

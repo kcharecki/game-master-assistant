@@ -3,6 +3,7 @@
   import { renderMarkdown, highlight } from './logic';
   import { assetUrl } from '../../lib/db';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   let { note }: { note: Note } = $props();
 
@@ -87,8 +88,8 @@
         aria-label={note.pinned ? t('notebook.unpin') : t('notebook.pin')}
         onclick={() => notebook.togglePin(note.id)}>{note.pinned ? '★' : '☆'}</button
       >
-      <button class="ic" title={t('notebook.edit')} aria-label={t('notebook.editNote')} onclick={startEdit}>✎</button>
-      <button class="ic" title={t('notebook.delete')} aria-label={t('notebook.deleteNote')} onclick={() => notebook.remove(note.id)}>×</button>
+      <button class="ic" title={t('notebook.edit')} aria-label={t('notebook.editNote')} onclick={startEdit}><Icon name="edit" size={14} /></button>
+      <button class="ic danger" title={t('notebook.delete')} aria-label={t('notebook.deleteNote')} onclick={() => notebook.remove(note.id)}><Icon name="trash" size={14} /></button>
     </div>
   </div>
 

@@ -3,6 +3,7 @@
   import { audio } from './store.svelte';
   import { formatTime } from './logic';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   let sfxGroup = $state(''); // active soundboard group filter ('' = all)
   let pickScene = $state(audio.playingScene ?? audio.playlists[0]?.id ?? '');
@@ -121,7 +122,7 @@
     {#if audio.playingScene}
       <div class="nowmeta">
         {#if audio.playingYouTube}
-          <span>▶ YT {audio.trackIndex + 1}/{audio.trackCount}</span>
+          <span><Icon name="play" size={11} /> YT {audio.trackIndex + 1}/{audio.trackCount}</span>
         {:else}
           <span class="tnum">{formatTime(audio.position)}</span>
           <span class="rem">-{formatTime(remaining)}</span>
@@ -148,10 +149,10 @@
 
     <!-- Transport -->
     <div class="transport">
-      <button class="ic" onclick={() => audio.prev()} disabled={!audio.playingScene} title={t('audio.prev')} aria-label={t('audio.prev')}>⏮</button>
-      <button class="ic big" onclick={() => audio.togglePause()} disabled={!audio.playingScene} title={audio.paused ? t('audio.resume') : t('audio.pause')} aria-label={audio.paused ? t('audio.resume') : t('audio.pause')}>{audio.paused ? '▶' : '⏸'}</button>
-      <button class="ic" onclick={() => audio.next()} disabled={!audio.playingScene} title={t('audio.next')} aria-label={t('audio.next')}>⏭</button>
-      <button class="ic" onclick={() => audio.stopScene()} disabled={!audio.playingScene} title={t('audio.stop')} aria-label={t('audio.stop')}>⏹</button>
+      <button class="ic" onclick={() => audio.prev()} disabled={!audio.playingScene} title={t('audio.prev')} aria-label={t('audio.prev')}><Icon name="prev" /></button>
+      <button class="ic big" onclick={() => audio.togglePause()} disabled={!audio.playingScene} title={audio.paused ? t('audio.resume') : t('audio.pause')} aria-label={audio.paused ? t('audio.resume') : t('audio.pause')}><Icon name={audio.paused ? 'play' : 'pause'} /></button>
+      <button class="ic" onclick={() => audio.next()} disabled={!audio.playingScene} title={t('audio.next')} aria-label={t('audio.next')}><Icon name="next" /></button>
+      <button class="ic" onclick={() => audio.stopScene()} disabled={!audio.playingScene} title={t('audio.stop')} aria-label={t('audio.stop')}><Icon name="stop" /></button>
       <button class="ic" class:on={audio.loopList} onclick={() => audio.toggleLoopList()} title={t('audio.loopList')} aria-label={t('audio.loopList')}>🔁</button>
       <button class="ic" class:on={audio.loopTrack} onclick={() => audio.toggleLoopTrack()} title={t('audio.loopTrack')} aria-label={t('audio.loopTrack')}>🔂</button>
     </div>

@@ -4,6 +4,7 @@
   import { t } from '../../lib/i18n';
   import Capture from './Capture.svelte';
   import NoteView from './NoteView.svelte';
+  import Empty from '../../lib/components/Empty.svelte';
 
   onMount(() => void notebook.load());
 
@@ -58,7 +59,7 @@
         {/if}
       </div>
     {:else}
-      <p class="muted">{t('notebook.noNotes')}</p>
+      <Empty text={t('notebook.noNotes')} icon="edit" />
     {/each}
   </div>
 
@@ -188,10 +189,6 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-  }
-  .muted {
-    color: var(--muted);
-    font-size: 12px;
   }
   .toast {
     position: absolute;

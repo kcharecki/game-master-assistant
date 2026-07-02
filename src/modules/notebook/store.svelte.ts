@@ -1,5 +1,6 @@
 import { kvSet, kvGet } from '../../lib/db';
 import type { BroadcastPayload } from '../../lib/types';
+import { describeOnAir } from '../../lib/onair';
 import { initiative } from '../initiative/store.svelte';
 import { calendar } from '../calendar/store.svelte';
 import { npcs } from '../npcs/store.svelte';
@@ -30,19 +31,7 @@ const SEED: Note[] = [
 
 /** Short human label of whatever is currently on air, for the context stamp. */
 function onAirLabel(p: BroadcastPayload | undefined): string | undefined {
-  if (!p || p.kind === 'clear') return undefined;
-  switch (p.kind) {
-    case 'text':
-      return p.title || (p.body ? p.body.slice(0, 40) : 'Text');
-    case 'image':
-      return p.caption || 'Image';
-    case 'map':
-      return 'Battle map';
-    case 'grid':
-      return 'Stage';
-    default:
-      return undefined;
-  }
+  return describeOnAir(p).label;
 }
 
 /** Timestamped, taggable, searchable session notes (GM-only). */

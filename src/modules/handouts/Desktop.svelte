@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { handouts } from './store.svelte';
   import { t } from '../../lib/i18n';
+  import Empty from '../../lib/components/Empty.svelte';
 
   onMount(() => void handouts.load());
 
@@ -26,7 +27,7 @@
         {#if h.assetId}<span class="img">{t('handouts.img')}</span>{/if}
       </button>
     {:else}
-      <p class="muted">{t('handouts.none')}</p>
+      <Empty text={t('handouts.none')} actionLabel={t('handouts.new')} onAction={add} />
     {/each}
     <button class="btn add" onclick={add}>{t('handouts.new')}</button>
   </div>
@@ -155,9 +156,5 @@
     border-color: var(--line2);
     color: var(--muted);
     background: transparent;
-  }
-  .muted {
-    color: var(--muted);
-    font-size: 12px;
   }
 </style>

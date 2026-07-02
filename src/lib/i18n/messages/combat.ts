@@ -11,7 +11,8 @@ export const combat = {
     'initiative.moveUp': 'Move up',
     'initiative.moveDown': 'Move down',
     'initiative.remove': 'Remove',
-    'initiative.addCombatant': '＋ Combatant',
+    'initiative.addCombatant': 'Combatant',
+    'initiative.empty': 'No combatants yet. Add the party and their foes to start the fight.',
 
     // conditions
     'conditions.active': 'active',
@@ -68,7 +69,8 @@ export const combat = {
     'initiative.moveUp': 'Przesuń w górę',
     'initiative.moveDown': 'Przesuń w dół',
     'initiative.remove': 'Usuń',
-    'initiative.addCombatant': '＋ Walczący',
+    'initiative.addCombatant': 'Walczący',
+    'initiative.empty': 'Brak walczących. Dodaj drużynę i wrogów, aby rozpocząć walkę.',
 
     // conditions
     'conditions.active': 'aktywne',

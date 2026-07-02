@@ -10,6 +10,7 @@
   import { MOODS, DEFAULT_MOOD } from '../../broadcast/mood';
   import type { DisplayMode, GridArea } from '../../lib/types';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   let board = $state<HTMLDivElement | null>(null);
   let hovered = $state(false);
@@ -316,7 +317,7 @@
     <button class="btn sm solid" disabled={!stage.preview} onclick={() => stage.broadcast()}
       >{t('stage.toAir')}</button
     >
-    <button class="btn sm" onclick={() => clearBroadcast()}>✕</button>
+    <button class="btn sm" onclick={() => clearBroadcast()} aria-label={t('onair.panic')} title={t('onair.panicTitle')}><Icon name="close" /></button>
   </div>
 
   <!-- scene tabs -->
@@ -351,7 +352,7 @@
             class="tabx"
             disabled={stage.scenes.length <= 1}
             aria-label={t('stage.closePre') + s.name}
-            onclick={() => stage.removeScene(s.id)}>✕</button
+            onclick={() => stage.removeScene(s.id)}><Icon name="close" size={12} /></button
           >
         {/if}
       </div>
@@ -360,7 +361,7 @@
       class="tabadd"
       onclick={() => stage.addScene()}
       title={t('stage.addScene')}
-      aria-label={t('stage.addScene')}>＋</button
+      aria-label={t('stage.addScene')}><Icon name="plus" /></button
     >
     <button
       class="tabadd"
@@ -491,7 +492,7 @@
               <button
                 class="ti"
                 aria-label={t('stage.remove')}
-                onclick={() => stage.removeTile(tl.id)}>✕</button
+                onclick={() => stage.removeTile(tl.id)}><Icon name="close" size={12} /></button
               >
             </div>
 

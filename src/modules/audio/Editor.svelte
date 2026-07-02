@@ -3,6 +3,7 @@
   import { audio } from './store.svelte';
   import { formatTime } from './logic';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   let pick = $state(audio.playlists[0]?.id ?? '');
   let ytUrl = $state('');
@@ -79,7 +80,7 @@
   <section>
     <header class="hdr">
       <strong>{t('audio.scene')}</strong>
-      <button class="btn sm" onclick={addScene}>＋</button>
+      <button class="btn sm" onclick={addScene} aria-label={t('audio.newScene')} title={t('audio.newScene')}><Icon name="plus" /></button>
     </header>
     <div class="scenes">
       {#each audio.playlists as p (p.id)}
@@ -107,7 +108,7 @@
           <input type="range" min="0" max="1" step="0.05" value={playlist.gain ?? 1} oninput={(e) => audio.setPlaylistGain(pick, e.currentTarget.valueAsNumber)} />
         </label>
         <button class="btn sm" onclick={() => audio.shufflePlaylist(pick)} disabled={tracks.length < 2}>🔀 {t('audio.shuffle')}</button>
-        <button class="btn sm danger" onclick={delScene}>🗑 {t('audio.deleteScene')}</button>
+        <button class="btn sm danger" onclick={delScene}><Icon name="trash" /> {t('audio.deleteScene')}</button>
       </div>
     {/if}
   </section>
@@ -140,7 +141,7 @@
               <button class="ic" onclick={() => audio.moveTrack(pick, i, -1)} disabled={i === 0} aria-label={t('audio.moveUp')}>▲</button>
               <button class="ic" onclick={() => audio.moveTrack(pick, i, 1)} disabled={i === tracks.length - 1} aria-label={t('audio.moveDown')}>▼</button>
               {#if tr.assetId}<button class="ic" onpointerdown={() => audio.audition(tr.assetId)} onpointerup={() => audio.stopAudition()} aria-label={t('audio.audition')} title={t('audio.audition')}>🎧</button>{/if}
-              <button class="ic del" onclick={() => audio.removeTrack(pick, tr.id)} aria-label={t('audio.delete')}>✕</button>
+              <button class="ic del" onclick={() => audio.removeTrack(pick, tr.id)} aria-label={t('audio.delete')} title={t('audio.delete')}><Icon name="trash" size={13} /></button>
             </li>
           {/each}
         </ul>
@@ -178,7 +179,7 @@
             <input class="grp" placeholder={t('audio.group')} value={s.group ?? ''} onchange={(e) => audio.setSfxGroup(s.id, e.currentTarget.value)} aria-label={t('audio.group')} />
             <input class="gain" type="range" min="0" max="1" step="0.05" value={s.gain ?? 1} oninput={(e) => audio.setSfxGain(s.id, e.currentTarget.valueAsNumber)} title={t('audio.sfxGain')} />
             <button class="ic" onpointerdown={() => audio.audition(s.assetId)} onpointerup={() => audio.stopAudition()} aria-label={t('audio.audition')} title={t('audio.audition')}>🎧</button>
-            <button class="ic del" onclick={() => audio.removeSfx(s.id)} aria-label={t('audio.delete')}>✕</button>
+            <button class="ic del" onclick={() => audio.removeSfx(s.id)} aria-label={t('audio.delete')} title={t('audio.delete')}><Icon name="trash" size={13} /></button>
           </li>
         {/each}
       </ul>

@@ -6,6 +6,7 @@
   import { conditionsFor, conditionMeta, conditionGlyph } from './conditions';
   import { system } from '../../lib/stores/system.svelte';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   // States the GM can toggle per token, switching with the active game system.
   const conditionCatalog = $derived(conditionsFor(system.current));
@@ -482,7 +483,7 @@
     <button class="btn sm" onclick={() => map.addToken(snapToCell(-map.transform.panX), 0, 'New')}>
       {t('map.addToken')}
     </button>
-    <button class="btn sm" aria-label={t('map.zoomIn')} onclick={() => map.zoomBy(1.1)}>＋</button>
+    <button class="btn sm" aria-label={t('map.zoomIn')} title={t('map.zoomIn')} onclick={() => map.zoomBy(1.1)}><Icon name="plus" /></button>
     <button class="btn sm" aria-label={t('map.zoomOut')} onclick={() => map.zoomBy(0.9)}>－</button>
     <button
       class="btn sm"
@@ -598,7 +599,7 @@
           {#each savedMaps as m (m.id)}
             <li>
               <button class="maploadbtn" onclick={() => loadSavedMap(m.id)}>{m.name}</button>
-              <button class="btn sm danger" onclick={() => deleteSavedMap(m.id)} aria-label={t('map.deleteMap')}>✕</button>
+              <button class="btn sm danger" onclick={() => deleteSavedMap(m.id)} aria-label={t('map.deleteMap')} title={t('map.deleteMap')}><Icon name="trash" size={13} /></button>
             </li>
           {/each}
         </ul>
@@ -730,7 +731,7 @@
         {/if}
       </div>
 
-      <button class="btn sm danger" aria-label={t('map.removeToken')} onclick={() => map.removeToken(sel.id)}>✕</button>
+      <button class="btn sm danger" aria-label={t('map.removeToken')} title={t('map.removeToken')} onclick={() => map.removeToken(sel.id)}><Icon name="trash" size={13} /></button>
     </div>
   {/if}
 </div>

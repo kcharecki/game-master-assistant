@@ -5,6 +5,9 @@
   import { layouts } from '../lib/stores/layouts.svelte';
   import { wm } from '../lib/stores/windows.svelte';
   import { lang, t } from '../lib/i18n';
+  import { density } from '../lib/stores/density.svelte';
+  import { onair } from '../lib/stores/onair.svelte';
+  import Icon from '../lib/components/Icon.svelte';
 
   let { onOpenBroadcast }: { onOpenBroadcast: () => void } = $props();
 
@@ -13,6 +16,7 @@
 
   onMount(() => {
     void system.load().then(() => layouts.load());
+    void onair.load();
   });
 
   // Reload presets whenever the active system changes (presets are per-system).
@@ -39,6 +43,20 @@
 <header class="topbar">
   <div class="brand">GM Assistant<small>CTHULHU EDITION</small></div>
   <span class="pill">The Haunting of Blackwater Creek</span>
+
+  <div class="onair" class:live={onair.info.live}>
+    <span class="lamp"><span class="dot"></span>{onair.info.live ? t('onair.live') : t('onair.off')}</span>
+    {#if onair.info.live}
+      <span class="airlabel" title={onair.info.label}>{onair.info.label}</span>
+    {/if}
+    <button
+      class="panic"
+      title={t('onair.panicTitle')}
+      aria-label={t('onair.panicTitle')}
+      onclick={() => onair.clear()}>{t('onair.panic')}</button
+    >
+  </div>
+
   <span class="spacer"></span>
   <div class="sysswitch" role="group" aria-label="Game system">
     {#each SYSTEMS as s (s)}
@@ -64,7 +82,15 @@
       onclick={() => lang.set('pl')}>PL</button
     >
   </div>
-  <button class="btn" aria-label="Tile windows" onclick={tileWindows}>{t('topbar.tile')}</button>
+  <button
+    class="ic"
+    aria-label={t('topbar.density')}
+    title={density.current === 'compact' ? t('topbar.densityComfortable') : t('topbar.densityCompact')}
+    onclick={() => density.toggle()}><Icon name="density" /></button
+  >
+  <button class="btn" aria-label={t('topbar.tile')} title={t('topbar.tile')} onclick={tileWindows}
+    ><Icon name="tile" /> {t('topbar.tile')}</button
+  >
   <span class="pill">Session 02:34:17</span>
   <div class="layouts">
     <button
@@ -84,8 +110,11 @@
             <button class="lname" role="menuitem" onclick={() => layouts.restore(p.name)}
               >{p.name}</button
             >
-            <button class="ldel" aria-label="Delete {p.name}" onclick={() => layouts.remove(p.name)}
-              >✕</button
+            <button
+              class="ic danger ldel"
+              aria-label="{t('win.delete')} {p.name}"
+              title={t('win.delete')}
+              onclick={() => layouts.remove(p.name)}><Icon name="trash" size={13} /></button
             >
           </div>
         {/each}
@@ -101,7 +130,9 @@
       </div>
     {/if}
   </div>
-  <button class="btn" onclick={onOpenBroadcast}>{t('topbar.openBroadcast')}</button>
+  <button class="btn" title={t('topbar.openBroadcast')} onclick={onOpenBroadcast}
+    ><Icon name="open" /> {t('topbar.openBroadcast')}</button
+  >
 </header>
 
 <style>

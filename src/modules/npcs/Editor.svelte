@@ -3,6 +3,8 @@
   import { filterNpcs } from './roster';
   import { assetPut, assetUrl } from '../../lib/db';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
+  import Empty from '../../lib/components/Empty.svelte';
 
   const dispositions: Disposition[] = ['ally', 'neutral', 'hostile'];
 
@@ -59,11 +61,15 @@
     <h2>{t('npcs.roster')}</h2>
     <div class="hbtns">
       <button class="btn" onclick={() => npcs.addGenerated()}>{t('npcs.generate')}</button>
-      <button class="btn solid" onclick={() => npcs.add()}>{t('npcs.newNpc')}</button>
+      <button class="btn solid" onclick={() => npcs.add()}><Icon name="plus" /> {t('npcs.newNpc')}</button>
     </div>
   </header>
 
   <input class="in search" bind:value={query} placeholder={t('npcs.searchEditor')} />
+
+  {#if npcs.list.length === 0}
+    <Empty text={t('npcs.empty')} actionLabel={t('npcs.newNpc')} onAction={() => npcs.add()} />
+  {/if}
 
   <div class="grid">
     {#each shown as n (n.id)}

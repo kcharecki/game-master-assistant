@@ -9,7 +9,8 @@ export const investigation = {
     'sanity.bout': 'BOUT OF MADNESS',
     'sanity.roll': 'Roll',
     'sanity.remove': 'Remove',
-    'sanity.addInvestigator': '＋ Investigator',
+    'sanity.addInvestigator': 'Investigator',
+    'sanity.empty': 'No investigators tracked. Add one to roll for their sanity.',
 
     // clues
     'clues.redString': 'Red string',
@@ -66,7 +67,8 @@ export const investigation = {
     'sanity.bout': 'NAPAD SZALEŃSTWA',
     'sanity.roll': 'Rzuć',
     'sanity.remove': 'Usuń',
-    'sanity.addInvestigator': '＋ Badacz',
+    'sanity.addInvestigator': 'Badacz',
+    'sanity.empty': 'Brak śledzonych badaczy. Dodaj kogoś, aby rzucać na poczytalność.',
 
     // clues
     'clues.redString': 'Czerwona nić',

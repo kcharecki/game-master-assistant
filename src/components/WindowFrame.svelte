@@ -9,6 +9,7 @@
   import { dragHandle } from '../lib/actions/drag';
   import { resizeHandle } from '../lib/actions/resize';
   import Stub from './Stub.svelte';
+  import Icon from '../lib/components/Icon.svelte';
 
   let { win }: { win: WindowState } = $props();
   const mod = $derived(getModule(win.kind));
@@ -74,7 +75,7 @@
         <button class="b" data-no-drag onclick={() => wm.toggleMin(win.id)} aria-label={t('win.minimize')}>
           –
         </button>
-        <button class="b x" data-no-drag onclick={() => wm.close(win.id)} aria-label={t('win.close')}>✕</button
+        <button class="b x" data-no-drag onclick={() => wm.close(win.id)} aria-label={t('win.close')} title={t('win.close')}><Icon name="close" size={13} /></button
         >
       </span>
     </div>
@@ -92,8 +93,11 @@
             {#each fbItems as f (f.id)}
               <li>
                 <span class="fbtext">{f.text}</span>
-                <button class="fbdel" onclick={() => feedback.remove(f.id)} aria-label={t('win.delete')}
-                  >✕</button
+                <button
+                  class="fbdel"
+                  onclick={() => feedback.remove(f.id)}
+                  aria-label={t('win.delete')}
+                  title={t('win.delete')}><Icon name="close" size={12} /></button
                 >
               </li>
             {/each}

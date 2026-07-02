@@ -9,6 +9,8 @@
   import EditorHost from './surfaces/EditorHost.svelte';
   import Palette from './modules/palette/Palette.svelte';
   import { palette } from './modules/palette/store.svelte';
+  import { density } from './lib/stores/density.svelte';
+  import Icon from './lib/components/Icon.svelte';
 
   // Surface 1 (desktop) + surface 2 (editor tabs) live here. Surface 3 (broadcast) is a separate page.
   let view = $state<'desktop' | ModuleId>('desktop');
@@ -21,6 +23,7 @@
 
   onMount(() => {
     void lang.load();
+    void density.load();
   });
 
   // Let the command palette open editor tabs when a result targets one.
@@ -59,7 +62,12 @@
         {#each openEditors as id (id)}
           <span class="tab" class:on={view === id}>
             <button class="tlabel" onclick={() => (view = id)}>{t('mod.' + id + '.title')}</button>
-            <button class="tx" onclick={() => closeEditor(id)} aria-label={t('tabs.closeTab')}>✕</button>
+            <button
+              class="tx"
+              onclick={() => closeEditor(id)}
+              aria-label={t('tabs.closeTab')}
+              title={t('tabs.closeTab')}><Icon name="close" size={13} /></button
+            >
           </span>
         {/each}
       </div>
