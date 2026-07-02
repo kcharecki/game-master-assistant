@@ -7,6 +7,8 @@ export interface Track {
   label: string;
   /** per-track gain trim 0..1 (defaults to 1) so loud/quiet imports can be levelled */
   gain?: number;
+  /** track length in seconds, read from metadata on import (undefined for YouTube) */
+  duration?: number;
 }
 
 export interface Playlist {
@@ -14,6 +16,8 @@ export interface Playlist {
   /** scene tag, e.g. 'tavern' | 'dungeon' | 'boss' */
   scene: string;
   tracks: Track[];
+  /** per-playlist gain trim 0..1 (defaults to 1) */
+  gain?: number;
 }
 
 export interface Sfx {
@@ -80,6 +84,29 @@ export function effectiveVolume(...factors: number[]): number {
   let v = 1;
   for (const f of factors) v *= Number.isFinite(f) ? f : 1;
   return Math.min(1, Math.max(0, v));
+}
+
+/**
+ * Perceptual volume curve (squared). Human loudness perception is roughly
+ * logarithmic, so a linear slider crams all the useful range into the top.
+ * Squaring gives a usable low end (10% slider ≈ 1% output). Pure + clamped.
+ */
+export function perceptual(v: number): number {
+  const c = Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
+  return c * c;
+}
+
+/**
+ * Fisher–Yates shuffle into a copy. `rand` is injectable for deterministic
+ * tests; defaults to Math.random. Pure (does not mutate `arr`).
+ */
+export function shuffle<T>(arr: T[], rand: () => number = Math.random): T[] {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 }
 
 /** Format seconds as `m:ss` (clamps NaN/negative to 0:00). Pure, DOM-free. */

@@ -268,26 +268,37 @@
     }, 30);
   }
 
-  // Short fade-out then halt both elements (avoids a jarring hard cut on Stop).
-  function fadeOutStop() {
+  // Linear volume ramp on one element over `ms`, running `after` on completion.
+  // Sets `fading` so auto-advance/applyActiveVol don't fight the ramp.
+  function rampVolume(el: HTMLAudioElement, to: number, ms: number, after?: () => void) {
     clearInterval(fadeTimer);
-    const el = active();
-    youtubeId = null;
-    if (!el) return;
     const start = performance.now();
     const v0 = el.volume;
-    const ms = 400;
     fading = true;
     fadeTimer = setInterval(() => {
       const e = performance.now() - start;
-      el.volume = Math.max(0, v0 * (1 - e / ms));
+      const k = Math.min(1, e / ms);
+      el.volume = clamp01(v0 + (to - v0) * k);
       if (e >= ms) {
         clearInterval(fadeTimer);
         fading = false;
-        for (const a of ambientEls) a.pause();
-        postAmbientStatus(true);
+        after?.();
       }
     }, 30);
+  }
+
+  // ~1s fade-out then halt both elements (avoids a jarring hard cut on Stop).
+  function fadeOutStop() {
+    const el = active();
+    youtubeId = null;
+    if (!el) {
+      clearInterval(fadeTimer);
+      return;
+    }
+    rampVolume(el, 0, 900, () => {
+      for (const a of ambientEls) a.pause();
+      postAmbientStatus(true);
+    });
   }
 
   // One-shot SFX on the pool — overlaps ambience and (optionally) ducks it.
@@ -361,15 +372,20 @@
       return;
     }
     switch (cue.action) {
-      case 'play':
+      case 'play': {
+        // If a native track is already playing, crossfade into the new scene
+        // instead of hard-cutting (scene→scene crossfade).
+        const el = active();
+        const wasPlaying = !youtubeId && !!el && !el.paused;
         queue = cue.queue ?? [];
         loopTrack = !!cue.loopTrack;
         loopList = cue.loopList ?? true;
         crossfadeMs = cue.crossfadeMs ?? 0;
         chanVol = cue.volume ?? 1;
         lastPlayCue = cue;
-        await goTo(cue.index ?? 0, 0);
+        await goTo(cue.index ?? 0, wasPlaying ? crossfadeMs : 0);
         break;
+      }
       case 'stop':
         fadeOutStop();
         queue = [];
@@ -377,17 +393,27 @@
         break;
       case 'pause': {
         const el = active();
-        if (el && youtubeId === null) el.pause();
+        if (el && youtubeId === null && !el.paused) {
+          rampVolume(el, 0, 600, () => {
+            el.pause();
+            postAmbientStatus(true);
+          });
+        } else if (el && youtubeId === null) el.pause();
         postAmbientStatus(true);
         break;
       }
       case 'resume': {
         const el = active();
-        if (el && youtubeId === null)
-          void el.play().catch(() => {
-            pendingCue = lastPlayCue;
-            audioLocked = true;
-          });
+        if (el && youtubeId === null) {
+          el.volume = 0;
+          void el
+            .play()
+            .then(() => rampVolume(el, targetVol(curGain), 600))
+            .catch(() => {
+              pendingCue = lastPlayCue;
+              audioLocked = true;
+            });
+        }
         postAmbientStatus(true);
         break;
       }

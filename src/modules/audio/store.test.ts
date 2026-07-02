@@ -2,8 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // In-memory kv backing the mocked db so persist()/load() can round-trip.
 const kv = new Map<string, unknown>();
+const deleted: string[] = [];
 vi.mock('../../lib/db', () => ({
   assetPut: vi.fn(async () => 'asset-1'),
+  assetDelete: vi.fn(async (id: string) => void deleted.push(id)),
   kvSet: vi.fn(async (key: string, value: unknown) => void kv.set(key, value)),
   kvGet: vi.fn(async (key: string) => kv.get(key)),
 }));
@@ -48,5 +50,33 @@ describe('audio store persistence', () => {
     audio.playlists = [{ id: 'tavern', scene: 'Tavern', tracks: [] }];
     await audio.load();
     expect(audio.playlists).toHaveLength(0);
+  });
+
+  it('shufflePlaylist keeps the same track set', () => {
+    audio.playlists[0].tracks = [
+      { id: 'a', assetId: 'a', label: 'A', gain: 1 },
+      { id: 'b', assetId: 'b', label: 'B', gain: 1 },
+      { id: 'c', assetId: 'c', label: 'C', gain: 1 },
+    ];
+    audio.shufflePlaylist('tavern');
+    expect(
+      audio.playlists[0].tracks
+        .map((t) => t.id)
+        .sort()
+    ).toEqual(['a', 'b', 'c']);
+  });
+
+  it('setPlaylistGain clamps and persists', () => {
+    audio.setPlaylistGain('tavern', 2);
+    expect(audio.playlists.find((p) => p.id === 'tavern')?.gain).toBe(1);
+    audio.setPlaylistGain('tavern', -1);
+    expect(audio.playlists.find((p) => p.id === 'tavern')?.gain).toBe(0);
+  });
+
+  it('removeTrack deletes the backing asset blob', () => {
+    deleted.length = 0;
+    audio.playlists[0].tracks = [{ id: 'x', assetId: 'blob-x', label: 'X', gain: 1 }];
+    audio.removeTrack('tavern', 'x');
+    expect(deleted).toContain('blob-x');
   });
 });

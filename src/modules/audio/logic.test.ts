@@ -4,10 +4,40 @@ import {
   nextIndex,
   advanceIndex,
   effectiveVolume,
+  perceptual,
+  shuffle,
   reorder,
   formatTime,
   parseYouTubeId,
 } from './logic';
+
+describe('perceptual', () => {
+  it('squares the input for a usable low end', () => {
+    expect(perceptual(0.1)).toBeCloseTo(0.01);
+    expect(perceptual(0.5)).toBeCloseTo(0.25);
+  });
+  it('clamps out-of-range and non-finite to [0,1]', () => {
+    expect(perceptual(1)).toBe(1);
+    expect(perceptual(2)).toBe(1);
+    expect(perceptual(-1)).toBe(0);
+    expect(perceptual(NaN)).toBe(0);
+  });
+});
+
+describe('shuffle', () => {
+  it('preserves the multiset and does not mutate the input', () => {
+    const src = [1, 2, 3, 4, 5];
+    const out = shuffle(src, () => 0);
+    expect([...out].sort()).toEqual([1, 2, 3, 4, 5]);
+    expect(src).toEqual([1, 2, 3, 4, 5]);
+  });
+  it('is deterministic given a fixed rng', () => {
+    const seq = [0.9, 0.1, 0.8, 0.2];
+    let i = 0;
+    const rng = () => seq[i++ % seq.length];
+    expect(shuffle([1, 2, 3, 4], rng)).toEqual(shuffle([1, 2, 3, 4], (() => { let j = 0; return () => seq[j++ % seq.length]; })()));
+  });
+});
 
 describe('crossfadeGains', () => {
   it('starts fully on the outgoing track', () => {

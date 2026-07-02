@@ -46,6 +46,11 @@ export async function assetGet(id: string): Promise<Blob | undefined> {
   return (await (await db()).get('assets', id))?.blob;
 }
 
+/** Delete an asset blob (e.g. when its owning track/sfx is removed). */
+export async function assetDelete(id: string): Promise<void> {
+  await (await db()).delete('assets', id);
+}
+
 /**
  * Fetch an asset and wrap it in an object URL for direct rendering.
  * Caller is responsible for URL.revokeObjectURL when done.

@@ -1,10 +1,12 @@
-import { assetPut, kvGet, kvSet } from '../../lib/db';
+import { assetPut, assetDelete, kvGet, kvSet } from '../../lib/db';
 import { createBus } from '../../lib/bus';
 import type { AudioQueueItem, BroadcastPayload } from '../../lib/types';
 import {
   effectiveVolume,
   parseYouTubeId,
+  perceptual,
   reorder,
+  shuffle,
   type Playlist,
   type Sfx,
   type Track,
@@ -76,13 +78,18 @@ class AudioStore {
   private recorder: MediaRecorder | null = null;
   private recChunks: Blob[] = [];
 
-  /** Effective ambient channel volume sent to the broadcast tab. */
-  private get ambientGain(): number {
-    return effectiveVolume(this.masterVol, this.ambientVol);
+  /**
+   * Effective ambient channel volume sent to the broadcast tab, on a perceptual
+   * (squared) curve. Includes the target scene's per-playlist gain trim.
+   */
+  private ambientGainFor(playlistId?: string | null): number {
+    const id = playlistId ?? this.playingScene;
+    const pl = id ? this.playlists.find((p) => p.id === id) : undefined;
+    return perceptual(effectiveVolume(this.masterVol, this.ambientVol, pl?.gain ?? 1));
   }
-  /** Effective sfx channel volume (per-track gain applied in the broadcast tab). */
+  /** Effective sfx channel volume (per-clip gain applied on top), perceptual curve. */
   private get sfxGain(): number {
-    return effectiveVolume(this.masterVol, this.sfxVol);
+    return perceptual(effectiveVolume(this.masterVol, this.sfxVol));
   }
 
   /** Import an audio file (or recorded blob) into assets, returning its id. */
@@ -107,6 +114,8 @@ class AudioStore {
   }
 
   removePlaylist(playlistId: string): void {
+    const pl = this.playlists.find((p) => p.id === playlistId);
+    if (pl) for (const t of pl.tracks) if (t.assetId) void assetDelete(t.assetId);
     this.playlists = this.playlists.filter((p) => p.id !== playlistId);
     if (this.playingScene === playlistId) this.stopScene();
     this.persist();
@@ -119,6 +128,13 @@ class AudioStore {
     const track: Track = { id: crypto.randomUUID(), assetId, label: file.name, gain: 1 };
     pl.tracks.push(track);
     this.persist();
+    // Read the clip length from metadata (best-effort) and stamp it on the track.
+    void readAudioDuration(file).then((secs) => {
+      if (secs && Number.isFinite(secs)) {
+        track.duration = secs;
+        this.persist();
+      }
+    });
     return track;
   }
 
@@ -136,12 +152,23 @@ class AudioStore {
     };
     pl.tracks.push(track);
     this.persist();
+    // If the label wasn't supplied, fetch the real video title via oEmbed (no key).
+    if (!label?.trim()) {
+      void fetchYouTubeTitle(youtubeId).then((title) => {
+        if (title && track.label === `YouTube ${youtubeId}`) {
+          track.label = title;
+          this.persist();
+        }
+      });
+    }
     return track;
   }
 
   removeTrack(playlistId: string, trackId: string): void {
     const pl = this.playlists.find((p) => p.id === playlistId);
     if (!pl) return;
+    const tr = pl.tracks.find((t) => t.id === trackId);
+    if (tr?.assetId) void assetDelete(tr.assetId);
     pl.tracks = pl.tracks.filter((t) => t.id !== trackId);
     this.persist();
   }
@@ -187,23 +214,46 @@ class AudioStore {
       loopTrack: this.loopTrack,
       loopList: this.loopList,
       crossfadeMs: this.crossfadeMs,
-      volume: this.ambientGain,
+      volume: this.ambientGainFor(playlistId),
     };
   }
 
   /** Play a scene playlist as looping ambience from the first track. */
   playScene(playlistId: string): void {
-    const cue = this.queueCue(playlistId, 0);
+    this.playSceneAt(playlistId, 0);
+  }
+
+  /** Play a scene playlist starting at a specific track index (click-to-play). */
+  playSceneAt(playlistId: string, index: number): void {
+    const cue = this.queueCue(playlistId, index);
     if (!cue) return;
     sendAudio(cue);
     const pl = this.playlists.find((p) => p.id === playlistId)!;
     this.playingScene = playlistId;
-    this.playingYouTube = !!pl.tracks[0]?.youtubeId;
+    this.playingYouTube = !!pl.tracks[index]?.youtubeId;
     this.paused = false;
     this.position = 0;
     this.duration = 0;
-    this.trackIndex = 0;
+    this.trackIndex = index;
     this.trackCount = pl.tracks.length;
+  }
+
+  /** Randomise a playlist's track order (persisted). Re-queues if on air. */
+  shufflePlaylist(playlistId: string): void {
+    const pl = this.playlists.find((p) => p.id === playlistId);
+    if (!pl) return;
+    pl.tracks = shuffle(pl.tracks);
+    this.persist();
+    if (this.playingScene === playlistId) this.requeue(playlistId);
+  }
+
+  /** Set a playlist's gain trim (0..1). Pushes live if the scene is on air. */
+  setPlaylistGain(playlistId: string, gain: number): void {
+    const pl = this.playlists.find((p) => p.id === playlistId);
+    if (!pl) return;
+    pl.gain = clamp01(gain);
+    this.persist();
+    if (this.playingScene === playlistId) this.pushVolumes();
   }
 
   /** Re-send the on-air queue keeping the current index (after edits/gain). */
@@ -300,7 +350,7 @@ class AudioStore {
   /** Push the live ambient channel volume to the running sequencer. */
   private pushVolumes(): void {
     if (!this.playingScene) return;
-    sendAudio({ kind: 'audio', channel: 'ambient', action: 'volume', volume: this.ambientGain });
+    sendAudio({ kind: 'audio', channel: 'ambient', action: 'volume', volume: this.ambientGainFor() });
   }
 
   // ---- soundboard -----------------------------------------------------------
@@ -314,6 +364,8 @@ class AudioStore {
   }
 
   removeSfx(sfxId: string): void {
+    const s = this.sfx.find((x) => x.id === sfxId);
+    if (s?.assetId) void assetDelete(s.assetId);
     this.sfx = this.sfx.filter((x) => x.id !== sfxId);
     this.persist();
   }
@@ -482,6 +534,40 @@ class AudioStore {
 function clamp01(v: number): number {
   if (!Number.isFinite(v)) return 1;
   return Math.min(1, Math.max(0, v));
+}
+
+/** Read an audio file's duration (seconds) via a throwaway element. Best-effort. */
+function readAudioDuration(file: Blob): Promise<number | undefined> {
+  if (typeof Audio === 'undefined' || typeof URL?.createObjectURL !== 'function') {
+    return Promise.resolve(undefined);
+  }
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const el = new Audio();
+    const done = (secs?: number) => {
+      URL.revokeObjectURL(url);
+      resolve(secs);
+    };
+    el.preload = 'metadata';
+    el.onloadedmetadata = () => done(Number.isFinite(el.duration) ? el.duration : undefined);
+    el.onerror = () => done(undefined);
+    el.src = url;
+  });
+}
+
+/** Fetch a YouTube video's title via oEmbed (no API key). Returns undefined on failure. */
+async function fetchYouTubeTitle(id: string): Promise<string | undefined> {
+  if (typeof fetch !== 'function') return undefined;
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`
+    );
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as { title?: string };
+    return typeof data.title === 'string' ? data.title : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export const audio = new AudioStore();
