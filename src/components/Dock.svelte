@@ -1,15 +1,17 @@
 <script lang="ts">
-  import type { WindowKind } from '../lib/types';
   import { moduleList } from '../lib/registry';
   import { categorized } from '../lib/categories';
+  import { wm } from '../lib/stores/windows.svelte';
   import { t } from '../lib/i18n';
   import ModuleIcon from './ModuleIcon.svelte';
-
-  let { onAdd }: { onAdd: (kind: WindowKind) => void } = $props();
 
   // Only modules with a live desktop view make sense as spawnable windows.
   const spawnable = moduleList.filter((m) => m.desktop);
   const groups = categorized(spawnable);
+
+  // Which modules currently have a window (open or minimized) — drives the
+  // running-dot indicator, like a macOS dock.
+  const open = $derived(new Set(wm.windows.map((w) => w.kind)));
 </script>
 
 <div class="dock">
@@ -19,11 +21,13 @@
       {#each g.items as m (m.id)}
         <button
           class="tile"
+          class:active={open.has(m.id)}
           title={t('mod.' + m.id + '.title')}
-          onclick={() => onAdd(m.id)}
+          onclick={() => wm.toggle(m.id, 120, 120)}
         >
           <span class="ico"><ModuleIcon id={m.id} size={22} /></span>
           <span class="nm">{t('mod.' + m.id + '.title')}</span>
+          <span class="run" aria-hidden="true"></span>
         </button>
       {/each}
     {/each}
@@ -67,13 +71,14 @@
   }
 
   .tile {
+    position: relative;
     flex: 0 0 auto;
     width: 66px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    padding: 6px 4px 5px;
+    padding: 6px 4px 8px;
     border-radius: 9px;
     border: 1px solid transparent;
     background: transparent;
@@ -82,6 +87,25 @@
     transition:
       background 0.16s,
       border-color 0.16s;
+  }
+  /* macOS-style "running" dot for a module that has a window open. */
+  .run {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.16s;
+  }
+  .tile.active .run {
+    background: var(--green);
+    box-shadow: 0 0 5px var(--green-glow);
+  }
+  .tile.active .ico {
+    color: var(--green);
   }
   .tile .ico {
     display: flex;

@@ -37,6 +37,25 @@ class WindowManager {
     return win;
   }
 
+  /**
+   * macOS-dock behaviour: at most one window per module. Spawn if none exists;
+   * minimize a visible one; restore + raise a minimized one.
+   */
+  toggle(kind: WindowKind, x = 40, y = 40): void {
+    const win = this.windows.find((w) => w.kind === kind);
+    if (!win) {
+      this.add(kind, x, y);
+      return;
+    }
+    if (win.minimized) {
+      win.minimized = false;
+      win.z = ++this.#z;
+    } else {
+      win.minimized = true;
+    }
+    this.persist();
+  }
+
   focus(id: string): void {
     const w = this.windows.find((w) => w.id === id);
     if (w) w.z = ++this.#z;

@@ -45,7 +45,7 @@
     </div>
   {/if}
 
-  <Dock onAdd={(k) => wm.add(k, 120, 120)} />
+  <Dock />
 </div>
 
 <style>

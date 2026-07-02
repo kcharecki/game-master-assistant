@@ -22,10 +22,8 @@ test('a second module (Handouts) can take over the broadcast', async ({ context 
   const view = await context.newPage();
   await view.goto('/broadcast.html');
 
-  // Spawn the Handouts widget, then send the seeded letter on air.
-  await gm.getByRole('button', { name: 'Handouts', exact: true }).click();
-
-  const win = gm.locator('[data-win]').filter({ hasText: 'Handouts' }).last();
+  // Handouts is seeded on first load; send its letter on air.
+  const win = gm.locator('[data-win]').filter({ hasText: 'Handouts' }).first();
   await win.getByText('A Letter from the Order').click();
   await win.getByRole('button', { name: 'Send to Broadcast' }).click();
 
