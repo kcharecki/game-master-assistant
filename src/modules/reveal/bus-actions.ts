@@ -3,16 +3,19 @@ import { kvSet } from '../../lib/db';
 import type { BroadcastPayload, DisplayMode } from '../../lib/types';
 import { DISPLAY_MODE_KEY } from '../../broadcast/display';
 import { MOOD_KEY, moodById } from '../../broadcast/mood';
+import { onairHistory } from '../../lib/stores/onairHistory.svelte';
 
 /**
- * Put a payload on air: send over the channel + mirror to IndexedDB for rehydrate.
- * Bus is opened lazily per call so importing this module has no side effects (testable).
+ * Put a payload on air: send over the channel + mirror to IndexedDB for rehydrate,
+ * and record it in the GM-side on-air history (for one-click re-air). Bus is
+ * opened lazily per call so importing this module has no side effects (testable).
  */
 export function putOnAir(payload: BroadcastPayload): void {
   const bus = createBus();
   bus.send(payload);
   bus.close();
   void kvSet('broadcastState', payload);
+  onairHistory.record(payload);
 }
 
 export function clearBroadcast(): void {

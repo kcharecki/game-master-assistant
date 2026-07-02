@@ -28,4 +28,18 @@ describe('handoutPayload', () => {
   it('omits an empty title', () => {
     expect(handoutPayload({ id: 'x', title: '', body: 'hi' })).toEqual({ kind: 'text', body: 'hi' });
   });
+
+  it('carries a text theme onto the payload', () => {
+    expect(handoutPayload({ id: 'x', title: 'T', body: 'hi', theme: 'parchment' })).toEqual({
+      kind: 'text',
+      title: 'T',
+      body: 'hi',
+      theme: 'parchment',
+    });
+  });
+
+  it('does not theme an image handout (image has no theme field)', () => {
+    const p = handoutPayload({ id: 'y', title: 'M', body: '', assetId: 'a1', theme: 'letter' }, 'blob:z');
+    expect(p).toEqual({ kind: 'image', src: 'blob:z', caption: 'M' });
+  });
 });

@@ -128,6 +128,16 @@ class StageStore {
     return tile;
   }
 
+  /** Bring a tile to the front / send to back by bumping its explicit z. */
+  bringToFront(id: string): void {
+    const maxZ = Math.max(0, ...this.active.tiles.map((t) => t.z ?? 0));
+    this.patchTile(id, { z: maxZ + 1 });
+  }
+  sendToBack(id: string): void {
+    const minZ = Math.min(0, ...this.active.tiles.map((t) => t.z ?? 0));
+    this.patchTile(id, { z: minZ - 1 });
+  }
+
   patchTile(id: string, patch: Partial<Tile>): void {
     this.snapshot();
     this.active.tiles = this.active.tiles.map((t) =>
@@ -220,9 +230,20 @@ class StageStore {
         ...(cell.assetId ? { assetId: cell.assetId } : {}),
         ...(cell.src ? { src: cell.src } : {}),
         ...(cell.caption ? { caption: cell.caption } : {}),
+        ...(cell.reveal ? { reveal: cell.reveal } : {}),
+      });
+    } else if (cell.kind === 'text') {
+      this.onAir({
+        kind: 'text',
+        title: cell.title,
+        body: cell.body ?? cell.title ?? '',
+        ...(cell.theme ? { theme: cell.theme } : {}),
       });
     } else {
-      this.onAir({ kind: 'text', title: cell.title, body: cell.body ?? cell.title ?? '' });
+      // clock/date/roll have no fullscreen payload — air them as a single
+      // full-frame grid cell so they keep their tile rendering.
+      const full = { ...cell, area: { col: 1, row: 1, cw: this.active.cols, rh: this.active.rows } };
+      this.onAir({ kind: 'grid', cols: this.active.cols, rows: this.active.rows, cells: [full] });
     }
   }
 

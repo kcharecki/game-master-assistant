@@ -10,6 +10,7 @@
   import { clampCols, gridAssetIds } from './grid';
   import { conditionGlyph, conditionMeta } from '../modules/map/conditions';
   import { hexGridPath } from '../modules/map/hex';
+  import { formatCountdown } from '../modules/stage/board';
 
   // A token is shown if any cell under its footprint is revealed to players.
   function tokenVisible(reveal: number[][], gx: number, gy: number, size: number): boolean {
@@ -19,6 +20,10 @@
   }
 
   let payload = $state<BroadcastPayload>({ kind: 'clear' });
+  // Bumped on every new on-air content payload; keys the scene wrapper so the
+  // outgoing→incoming crossfade/scene-in animation retriggers (CSS-driven,
+  // disabled under prefers-reduced-motion).
+  let sceneKey = $state(0);
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
   let mood = $state<Mood>(DEFAULT_MOOD);
   const mstyle = $derived(moodStyle(mood));
@@ -28,6 +33,23 @@
   // Steady laser dot (normalized 0..1), shown until the GM turns it off.
   let laser = $state<{ x: number; y: number } | null>(null);
   const CELL = 48; // viewBox cell size; aspect-ratio only, scales to fit
+
+  // Countdown clocks in a stage grid tick here (this tab isn't throttled). We
+  // stamp a start time when a grid arrives, then re-derive remaining once a
+  // second; each clock cell shows max(0, seconds - elapsed).
+  let clockStart = $state(0);
+  let clockNow = $state(0);
+  let clockTimer: ReturnType<typeof setInterval> | undefined;
+  $effect(() => {
+    const hasClock = payload.kind === 'grid' && payload.cells.some((c) => c.kind === 'clock');
+    clearInterval(clockTimer);
+    if (!hasClock) return;
+    clockStart = Date.now();
+    clockNow = clockStart;
+    clockTimer = setInterval(() => (clockNow = Date.now()), 1000);
+    return () => clearInterval(clockTimer);
+  });
+  const clockElapsed = $derived(Math.floor((clockNow - clockStart) / 1000));
 
   // --- Ambient sequencer (native audio) -------------------------------------
   // Two ambient elements A/B let us crossfade between tracks; `activeIdx` marks
@@ -531,6 +553,7 @@
       else if (m.payload.kind === 'audio') handleAudio(m.payload);
       else {
         payload = m.payload;
+        sceneKey += 1; // retrigger the scene-in / crossfade animation
         ytVideoFg = false; // new on-air content takes the foreground from the video
       }
     });
@@ -547,14 +570,30 @@
 </script>
 
 <div class="broadcast" class:plain={mode === 'plain'} style="filter:{mstyle.filter}">
+  <!-- Scene wrapper: keyed on `sceneKey` so each new on-air payload mounts a
+       fresh node and the outgoing one animates out — a scene→scene crossfade.
+       Motion is disabled under prefers-reduced-motion (see .scene styles). -->
+  {#key sceneKey}
+  <div class="scene">
   {#if payload.kind === 'text'}
-    <div class="card">
+    <div
+      class="card"
+      class:parchment={payload.theme === 'parchment'}
+      class:letter={payload.theme === 'letter'}
+      class:telegram={payload.theme === 'telegram'}
+    >
       {#if payload.title}<h1>{payload.title}</h1>{/if}
       <p>{payload.body}</p>
     </div>
   {:else if payload.kind === 'image'}
     <figure>
-      {#if imgSrc}<img src={imgSrc} alt={payload.caption ?? ''} />{/if}
+      {#if imgSrc}<img
+          src={imgSrc}
+          alt={payload.caption ?? ''}
+          class:rvblur={payload.reveal === 'blur'}
+          class:rvpanh={payload.reveal === 'panh'}
+          class:rvpanv={payload.reveal === 'panv'}
+        />{/if}
       {#if payload.caption}<figcaption>{payload.caption}</figcaption>{/if}
     </figure>
   {:else if payload.kind === 'roll'}
@@ -666,15 +705,44 @@
           1}, 1fr)"
       >
         {#each payload.cells as cell, i (i)}
-          {@const area = cell.area
-            ? `grid-column:${cell.area.col} / span ${cell.area.cw}; grid-row:${cell.area.row} / span ${cell.area.rh}`
-            : ''}
+          {@const area =
+            (cell.area
+              ? `grid-column:${cell.area.col} / span ${cell.area.cw}; grid-row:${cell.area.row} / span ${cell.area.rh};`
+              : '') + (cell.z !== undefined ? `z-index:${cell.z};` : '')}
           {#if cell.kind === 'image'}
             {@const url = cell.assetId ? gridUrls[cell.assetId] : cell.src}
             <figure class="gcell" style={area}>
-              {#if url}<img src={url} alt={cell.caption ?? ''} />{/if}
+              {#if url}<img
+                  src={url}
+                  alt={cell.caption ?? ''}
+                  class:rvblur={cell.reveal === 'blur'}
+                  class:rvpanh={cell.reveal === 'panh'}
+                  class:rvpanv={cell.reveal === 'panv'}
+                />{/if}
               {#if cell.caption}<figcaption>{cell.caption}</figcaption>{/if}
             </figure>
+          {:else if cell.kind === 'clock'}
+            <div class="gcell gclock" style={area}>
+              {#if cell.label}<div class="clbl">{cell.label}</div>{/if}
+              <div class="ctime">{formatCountdown(cell.seconds - clockElapsed)}</div>
+            </div>
+          {:else if cell.kind === 'date'}
+            <div class="gcell gdate" style={area}>
+              {#if cell.label}<div class="dlbl">{cell.label}</div>{/if}
+              <div class="ddate">{cell.date}</div>
+              {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
+            </div>
+          {:else if cell.kind === 'roll'}
+            <div class="gcell groll" style={area}>
+              {#if cell.label}<div class="rlbl">{cell.label}</div>{/if}
+              <div class="rtot">{cell.total}</div>
+              <div class="rexp">
+                {cell.expr} [{cell.kept.join(', ')}]{cell.modifier
+                  ? (cell.modifier > 0 ? ' +' : ' ') + cell.modifier
+                  : ''}
+              </div>
+              {#if cell.outcome}<div class="rout">{cell.outcome}</div>{/if}
+            </div>
           {:else}
             <div class="gcell gtext" style={area}>
               {#if cell.title}<h2>{cell.title}</h2>{/if}
@@ -699,6 +767,28 @@
             {#if url}<img src={url} alt={cell.caption ?? ''} />{/if}
             {#if cell.caption}<figcaption>{cell.caption}</figcaption>{/if}
           </figure>
+        {:else if cell.kind === 'clock'}
+          <div class="gcell gclock">
+            {#if cell.label}<div class="clbl">{cell.label}</div>{/if}
+            <div class="ctime">{formatCountdown(cell.seconds - clockElapsed)}</div>
+          </div>
+        {:else if cell.kind === 'date'}
+          <div class="gcell gdate">
+            {#if cell.label}<div class="dlbl">{cell.label}</div>{/if}
+            <div class="ddate">{cell.date}</div>
+            {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
+          </div>
+        {:else if cell.kind === 'roll'}
+          <div class="gcell groll">
+            {#if cell.label}<div class="rlbl">{cell.label}</div>{/if}
+            <div class="rtot">{cell.total}</div>
+            <div class="rexp">
+              {cell.expr} [{cell.kept.join(', ')}]{cell.modifier
+                ? (cell.modifier > 0 ? ' +' : ' ') + cell.modifier
+                : ''}
+            </div>
+            {#if cell.outcome}<div class="rout">{cell.outcome}</div>{/if}
+          </div>
         {:else}
           <div class="gcell gtext">
             {#if cell.title}<h2>{cell.title}</h2>{/if}
@@ -710,6 +800,8 @@
   {:else if !youtubeId}
     <div class="idle">{t('broadcast.idle')}</div>
   {/if}
+  </div>
+  {/key}
 
   <!-- Mood/lighting wash, layered over content but under transient markers. -->
   <div class="mood" style="background:{mstyle.overlay}"></div>
@@ -934,6 +1026,182 @@
   .gtext p {
     font-size: clamp(13px, 1.7vw, 19px);
     line-height: 1.5;
+  }
+
+  /* --- new stage tile kinds: countdown clock, in-world date/moon, dice result */
+  .gclock,
+  .gdate,
+  .groll {
+    text-align: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 10px;
+  }
+  .clbl,
+  .dlbl,
+  .rlbl {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: clamp(10px, 1.2vw, 15px);
+  }
+  .ctime {
+    font-family: Georgia, serif;
+    color: var(--green);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(30px, 7vw, 92px);
+    text-shadow: 0 0 26px rgba(47, 138, 102, 0.4);
+  }
+  .ddate {
+    font-family: Georgia, serif;
+    color: var(--txt);
+    font-size: clamp(18px, 3vw, 40px);
+  }
+  .dmoon {
+    color: var(--gold);
+    font-size: clamp(12px, 1.6vw, 20px);
+  }
+  .rtot {
+    font-family: Georgia, serif;
+    color: var(--green);
+    font-weight: 700;
+    line-height: 1;
+    font-size: clamp(34px, 8vw, 96px);
+    text-shadow: 0 0 24px rgba(47, 138, 102, 0.4);
+  }
+  .rexp {
+    color: var(--muted);
+    font-size: clamp(11px, 1.4vw, 17px);
+  }
+  .rout {
+    font-family: Georgia, serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    font-size: clamp(12px, 1.6vw, 22px);
+  }
+
+  /* --- scene-to-scene crossfade: each keyed .scene fades/rises in on mount. */
+  .scene {
+    display: contents;
+  }
+  .scene > * {
+    animation: scenein 0.5s ease both;
+  }
+  @keyframes scenein {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* --- progressive image reveal: blur→sharp, or a slow crop-pan. */
+  .rvblur {
+    animation: rvblur 2.4s ease-out both;
+  }
+  .rvpanh {
+    animation: rvpanh 12s ease-in-out both;
+  }
+  .rvpanv {
+    animation: rvpanv 12s ease-in-out both;
+  }
+  @keyframes rvblur {
+    from {
+      filter: blur(22px);
+      opacity: 0.35;
+    }
+    to {
+      filter: blur(0);
+      opacity: 1;
+    }
+  }
+  @keyframes rvpanh {
+    from {
+      object-position: 0% 50%;
+      transform: scale(1.18);
+    }
+    to {
+      object-position: 100% 50%;
+      transform: scale(1.18);
+    }
+  }
+  @keyframes rvpanv {
+    from {
+      object-position: 50% 0%;
+      transform: scale(1.18);
+    }
+    to {
+      object-position: 50% 100%;
+      transform: scale(1.18);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scene > *,
+    .rvblur,
+    .rvpanh,
+    .rvpanv {
+      animation: none;
+    }
+  }
+
+  /* --- handout text themes: parchment scroll / typed letter / telegram slip. */
+  .card.parchment,
+  .card.letter,
+  .card.telegram {
+    max-width: 640px;
+    padding: 32px 40px;
+    border-radius: 6px;
+    text-align: left;
+  }
+  .card.parchment {
+    background: linear-gradient(#efe2c0, #e3d2a6);
+    color: #3a2c14;
+    border: 1px solid #b39a63;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+  .card.parchment h1 {
+    font-family: Georgia, serif;
+    color: #5a3b1c;
+  }
+  .card.parchment p {
+    color: #3a2c14;
+  }
+  .card.letter {
+    background: #f6f4ee;
+    color: #22201c;
+    border: 1px solid #cfc9bb;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+  .card.letter h1 {
+    font-family: 'Courier New', monospace;
+    color: #22201c;
+    font-size: clamp(22px, 3.4vw, 36px);
+  }
+  .card.letter p {
+    font-family: 'Courier New', monospace;
+    color: #22201c;
+  }
+  .card.telegram {
+    background: #f0ead6;
+    color: #1a1a1a;
+    border: 2px dashed #7a6a3a;
+    text-align: center;
+  }
+  .card.telegram h1,
+  .card.telegram p {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #1a1a1a;
+  }
+  .card.telegram p {
+    font-size: clamp(15px, 2vw, 22px);
   }
 
   /* Public roll result card: large, centered, animated in. */

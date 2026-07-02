@@ -10,6 +10,7 @@ import {
   sceneFromPreset,
   snapZones,
   zoneAt,
+  formatCountdown,
   STAGE_COLS,
   STAGE_ROWS,
   type Scene,
@@ -114,6 +115,83 @@ describe('tileToCell', () => {
       lookup,
     );
     expect(cell).toMatchObject({ kind: 'text', title: 'Bob', body: 'seen at docks' });
+  });
+});
+
+describe('tileToCell — new kinds + z', () => {
+  it('carries an explicit z onto the cell', () => {
+    const cell = tileToCell(
+      { id: 'a', kind: 'text', col: 1, row: 1, cw: 2, rh: 2, title: 'Hi', z: 5 },
+      noNpc,
+    );
+    expect(cell).toMatchObject({ kind: 'text', z: 5 });
+  });
+
+  it('carries image reveal + text theme through', () => {
+    expect(
+      tileToCell(
+        { id: 'a', kind: 'image', col: 1, row: 1, cw: 2, rh: 2, src: 'x', reveal: 'blur' },
+        noNpc,
+      ),
+    ).toMatchObject({ kind: 'image', reveal: 'blur' });
+    expect(
+      tileToCell(
+        { id: 'b', kind: 'text', col: 1, row: 1, cw: 2, rh: 2, body: 'y', theme: 'parchment' },
+        noNpc,
+      ),
+    ).toMatchObject({ kind: 'text', theme: 'parchment' });
+  });
+
+  it('projects a clock tile (default 60s) with its label', () => {
+    const cell = tileToCell(
+      { id: 'a', kind: 'clock', col: 1, row: 1, cw: 4, rh: 2, seconds: 90, title: 'Doom' },
+      noNpc,
+    );
+    expect(cell).toMatchObject({ kind: 'clock', seconds: 90, label: 'Doom' });
+  });
+
+  it('drops a date tile without a date, keeps one with', () => {
+    expect(
+      tileToCell({ id: 'a', kind: 'date', col: 1, row: 1, cw: 4, rh: 2 }, noNpc),
+    ).toBeNull();
+    expect(
+      tileToCell(
+        { id: 'b', kind: 'date', col: 1, row: 1, cw: 4, rh: 2, date: '12 Mirtul', moon: 'Full Moon' },
+        noNpc,
+      ),
+    ).toMatchObject({ kind: 'date', date: '12 Mirtul', moon: 'Full Moon' });
+  });
+
+  it('drops a roll tile without a result, keeps one with', () => {
+    expect(
+      tileToCell({ id: 'a', kind: 'roll', col: 1, row: 1, cw: 4, rh: 3 }, noNpc),
+    ).toBeNull();
+    const cell = tileToCell(
+      {
+        id: 'b',
+        kind: 'roll',
+        col: 1,
+        row: 1,
+        cw: 4,
+        rh: 3,
+        roll: { expr: '1d20', total: 17, kept: [17], modifier: 0 },
+      },
+      noNpc,
+    );
+    expect(cell).toMatchObject({ kind: 'roll', expr: '1d20', total: 17, kept: [17] });
+  });
+});
+
+describe('formatCountdown', () => {
+  it('formats sub-hour as m:ss', () => {
+    expect(formatCountdown(90)).toBe('1:30');
+    expect(formatCountdown(5)).toBe('0:05');
+  });
+  it('formats past an hour as h:mm:ss', () => {
+    expect(formatCountdown(3661)).toBe('1:01:01');
+  });
+  it('clamps negatives to zero', () => {
+    expect(formatCountdown(-10)).toBe('0:00');
   });
 });
 

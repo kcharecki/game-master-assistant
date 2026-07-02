@@ -1,4 +1,10 @@
-import type { GridCell, GridArea, BroadcastPayload } from '../../lib/types';
+import type {
+  GridCell,
+  GridArea,
+  BroadcastPayload,
+  ImageReveal,
+  TextTheme,
+} from '../../lib/types';
 import type { PublicNpc } from '../npcs/public';
 
 // The stage is a fixed grid the GM lays tiles onto. 12 columns is the de-facto
@@ -6,7 +12,9 @@ import type { PublicNpc } from '../npcs/public';
 export const STAGE_COLS = 12;
 export const STAGE_ROWS = 8;
 
-export type TileKind = 'image' | 'text' | 'npc';
+// image/text/npc are content sources; clock/date/roll are computed/snapshot tiles
+// (see IMPROVEMENTS §2 "New tile kinds"). All project to player-safe grid cells.
+export type TileKind = 'image' | 'text' | 'npc' | 'clock' | 'date' | 'roll';
 
 /** One placed element on the stage. Placement is 1-based, CSS-grid semantics. */
 export interface Tile {
@@ -17,15 +25,38 @@ export interface Tile {
   cw: number; // column span
   rh: number; // row span
   hidden?: boolean; // staged but withheld from the broadcast
+  z?: number; // explicit stacking order (higher = front); undefined keeps source order
   // image content:
   assetId?: string;
   src?: string;
   caption?: string;
+  reveal?: ImageReveal; // progressive image reveal (blur / pan)
   // text content:
   title?: string;
   body?: string;
+  theme?: TextTheme; // parchment/letter/telegram skin
   // npc content:
   npcId?: string;
+  // clock content:
+  seconds?: number; // countdown duration
+  // date content (in-world date snapshot pulled from the calendar store):
+  date?: string;
+  moon?: string;
+  // roll content (a static public dice result):
+  roll?: { expr: string; total: number; kept: number[]; modifier: number; outcome?: string };
+}
+
+/**
+ * Format a countdown as m:ss (or h:mm:ss past an hour), clamped at zero. Pure —
+ * the broadcast tab uses it to render the live tick.
+ */
+export function formatCountdown(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
 
 export interface Scene {
@@ -86,6 +117,8 @@ export function firstFree(scene: Scene, cw: number, rh: number): { col: number; 
 /** Default span for a new tile of a given kind. */
 function defaultSpan(kind: TileKind): { cw: number; rh: number } {
   if (kind === 'text') return { cw: 6, rh: 2 };
+  if (kind === 'clock' || kind === 'date') return { cw: 4, rh: 2 };
+  if (kind === 'roll') return { cw: 4, rh: 3 };
   return { cw: 6, rh: 4 };
 }
 
@@ -110,6 +143,7 @@ export function tileToCell(
 ): GridCell | null {
   if (tile.hidden) return null;
   const area: GridArea = { col: tile.col, row: tile.row, cw: tile.cw, rh: tile.rh };
+  const z = tile.z;
 
   if (tile.kind === 'npc') {
     if (!tile.npcId) return null;
@@ -117,10 +151,10 @@ export function tileToCell(
     if (!pub) return null;
     if (pub.portraitId) {
       const caption = pub.role ? `${pub.name} — ${pub.role}` : pub.name;
-      return { kind: 'image', assetId: pub.portraitId, caption, area };
+      return { kind: 'image', assetId: pub.portraitId, caption, area, z };
     }
     const body = [pub.role, pub.blurb].filter(Boolean).join(' — ');
-    return { kind: 'text', title: pub.name, body, area };
+    return { kind: 'text', title: pub.name, body, area, z };
   }
   if (tile.kind === 'image') {
     if (!tile.assetId && !tile.src) return null;
@@ -128,6 +162,37 @@ export function tileToCell(
     if (tile.assetId) cell.assetId = tile.assetId;
     if (tile.src) cell.src = tile.src;
     if (tile.caption) cell.caption = tile.caption;
+    if (tile.reveal) cell.reveal = tile.reveal;
+    if (z !== undefined) cell.z = z;
+    return cell;
+  }
+  if (tile.kind === 'clock') {
+    const cell: GridCell = { kind: 'clock', seconds: Math.max(0, tile.seconds ?? 60), area };
+    if (tile.title) cell.label = tile.title;
+    if (z !== undefined) cell.z = z;
+    return cell;
+  }
+  if (tile.kind === 'date') {
+    if (!tile.date) return null;
+    const cell: GridCell = { kind: 'date', date: tile.date, area };
+    if (tile.moon) cell.moon = tile.moon;
+    if (tile.title) cell.label = tile.title;
+    if (z !== undefined) cell.z = z;
+    return cell;
+  }
+  if (tile.kind === 'roll') {
+    if (!tile.roll) return null;
+    const cell: GridCell = {
+      kind: 'roll',
+      expr: tile.roll.expr,
+      total: tile.roll.total,
+      kept: tile.roll.kept,
+      modifier: tile.roll.modifier,
+      area,
+    };
+    if (tile.title) cell.label = tile.title;
+    if (tile.roll.outcome) cell.outcome = tile.roll.outcome;
+    if (z !== undefined) cell.z = z;
     return cell;
   }
   // text
@@ -135,6 +200,8 @@ export function tileToCell(
   const cell: GridCell = { kind: 'text', area };
   if (tile.title) cell.title = tile.title;
   if (tile.body) cell.body = tile.body;
+  if (tile.theme) cell.theme = tile.theme;
+  if (z !== undefined) cell.z = z;
   return cell;
 }
 

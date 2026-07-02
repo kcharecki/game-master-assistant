@@ -33,12 +33,55 @@ export interface GridArea {
   rh: number;
 }
 
+// Progressive reveal treatment for an on-air image (top-level or grid cell):
+// 'blur' resolves from soft to sharp, 'panh'/'panv' slow-crop-pan horizontally/
+// vertically. Purely a broadcast-side CSS animation; `prefers-reduced-motion`
+// disables it. Additive/optional — omit for an instant, static image.
+export type ImageReveal = 'blur' | 'panh' | 'panv';
+
+// Text theme skin for a `text` payload / grid text cell: a parchment scroll, a
+// typed letter, or a telegram slip. Purely broadcast-side CSS; additive/optional
+// (omit for the default green-serif card).
+export type TextTheme = 'parchment' | 'letter' | 'telegram';
+
 // One cell of a `grid` broadcast. Image cells follow the same asset-id rule as
 // the top-level image payload: send `assetId` for uploaded blobs; `src` is only
 // for external (http) URLs. Cells are GM-composed and player-safe by design.
+//
+// `z` (optional) is an explicit stacking order honoured by the placed-grid
+// renderer so overlapping cells (e.g. text over an image) layer predictably;
+// higher `z` sits in front. Cells without `z` keep source order (auto 0).
 export type GridCell =
-  | { kind: 'image'; assetId?: string; src?: string; caption?: string; area?: GridArea }
-  | { kind: 'text'; title?: string; body?: string; area?: GridArea };
+  | {
+      kind: 'image';
+      assetId?: string;
+      src?: string;
+      caption?: string;
+      area?: GridArea;
+      z?: number;
+      /** progressive reveal treatment (blur→sharp / slow crop-pan). */
+      reveal?: ImageReveal;
+    }
+  | { kind: 'text'; title?: string; body?: string; area?: GridArea; z?: number; theme?: TextTheme }
+  // Countdown clock tile: counts down from `seconds` toward zero. The broadcast
+  // tab drives the tick (its timers aren't throttled). `label` captions it.
+  | { kind: 'clock'; seconds: number; label?: string; area?: GridArea; z?: number }
+  // In-world date/moon tile: a static snapshot of the calendar module's current
+  // date + moon phase (GM reads its store when composing; player-safe strings).
+  | { kind: 'date'; date: string; moon?: string; label?: string; area?: GridArea; z?: number }
+  // Dice-result tile: a static rendering of a public roll (same fields the `roll`
+  // payload carries), laid into the stage grid rather than shown fullscreen.
+  | {
+      kind: 'roll';
+      label?: string;
+      expr: string;
+      total: number;
+      kept: number[];
+      modifier: number;
+      outcome?: string;
+      area?: GridArea;
+      z?: number;
+    };
 
 // One entry of the ambient queue handed to the broadcast sequencer. A native
 // clip carries `assetId` (blob resolved tab-locally); a YouTube item carries
@@ -56,8 +99,12 @@ export interface AudioQueueItem {
 
 export type BroadcastPayload =
   | { kind: 'clear' }
-  | { kind: 'image'; src?: string; assetId?: string; caption?: string }
-  | { kind: 'text'; title?: string; body: string }
+  // `reveal` is an optional progressive-reveal treatment (blur→sharp / crop-pan);
+  // omit for a static image (default).
+  | { kind: 'image'; src?: string; assetId?: string; caption?: string; reveal?: ImageReveal }
+  // `theme` is an optional handout skin (parchment/letter/telegram); omit for the
+  // default card look.
+  | { kind: 'text'; title?: string; body: string; theme?: TextTheme }
   // Battle map. `tokens` carry only player-safe fields (position/label/colour) —
   // HP, conditions and hidden state never cross to the broadcast.
   | {

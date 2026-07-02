@@ -51,6 +51,24 @@
           {t('handouts.image')}
           <input type="file" accept="image/*" onchange={onFile} />
         </label>
+        <select
+          class="in narrow"
+          value={selected.theme ?? ''}
+          aria-label={t('handouts.theme')}
+          onchange={(e) =>
+            handouts.update(selected.id, {
+              theme:
+                ((e.currentTarget as HTMLSelectElement).value as
+                  | 'parchment'
+                  | 'letter'
+                  | 'telegram') || undefined,
+            })}
+        >
+          <option value="">{t('handouts.themeNone')}</option>
+          <option value="parchment">{t('handouts.themeParchment')}</option>
+          <option value="letter">{t('handouts.themeLetter')}</option>
+          <option value="telegram">{t('handouts.themeTelegram')}</option>
+        </select>
         <button class="btn send" onclick={() => handouts.send(selected.id)}>{t('handouts.send')}</button>
         <button class="btn del" onclick={() => { handouts.remove(selected.id); selectedId = null; }}>
           {t('handouts.delete')}
@@ -118,6 +136,10 @@
     resize: none;
     font-size: 13px;
     line-height: 1.4;
+  }
+  .narrow {
+    font-size: 12px;
+    padding: 6px 8px;
   }
   .actions {
     display: flex;

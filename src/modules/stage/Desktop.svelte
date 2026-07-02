@@ -1,8 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { stage, type Tile, type TileKind } from './store.svelte';
-  import { snapZones, zoneAt, type SnapZone } from './board';
+  import { snapZones, zoneAt, formatCountdown, type SnapZone } from './board';
   import { npcs } from '../npcs/store.svelte';
+  import { calendar } from '../calendar/store.svelte';
+  import { roll, rollCardModel } from '../roller/logic';
+  import { onairHistory } from '../../lib/stores/onairHistory.svelte';
+  import { describeOnAir } from '../../lib/onair';
   import { assetPut, assetUrl } from '../../lib/db';
   import { putOnAir, clearBroadcast, setDisplayMode, setMood } from '../reveal/bus-actions';
   import { sendLaser } from './bus-actions';
@@ -31,6 +35,7 @@
     stage.onAir = putOnAir;
     void stage.load();
     void npcs.load();
+    void calendar.load();
     const onPaste = (e: ClipboardEvent) => void handlePaste(e);
     const onKey = (e: KeyboardEvent) => handleKey(e);
     document.addEventListener('paste', onPaste);
@@ -244,6 +249,47 @@
     const name = prompt(t('stage.savePresetPrompt'));
     if (name?.trim()) stage.savePreset(name.trim());
   }
+
+  // Snapshot the calendar module's current in-world date + moon onto a new tile.
+  function addDateTile() {
+    stage.addTile('date', { date: calendar.label, moon: calendar.moon });
+  }
+  // Add a dice-result tile, rolling `expr` once and freezing the outcome on it.
+  function addRollTile(expr = '1d20') {
+    const res = roll(expr);
+    if (!res) return;
+    const card = rollCardModel(res, expr);
+    stage.addTile('roll', {
+      title: card.label,
+      roll: {
+        expr: card.expr,
+        total: card.total,
+        kept: card.kept,
+        modifier: card.modifier,
+        outcome: card.outcome,
+      },
+    });
+  }
+  // Re-roll the selected dice tile in place (refreshes its frozen result).
+  function reRoll(tl: Tile) {
+    const expr = tl.roll?.expr ?? '1d20';
+    const res = roll(expr);
+    if (!res) return;
+    const card = rollCardModel(res, expr);
+    stage.patchTile(tl.id, {
+      roll: {
+        expr,
+        total: card.total,
+        kept: card.kept,
+        modifier: card.modifier,
+        outcome: card.outcome,
+      },
+    });
+  }
+  // Refresh a date tile from the calendar's current state.
+  function refreshDate(tl: Tile) {
+    stage.patchTile(tl.id, { date: calendar.label, moon: calendar.moon });
+  }
   function snapSelected(z: SnapZone) {
     if (stage.selected) {
       stage.beginGesture();
@@ -280,6 +326,9 @@
     <button class="btn sm" onclick={() => stage.addTile('image')}>{t('stage.addImage')}</button>
     <button class="btn sm" onclick={() => stage.addTile('text')}>{t('stage.addText')}</button>
     <button class="btn sm" onclick={() => stage.addTile('npc')}>{t('stage.addNpc')}</button>
+    <button class="btn sm" onclick={() => stage.addTile('clock', { seconds: 60 })} title={t('stage.addClockHint')}>{t('stage.addClock')}</button>
+    <button class="btn sm" onclick={addDateTile} title={t('stage.addDateHint')}>{t('stage.addDate')}</button>
+    <button class="btn sm" onclick={() => addRollTile()} title={t('stage.addRollHint')}>{t('stage.addRoll')}</button>
     <span class="sep"></span>
     <button
       class="btn sm"
@@ -446,7 +495,10 @@
             class="tile"
             class:sel={tl.id === stage.selected}
             class:hidden={tl.hidden}
-            style="grid-column: {tl.col} / span {tl.cw}; grid-row: {tl.row} / span {tl.rh}"
+            style="grid-column: {tl.col} / span {tl.cw}; grid-row: {tl.row} / span {tl.rh}{tl.z !==
+            undefined
+              ? `; z-index:${tl.z}`
+              : ''}"
             onpointerdown={(e) => startMove(e, tl)}
             onpointermove={onMove}
             onpointerup={endMove}
@@ -462,6 +514,23 @@
                 {:else}
                   <div class="ph">{t('stage.bodyPlaceholder')}</div>
                 {/if}
+              {:else if tl.kind === 'clock'}
+                <div class="tmeta">
+                  {#if tl.title}<span class="tmlbl">{tl.title}</span>{/if}
+                  <strong class="tmbig">{formatCountdown(tl.seconds ?? 60)}</strong>
+                </div>
+              {:else if tl.kind === 'date'}
+                <div class="tmeta">
+                  {#if tl.title}<span class="tmlbl">{tl.title}</span>{/if}
+                  <strong class="tmmid">{tl.date ?? '—'}</strong>
+                  {#if tl.moon}<span class="tmoon">☾ {tl.moon}</span>{/if}
+                </div>
+              {:else if tl.kind === 'roll'}
+                <div class="tmeta">
+                  {#if tl.title}<span class="tmlbl">{tl.title}</span>{/if}
+                  <strong class="tmbig">{tl.roll?.total ?? '—'}</strong>
+                  <span class="tmsub">{tl.roll?.expr ?? ''}{tl.roll?.outcome ? ` · ${tl.roll.outcome}` : ''}</span>
+                </div>
               {:else}
                 {@const img = tileImg(tl)}
                 {#if img}
@@ -539,7 +608,18 @@
         <option value="image">{t('stage.kindImage')}</option>
         <option value="text">{t('stage.kindText')}</option>
         <option value="npc">{t('stage.kindNpc')}</option>
+        <option value="clock">{t('stage.kindClock')}</option>
+        <option value="date">{t('stage.kindDate')}</option>
+        <option value="roll">{t('stage.kindRoll')}</option>
       </select>
+
+      <!-- z-order (layering: text over image) -->
+      <button class="btn sm" onclick={() => stage.bringToFront(sel.id)} title={t('stage.frontHint')}
+        >{t('stage.front')}</button
+      >
+      <button class="btn sm" onclick={() => stage.sendToBack(sel.id)} title={t('stage.backHint')}
+        >{t('stage.back')}</button
+      >
 
       {#if sel.kind === 'image'}
         <label class="btn sm"
@@ -568,6 +648,22 @@
               caption: (e.currentTarget as HTMLInputElement).value || undefined,
             })}
         />
+        <span class="flbl">{t('stage.reveal')}</span>
+        <select
+          class="in narrow"
+          value={sel.reveal ?? ''}
+          onchange={(e) =>
+            stage.patchTile(sel.id, {
+              reveal:
+                ((e.currentTarget as HTMLSelectElement).value as 'blur' | 'panh' | 'panv') ||
+                undefined,
+            })}
+        >
+          <option value="">{t('stage.revealNone')}</option>
+          <option value="blur">{t('stage.revealBlur')}</option>
+          <option value="panh">{t('stage.revealPanH')}</option>
+          <option value="panv">{t('stage.revealPanV')}</option>
+        </select>
       {:else if sel.kind === 'text'}
         <input
           class="in grow"
@@ -587,6 +683,88 @@
               body: (e.currentTarget as HTMLInputElement).value || undefined,
             })}
         />
+        <span class="flbl">{t('stage.theme')}</span>
+        <select
+          class="in narrow"
+          value={sel.theme ?? ''}
+          onchange={(e) =>
+            stage.patchTile(sel.id, {
+              theme:
+                ((e.currentTarget as HTMLSelectElement).value as
+                  | 'parchment'
+                  | 'letter'
+                  | 'telegram') || undefined,
+            })}
+        >
+          <option value="">{t('stage.themeNone')}</option>
+          <option value="parchment">{t('stage.themeParchment')}</option>
+          <option value="letter">{t('stage.themeLetter')}</option>
+          <option value="telegram">{t('stage.themeTelegram')}</option>
+        </select>
+      {:else if sel.kind === 'clock'}
+        <input
+          class="in grow"
+          placeholder={t('stage.titlePlaceholder')}
+          value={sel.title ?? ''}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              title: (e.currentTarget as HTMLInputElement).value || undefined,
+            })}
+        />
+        <span class="flbl">{t('stage.seconds')}</span>
+        <input
+          class="in narrow"
+          type="number"
+          min="0"
+          value={sel.seconds ?? 60}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              seconds: Math.max(0, Number((e.currentTarget as HTMLInputElement).value) || 0),
+            })}
+        />
+      {:else if sel.kind === 'date'}
+        <input
+          class="in grow"
+          placeholder={t('stage.titlePlaceholder')}
+          value={sel.title ?? ''}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              title: (e.currentTarget as HTMLInputElement).value || undefined,
+            })}
+        />
+        <button class="btn sm" onclick={() => refreshDate(sel)}>{t('stage.refreshDate')}</button>
+      {:else if sel.kind === 'roll'}
+        <input
+          class="in grow"
+          placeholder={t('stage.titlePlaceholder')}
+          value={sel.title ?? ''}
+          oninput={(e) =>
+            stage.patchTile(sel.id, {
+              title: (e.currentTarget as HTMLInputElement).value || undefined,
+            })}
+        />
+        <input
+          class="in narrow"
+          placeholder="1d20"
+          value={sel.roll?.expr ?? ''}
+          onchange={(e) => {
+            const expr = (e.currentTarget as HTMLInputElement).value || '1d20';
+            const r = roll(expr);
+            if (r) {
+              const c = rollCardModel(r, expr);
+              stage.patchTile(sel.id, {
+                roll: {
+                  expr,
+                  total: c.total,
+                  kept: c.kept,
+                  modifier: c.modifier,
+                  outcome: c.outcome,
+                },
+              });
+            }
+          }}
+        />
+        <button class="btn sm" onclick={() => reRoll(sel)}>{t('stage.reroll')}</button>
       {:else}
         <select
           class="in narrow"
@@ -624,6 +802,18 @@
           >
         {/each}
       </div>
+      {#if onairHistory.entries.length}
+        <span class="flbl">{t('stage.recent')}</span>
+        <div class="hist">
+          {#each onairHistory.entries as h (h.id)}
+            <button
+              class="histbtn"
+              onclick={() => putOnAir(h.payload)}
+              title={t('stage.reair')}>{describeOnAir(h.payload).label ?? '—'}</button
+            >
+          {/each}
+        </div>
+      {/if}
     {/if}
   </div>
 </div>
@@ -990,6 +1180,43 @@
     text-align: center;
     padding: 6px;
   }
+  /* clock / date / roll tile previews */
+  .tmeta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 6px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .tmlbl {
+    color: var(--muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .tmbig {
+    font-family: Georgia, serif;
+    color: var(--green);
+    font-size: 26px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .tmmid {
+    font-family: Georgia, serif;
+    color: var(--txt);
+    font-size: 15px;
+  }
+  .tmsub {
+    color: var(--muted);
+    font-size: 10px;
+  }
+  .tmoon {
+    color: var(--gold);
+    font-size: 11px;
+  }
   .chrome {
     position: absolute;
     top: 0;
@@ -1138,6 +1365,30 @@
     background: rgba(47, 138, 102, 0.18);
     color: var(--txt);
     border-color: var(--green-dim);
+  }
+  .hist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    max-width: 100%;
+  }
+  .histbtn {
+    max-width: 120px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line2);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .histbtn:hover {
+    border-color: var(--green-dim);
+    color: var(--txt);
   }
   .muted {
     color: var(--muted);

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { describeOnAir } from './onair';
+import { describeOnAir, pushHistory, type OnAirEntry } from './onair';
+
+const entry = (id: string, payload: OnAirEntry['payload']): OnAirEntry => ({ id, at: 0, payload });
 
 describe('describeOnAir', () => {
   it('reports idle for undefined and clear', () => {
@@ -43,5 +45,30 @@ describe('describeOnAir', () => {
     expect(describeOnAir({ kind: 'audio', channel: 'sfx', action: 'play' })).toEqual({
       live: false,
     });
+  });
+});
+
+describe('pushHistory', () => {
+  it('prepends most-recent-first and trims to n', () => {
+    let list: OnAirEntry[] = [];
+    list = pushHistory(list, entry('1', { kind: 'text', body: 'a' }), 2);
+    list = pushHistory(list, entry('2', { kind: 'text', body: 'b' }), 2);
+    list = pushHistory(list, entry('3', { kind: 'text', body: 'c' }), 2);
+    expect(list.map((e) => e.id)).toEqual(['3', '2']);
+  });
+
+  it('skips non-history-worthy payloads (clear/overlays/audio)', () => {
+    const base = [entry('1', { kind: 'text', body: 'a' })];
+    expect(pushHistory(base, entry('2', { kind: 'clear' }), 5)).toBe(base);
+    expect(pushHistory(base, entry('3', { kind: 'ping', x: 0, y: 0 }), 5)).toBe(base);
+    expect(pushHistory(base, entry('4', { kind: 'laser', x: 0, y: 0, on: true }), 5)).toBe(base);
+    expect(pushHistory(base, entry('5', { kind: 'audio', channel: 'sfx', action: 'play' }), 5)).toBe(
+      base,
+    );
+  });
+
+  it('keeps content payloads (image/map/grid/roll)', () => {
+    const r = pushHistory([], entry('1', { kind: 'image', caption: 'x' }), 5);
+    expect(r).toHaveLength(1);
   });
 });
