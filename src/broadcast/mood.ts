@@ -53,3 +53,17 @@ export function moodStyle(mood: Mood): { overlay: string; filter: string } {
       : `radial-gradient(140% 110% at 50% 45%, rgba(${mood.tint},${mood.intensity}) 0%, rgba(0,0,0,${mood.vignette}) 100%)`;
   return { overlay, filter: `brightness(${mood.brightness})` };
 }
+
+/**
+ * Cinematic film-grain overlay style for a mood: a translucent tint (the mood's
+ * colour, scaled down so the grain reads as a wash not a fill) plus a small grain
+ * opacity that rises with the mood's intensity. Pure — unit-tested, no DOM.
+ * Returns CSS-ready strings the broadcast page binds directly.
+ */
+export function grainStyle(mood: Mood): { tint: string; opacity: number } {
+  // Neutral mood: faint colourless grain. Others: tinted, a touch stronger.
+  const opacity = Math.round((0.06 + mood.intensity * 0.1) * 1000) / 1000;
+  const tintAlpha = Math.round(mood.intensity * 0.35 * 1000) / 1000;
+  const tint = mood.intensity <= 0 ? 'transparent' : `rgba(${mood.tint},${tintAlpha})`;
+  return { tint, opacity };
+}

@@ -1,5 +1,33 @@
+/* ---- Self-hosted display serif (Cthulhu atmosphere) ----
+   Files live under /public/fonts (served at /fonts/*). If the binaries are
+   absent the @font-face silently fails and the fallback stack below carries
+   the look (bundled serifs). No external CDN / network dependency. */
+@font-face {
+  font-family: 'IM Fell English';
+  src: url('/fonts/IMFellEnglish-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IM Fell English';
+  src: url('/fonts/IMFellEnglish-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cormorant';
+  src: url('/fonts/Cormorant-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ---- Keeper design tokens (Command Deck — from mockup-12) ---- */
 :root {
+  /* display serif for window titles + section headers; body stays sans */
+  --serif: 'IM Fell English', 'Cormorant', 'Georgia', 'Times New Roman', serif;
   --bg: #080d0b;
   --bg2: #0b1411;
   --panel: #0f1815;
@@ -165,6 +193,43 @@ button {
 .wp.vig {
   box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.7);
 }
+
+/* ---- Cthulhu atmosphere: paper grain, vignette, drifting fog (behind windows) ----
+   All decorative layers are pointer-events:none and sit at very low opacity so
+   windows and their contents stay fully legible. */
+.wp.grain {
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  /* inline SVG feTurbulence noise tile as a data-URI */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+.wp.vig2 {
+  background: radial-gradient(130% 120% at 50% 42%, transparent 52%, rgba(0, 0, 0, 0.55) 100%);
+}
+.wp.fog {
+  opacity: 0.06;
+  background:
+    radial-gradient(60% 50% at 22% 30%, rgba(120, 200, 165, 0.9), transparent 60%),
+    radial-gradient(55% 45% at 78% 66%, rgba(90, 160, 130, 0.8), transparent 62%),
+    radial-gradient(45% 40% at 55% 88%, rgba(110, 180, 150, 0.7), transparent 60%);
+  background-size: 180% 180%;
+  animation: fogdrift 46s ease-in-out infinite alternate;
+  will-change: background-position;
+}
+@keyframes fogdrift {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wp.fog {
+    animation: none;
+  }
+}
 .hint {
   position: absolute;
   left: 50%;
@@ -188,11 +253,28 @@ button {
   border: 1px solid var(--line);
   box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.85);
 }
+/* Unfocused windows dim slightly so the focused one reads as foreground. */
+.win {
+  filter: brightness(0.93) saturate(0.92);
+  transition:
+    filter 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+/* Focused window: verdigris (green) border glow + raised shadow, full brightness. */
+.win.focused,
 .win:focus-within {
-  border-color: var(--line2);
+  filter: none;
+  border-color: var(--green-dim);
   box-shadow:
-    0 24px 56px -20px rgba(0, 0, 0, 0.92),
-    0 0 20px rgba(79, 163, 123, 0.14);
+    0 28px 60px -18px rgba(0, 0, 0, 0.92),
+    0 0 0 1px rgba(79, 163, 123, 0.35),
+    0 0 26px rgba(79, 163, 123, 0.22);
+}
+@media (prefers-reduced-motion: reduce) {
+  .win {
+    transition: none;
+  }
 }
 .bar {
   flex: 0 0 auto;
@@ -209,11 +291,22 @@ button {
   cursor: grabbing;
 }
 .bar .t {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 700;
+  font-family: var(--serif);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--txt);
+  font-weight: 600;
+}
+.win.focused .bar .t,
+.win:focus-within .bar .t {
+  color: var(--green);
+  text-shadow: 0 0 10px rgba(70, 232, 154, 0.28);
+}
+/* Section headers across modules pick up the display serif; body stays sans. */
+.win .content h2,
+.win .content h3 {
+  font-family: var(--serif);
+  letter-spacing: 0.02em;
 }
 .bar .ctrl {
   margin-left: auto;
@@ -631,4 +724,114 @@ button {
   background: #7a2a2a;
   color: #fff;
   border-color: #7a2a2a;
+}
+
+/* ---- ink-bleed hover: soft ~120ms colour/background bleed instead of an
+   instant swap on interactive elements. Short enough to keep under reduced
+   motion; :hover/color transitions aren't looping so they may stay. */
+.btn,
+.ic,
+.dock .di,
+.nav a,
+.minchip,
+.bar .ctrl .b,
+a {
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    text-shadow 0.12s ease;
+}
+
+/* ---- brand + panel headings in display serif ---- */
+.topbar .brand {
+  font-family: var(--serif);
+  letter-spacing: 0.01em;
+}
+.keeper .kt {
+  font-family: var(--serif);
+}
+
+/* ---- telegram / newspaper-clipping toast ---- */
+.toast {
+  position: relative;
+  font-family: 'Courier New', ui-monospace, monospace;
+  background: #efe7d2;
+  color: #211d15;
+  border: 0;
+  border-radius: 2px;
+  letter-spacing: 0.02em;
+  box-shadow:
+    0 8px 22px -8px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(120, 100, 60, 0.35);
+  /* torn-paper edges top & bottom via a repeating notch mask */
+  -webkit-mask:
+    radial-gradient(5px 5px at 5px 0, transparent 96%, #000) 0 0 / 12px 100%,
+    radial-gradient(5px 5px at 5px 100%, transparent 96%, #000) 0 100% / 12px 100%,
+    linear-gradient(#000, #000);
+  mask:
+    radial-gradient(5px 5px at 5px 0, transparent 96%, #000) 0 0 / 12px 100%,
+    radial-gradient(5px 5px at 5px 100%, transparent 96%, #000) 0 100% / 12px 100%,
+    linear-gradient(#000, #000);
+  -webkit-mask-repeat: repeat-x, repeat-x, no-repeat;
+  mask-repeat: repeat-x, repeat-x, no-repeat;
+  -webkit-mask-composite: source-out;
+  mask-composite: subtract;
+}
+.toast .undo,
+.toast button {
+  color: #7a2f12;
+  font-family: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.toast .undo:hover,
+.toast button:hover {
+  color: #a83c12;
+  text-decoration: underline;
+}
+
+/* ---- candle / Keeper-eye loader for busy states ---- */
+.candle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 26px;
+  vertical-align: middle;
+}
+.candle .flame {
+  transform-origin: 50% 100%;
+  animation: candle-flicker 1.7s ease-in-out infinite;
+}
+.candle .flame-core {
+  transform-origin: 50% 100%;
+  animation: candle-flicker 1.7s ease-in-out infinite reverse;
+}
+@keyframes candle-flicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1) translateX(0);
+    opacity: 1;
+  }
+  25% {
+    transform: scaleY(1.12) scaleX(0.92) translateX(-0.4px);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scaleY(0.9) scaleX(1.06) translateX(0.5px);
+    opacity: 1;
+  }
+  75% {
+    transform: scaleY(1.06) scaleX(0.96) translateX(0.2px);
+    opacity: 0.9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .candle .flame,
+  .candle .flame-core {
+    animation: none;
+  }
 }

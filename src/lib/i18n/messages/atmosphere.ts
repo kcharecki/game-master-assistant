@@ -65,6 +65,9 @@ export const atmosphere = {
     'audio.noTracks': 'No tracks yet.',
     'audio.switchScene': 'Switch scene',
 
+    // ambience / loaders
+    'atmos.loading': 'Loading…',
+
     // scene
     'scene.title': '2. The Derelict Warehouse',
     'scene.body':
@@ -136,6 +139,9 @@ export const atmosphere = {
     'audio.tracks': 'Utwory',
     'audio.noTracks': 'Brak utworów.',
     'audio.switchScene': 'Zmień scenę',
+
+    // ambience / loaders
+    'atmos.loading': 'Ładowanie…',
 
     // scene
     'scene.title': '2. Opuszczony magazyn',

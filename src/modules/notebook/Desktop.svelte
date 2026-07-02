@@ -190,6 +190,7 @@
     flex-direction: column;
     gap: 6px;
   }
+  /* Telegram / newspaper-clipping slip: aged paper, torn edges, monospace. */
   .toast {
     position: absolute;
     bottom: 6px;
@@ -198,20 +199,41 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 12px;
-    border: 1px solid var(--green-dim);
-    border-radius: 8px;
-    background: var(--panel2);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    padding: 7px 14px;
+    border-radius: 2px;
+    background: #efe7d2;
+    color: #211d15;
+    font-family: 'Courier New', ui-monospace, monospace;
     font-size: 12px;
-    color: var(--txt);
+    letter-spacing: 0.02em;
+    box-shadow:
+      0 8px 22px -8px rgba(0, 0, 0, 0.7),
+      inset 0 0 0 1px rgba(120, 100, 60, 0.35);
+    -webkit-mask:
+      radial-gradient(5px 5px at 5px 0, transparent 96%, #000) 0 0 / 12px 100%,
+      radial-gradient(5px 5px at 5px 100%, transparent 96%, #000) 0 100% / 12px 100%,
+      linear-gradient(#000, #000);
+    mask:
+      radial-gradient(5px 5px at 5px 0, transparent 96%, #000) 0 0 / 12px 100%,
+      radial-gradient(5px 5px at 5px 100%, transparent 96%, #000) 0 100% / 12px 100%,
+      linear-gradient(#000, #000);
+    -webkit-mask-repeat: repeat-x, repeat-x, no-repeat;
+    mask-repeat: repeat-x, repeat-x, no-repeat;
+    -webkit-mask-composite: source-out;
+    mask-composite: subtract;
   }
   .undo {
     border: none;
     background: transparent;
-    color: var(--green);
+    color: #7a2f12;
     font: inherit;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     cursor: pointer;
+  }
+  .undo:hover {
+    color: #a83c12;
+    text-decoration: underline;
   }
 </style>

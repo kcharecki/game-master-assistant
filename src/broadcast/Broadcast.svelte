@@ -6,7 +6,15 @@
   import type { AudioQueueItem, BroadcastPayload, DisplayMode } from '../lib/types';
   import { advanceIndex, crossfadeGains, effectiveVolume } from '../modules/audio/logic';
   import { DISPLAY_MODE_KEY, DEFAULT_DISPLAY_MODE, normalizeMode } from './display';
-  import { MOOD_KEY, DEFAULT_MOOD, moodById, normalizeMood, moodStyle, type Mood } from './mood';
+  import {
+    MOOD_KEY,
+    DEFAULT_MOOD,
+    moodById,
+    normalizeMood,
+    moodStyle,
+    grainStyle,
+    type Mood,
+  } from './mood';
   import { clampCols, gridAssetIds } from './grid';
   import { conditionGlyph, conditionMeta } from '../modules/map/conditions';
   import { hexGridPath } from '../modules/map/hex';
@@ -27,6 +35,8 @@
   let mode = $state<DisplayMode>(DEFAULT_DISPLAY_MODE);
   let mood = $state<Mood>(DEFAULT_MOOD);
   const mstyle = $derived(moodStyle(mood));
+  // Cinematic film-grain tint/opacity, derived from the active mood (pure).
+  const grain = $derived(grainStyle(mood));
   // Transient ping marker (normalized 0..1) that overlays current content.
   let ping = $state<{ x: number; y: number } | null>(null);
   let pingTimer: ReturnType<typeof setTimeout> | undefined;
@@ -806,6 +816,16 @@
   <!-- Mood/lighting wash, layered over content but under transient markers. -->
   <div class="mood" style="background:{mstyle.overlay}"></div>
 
+  <!-- Cinematic mode: film grain (mood-tinted) + letterbox bars + slow vignette
+       pulse. Decorative only (pointer-events:none); frozen under reduced motion.
+       Plain mode drops all of it for flat legibility. -->
+  {#if mode === 'cinematic'}
+    <div class="cine-grain" style="opacity:{grain.opacity};background-color:{grain.tint}"></div>
+    <div class="cine-vig"></div>
+    <div class="cine-bar top"></div>
+    <div class="cine-bar bottom"></div>
+  {/if}
+
   {#if ping}
     <div class="ping" style="left:{ping.x * 100}%; top:{ping.y * 100}%"></div>
   {/if}
@@ -881,7 +901,7 @@
     text-align: center;
   }
   .card h1 {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     color: var(--green);
     font-size: clamp(28px, 5vw, 52px);
     margin-bottom: 18px;
@@ -1018,7 +1038,7 @@
     padding: 8px 12px;
   }
   .gtext h2 {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     color: var(--green);
     font-size: clamp(18px, 2.6vw, 30px);
     margin-bottom: 8px;
@@ -1301,6 +1321,71 @@
     pointer-events: none;
     transition: background 0.8s ease;
     z-index: 1;
+  }
+
+  /* --- cinematic overlays: grain, vignette pulse, letterbox bars --- */
+  .cine-grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    animation: cine-grain-move 0.6s steps(3) infinite;
+    transition: opacity 0.8s ease;
+  }
+  .cine-vig {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.72) 100%);
+    animation: cine-vig-pulse 7s ease-in-out infinite;
+  }
+  .cine-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 7vh;
+    background: #000;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .cine-bar.top {
+    top: 0;
+  }
+  .cine-bar.bottom {
+    bottom: 0;
+  }
+  @keyframes cine-grain-move {
+    0% {
+      transform: translate(0, 0);
+    }
+    33% {
+      transform: translate(-4%, 3%);
+    }
+    66% {
+      transform: translate(3%, -3%);
+    }
+    100% {
+      transform: translate(-2%, 2%);
+    }
+  }
+  @keyframes cine-vig-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cine-grain,
+    .cine-vig {
+      animation: none;
+    }
   }
 
   .ytplayer {

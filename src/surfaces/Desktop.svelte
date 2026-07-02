@@ -24,6 +24,9 @@
 
 <div class="desktop" id="desktop">
   <div class="wp grid"></div>
+  <div class="wp fog"></div>
+  <div class="wp grain"></div>
+  <div class="wp vig2"></div>
   <div class="wp vig"></div>
   <div class="hint">drag windows · ＋ from dock · screen-share the broadcast tab</div>
 

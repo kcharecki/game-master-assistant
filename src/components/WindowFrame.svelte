@@ -10,10 +10,16 @@
   import { resizeHandle } from '../lib/actions/resize';
   import Stub from './Stub.svelte';
   import Icon from '../lib/components/Icon.svelte';
+  import ModuleIcon from './ModuleIcon.svelte';
 
   let { win }: { win: WindowState } = $props();
   const mod = $derived(getModule(win.kind));
   const title = $derived(t('mod.' + win.kind + '.title'));
+  // The top-most window (highest z among non-minimized) reads as focused: it
+  // gets the verdigris glow while the rest dim slightly.
+  const focused = $derived(
+    win.z === Math.max(...wm.windows.filter((w) => !w.minimized).map((w) => w.z)),
+  );
 
   onMount(() => void feedback.load());
 
@@ -42,6 +48,7 @@
 {#if !win.minimized}
   <section
     class="win"
+    class:focused
     data-win
     role="group"
     aria-label={title}
@@ -52,6 +59,7 @@
     onpointerdown={() => wm.focus(win.id)}
   >
     <div class="bar" use:dragHandle={(x, y) => wm.move(win.id, x, y)}>
+      <span class="sigil" aria-hidden="true"><ModuleIcon id={win.kind} size={14} /></span>
       <span class="t">{title}</span>
       <span class="ctrl">
         <button
@@ -134,6 +142,16 @@
 {/if}
 
 <style>
+  .sigil {
+    display: inline-flex;
+    align-items: center;
+    color: var(--muted);
+    flex: 0 0 auto;
+  }
+  .win.focused .sigil,
+  .win:focus-within .sigil {
+    color: var(--green);
+  }
   .fbcount {
     font-size: 8px;
     color: var(--green, #5fbf8f);
