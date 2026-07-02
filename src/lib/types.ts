@@ -93,7 +93,7 @@ export type BroadcastPayload =
   | {
       kind: 'audio';
       channel: 'ambient' | 'sfx';
-      action: 'play' | 'stop' | 'seek' | 'pause' | 'resume' | 'next' | 'prev' | 'volume';
+      action: 'play' | 'stop' | 'seek' | 'pause' | 'resume' | 'next' | 'prev' | 'volume' | 'panic';
       /** ambient play: ordered items to run through (native audio + YouTube). */
       queue?: AudioQueueItem[];
       /** ambient play/jump: index into `queue` to start at. */

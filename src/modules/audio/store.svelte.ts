@@ -1,4 +1,4 @@
-import { assetPut, assetDelete, kvGet, kvSet } from '../../lib/db';
+import { assetPut, assetDelete, assetUrl, kvGet, kvSet } from '../../lib/db';
 import { createBus } from '../../lib/bus';
 import type { AudioQueueItem, BroadcastPayload } from '../../lib/types';
 import {
@@ -62,6 +62,17 @@ class AudioStore {
   loopTrack = $state(false);
   /** auto-duck the ambient bed while an SFX plays */
   duckSfx = $state(true);
+  /** per-channel + master mute (kept separate from volume so it toggles cleanly) */
+  masterMuted = $state(false);
+  ambientMuted = $state(false);
+  sfxMuted = $state(false);
+
+  /** wall-clock ms of the last ambient status heard from the broadcast tab.
+   *  The console uses it to warn when the broadcast tab looks closed. */
+  lastStatusAt = $state(0);
+
+  /** GM-tab-only audition element (local preview; never routed to the bus). */
+  private auditionEl: HTMLAudioElement | null = null;
 
   // Reactive ambient transport state, fed by the broadcast tab's audioStatus
   // reports over the reverse bus channel (see subscribeStatus).
@@ -83,13 +94,30 @@ class AudioStore {
    * (squared) curve. Includes the target scene's per-playlist gain trim.
    */
   private ambientGainFor(playlistId?: string | null): number {
+    if (this.masterMuted || this.ambientMuted) return 0;
     const id = playlistId ?? this.playingScene;
     const pl = id ? this.playlists.find((p) => p.id === id) : undefined;
     return perceptual(effectiveVolume(this.masterVol, this.ambientVol, pl?.gain ?? 1));
   }
   /** Effective sfx channel volume (per-clip gain applied on top), perceptual curve. */
   private get sfxGain(): number {
+    if (this.masterMuted || this.sfxMuted) return 0;
     return perceptual(effectiveVolume(this.masterVol, this.sfxVol));
+  }
+
+  /** Toggle mute on a channel (or master), pushing the ambient bed live. */
+  toggleMute(channel: 'master' | 'ambient' | 'sfx'): void {
+    if (channel === 'master') this.masterMuted = !this.masterMuted;
+    else if (channel === 'ambient') this.ambientMuted = !this.ambientMuted;
+    else this.sfxMuted = !this.sfxMuted;
+    this.pushVolumes();
+    this.persist();
+  }
+
+  /** Toggle auto-ducking of the ambient bed under SFX. */
+  toggleDuck(): void {
+    this.duckSfx = !this.duckSfx;
+    this.persist();
   }
 
   /** Import an audio file (or recorded blob) into assets, returning its id. */
@@ -185,6 +213,14 @@ class AudioStore {
     const pl = this.playlists.find((p) => p.id === playlistId);
     if (!pl) return;
     pl.tracks = reorder(pl.tracks, index, index + delta);
+    this.persist();
+  }
+
+  /** Move a track from one index to another (drag-to-reorder). */
+  moveTrackTo(playlistId: string, from: number, to: number): void {
+    const pl = this.playlists.find((p) => p.id === playlistId);
+    if (!pl || from === to) return;
+    pl.tracks = reorder(pl.tracks, from, to);
     this.persist();
   }
 
@@ -418,6 +454,48 @@ class AudioStore {
     if (s) this.playSfx(s.id);
   }
 
+  /**
+   * Kill switch: hard-stop every channel on the broadcast tab (ambient bed +
+   * all live SFX) and reset local transport. For "oops, wrong clip on air".
+   */
+  panic(): void {
+    sendAudio({ kind: 'audio', channel: 'ambient', action: 'panic' });
+    this.stopAudition();
+    this.playingScene = null;
+    this.playingYouTube = false;
+    this.paused = false;
+    this.playing = false;
+    this.position = 0;
+    this.duration = 0;
+    this.trackIndex = 0;
+    this.trackCount = 0;
+  }
+
+  /**
+   * Audition an asset in the GM tab only — a private preview that never touches
+   * the broadcast bus. Stops any previous audition. Pass no id to just stop.
+   */
+  audition(assetId?: string): void {
+    this.stopAudition();
+    if (!assetId || typeof Audio === 'undefined') return;
+    void assetUrl(assetId).then((url) => {
+      if (!url) return;
+      const el = new Audio(url);
+      el.volume = perceptual(this.sfxVol);
+      el.onended = () => URL.revokeObjectURL(url);
+      this.auditionEl = el;
+      void el.play().catch(() => URL.revokeObjectURL(url));
+    });
+  }
+
+  /** Stop the current GM-tab audition, if any. */
+  stopAudition(): void {
+    if (this.auditionEl) {
+      this.auditionEl.pause();
+      this.auditionEl = null;
+    }
+  }
+
   // ---- mic recording (GM tab) ----------------------------------------------
 
   /** Start capturing mic audio into a new soundboard clip. Resolves on grant. */
@@ -469,6 +547,7 @@ class AudioStore {
     const bus = createBus();
     const off = bus.on((m) => {
       if (m.type !== 'audioStatus' || m.channel !== 'ambient') return;
+      this.lastStatusAt = Date.now();
       this.position = m.current;
       this.duration = m.duration;
       this.playing = m.playing;
@@ -499,6 +578,9 @@ class AudioStore {
       loopList: this.loopList,
       loopTrack: this.loopTrack,
       duckSfx: this.duckSfx,
+      masterMuted: this.masterMuted,
+      ambientMuted: this.ambientMuted,
+      sfxMuted: this.sfxMuted,
     });
   }
 
@@ -514,6 +596,9 @@ class AudioStore {
       loopList?: boolean;
       loopTrack?: boolean;
       duckSfx?: boolean;
+      masterMuted?: boolean;
+      ambientMuted?: boolean;
+      sfxMuted?: boolean;
     }>('audio');
     if (!saved) return;
     // Presence, not length: an empty array means the GM deleted every scene —
@@ -528,6 +613,9 @@ class AudioStore {
     if (typeof saved.loopList === 'boolean') this.loopList = saved.loopList;
     if (typeof saved.loopTrack === 'boolean') this.loopTrack = saved.loopTrack;
     if (typeof saved.duckSfx === 'boolean') this.duckSfx = saved.duckSfx;
+    if (typeof saved.masterMuted === 'boolean') this.masterMuted = saved.masterMuted;
+    if (typeof saved.ambientMuted === 'boolean') this.ambientMuted = saved.ambientMuted;
+    if (typeof saved.sfxMuted === 'boolean') this.sfxMuted = saved.sfxMuted;
   }
 }
 

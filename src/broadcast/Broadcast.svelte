@@ -361,7 +361,29 @@
     }
   }
 
+  // Kill switch: hard-stop the ambient bed, every live SFX, and any YouTube.
+  function panicStop() {
+    clearInterval(fadeTimer);
+    fading = false;
+    youtubeId = null;
+    queue = [];
+    qIndex = 0;
+    for (const a of ambientEls) {
+      a.pause();
+      a.volume = 0;
+    }
+    for (const el of sfxPool) el.pause();
+    sfxActive = 0;
+    duckFactor = 1;
+    postAmbientStatus(true);
+  }
+
   async function handleAudio(cue: Extract<BroadcastPayload, { kind: 'audio' }>) {
+    if (cue.action === 'panic') {
+      if (!isPreview) panicStop();
+      else youtubeId = null;
+      return;
+    }
     if (cue.channel === 'sfx') {
       if (cue.action === 'play') void playOneShot(cue);
       return;
