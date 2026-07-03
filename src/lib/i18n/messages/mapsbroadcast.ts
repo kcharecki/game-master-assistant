@@ -66,12 +66,7 @@ export const mapsbroadcast = {
     'map.tokenName': 'Token name',
     'map.removeToken': 'Remove token',
 
-    // reveal (Desktop widget + Editor)
-    'reveal.widgetIntroPre': 'Compose what players see in the ',
-    'reveal.widgetIntroLink': 'Reveal',
-    'reveal.widgetIntroPost':
-      ' editor tab, then push it on air. This widget controls the live broadcast.',
-    'reveal.clearBroadcast': 'Clear Broadcast',
+    // reveal (Editor)
     'reveal.title': 'Reveal',
     'reveal.text': 'Text',
     'reveal.image': 'Image',
@@ -199,6 +194,10 @@ export const mapsbroadcast = {
     'stage.refreshDate': 'Refresh',
     'stage.recent': 'Recent',
     'stage.reair': 'Re-air this',
+    'stage.gmOnly': 'GM only · not shared',
+    'stage.peekPin': 'Pin this card',
+    'stage.peekUnpin': 'Unpin',
+    'stage.peekClose': 'Close',
 
     // handouts
     'handouts.untitled': 'Untitled',
@@ -288,12 +287,7 @@ export const mapsbroadcast = {
     'map.tokenName': 'Nazwa żetonu',
     'map.removeToken': 'Usuń żeton',
 
-    // reveal (Desktop widget + Editor)
-    'reveal.widgetIntroPre': 'Skomponuj to, co widzą gracze, w karcie edytora ',
-    'reveal.widgetIntroLink': 'Odsłoń',
-    'reveal.widgetIntroPost':
-      ', a następnie wyślij to na antenę. Ten widżet steruje transmisją na żywo.',
-    'reveal.clearBroadcast': 'Wyczyść transmisję',
+    // reveal (Editor)
     'reveal.title': 'Odsłoń',
     'reveal.text': 'Tekst',
     'reveal.image': 'Obraz',
@@ -421,6 +415,10 @@ export const mapsbroadcast = {
     'stage.refreshDate': 'Odśwież',
     'stage.recent': 'Ostatnie',
     'stage.reair': 'Nadaj ponownie',
+    'stage.gmOnly': 'Tylko MG · nieudostępniane',
+    'stage.peekPin': 'Przypnij kartę',
+    'stage.peekUnpin': 'Odepnij',
+    'stage.peekClose': 'Zamknij',
 
     // handouts
     'handouts.untitled': 'Bez tytułu',

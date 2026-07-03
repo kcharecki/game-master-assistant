@@ -8,7 +8,6 @@ export type ModuleId =
   | 'npcs'
   | 'lore'
   | 'calendar'
-  | 'schedule'
   | 'handouts'
   | 'notebook'
   | 'map'

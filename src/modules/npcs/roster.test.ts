@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterNpcs } from './roster';
+import { filterNpcs, queryNpcs, dispositionCounts } from './roster';
 import type { Npc } from './store.svelte';
 
 const ros: Npc[] = [
@@ -30,5 +30,28 @@ describe('filterNpcs', () => {
 
   it('returns nothing when no field matches', () => {
     expect(filterNpcs(ros, 'zzzz')).toHaveLength(0);
+  });
+});
+
+describe('queryNpcs', () => {
+  it('keeps every disposition when disp is "all"', () => {
+    expect(queryNpcs(ros, '', 'all')).toHaveLength(3);
+  });
+
+  it('filters to a single disposition', () => {
+    expect(queryNpcs(ros, '', 'ally').map((n) => n.id)).toEqual(['1', '2']);
+    expect(queryNpcs(ros, '', 'hostile').map((n) => n.id)).toEqual(['3']);
+  });
+
+  it('composes text query with disposition', () => {
+    expect(queryNpcs(ros, 'mara', 'ally').map((n) => n.id)).toEqual(['2']);
+    // Text matches an ally, but the hostile filter excludes it.
+    expect(queryNpcs(ros, 'mara', 'hostile')).toHaveLength(0);
+  });
+});
+
+describe('dispositionCounts', () => {
+  it('counts total and per-disposition', () => {
+    expect(dispositionCounts(ros)).toEqual({ all: 3, ally: 2, neutral: 0, hostile: 1 });
   });
 });

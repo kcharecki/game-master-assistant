@@ -648,6 +648,22 @@ button {
   color: #eafff3;
 }
 
+/* ---- dark native <select> dropdowns ----
+   color-scheme makes Chromium render the OS popup dark; the option rules cover
+   engines that instead read option colours. Without this the option list shows
+   as low-contrast grey-on-light and is hard to read. */
+select {
+  color-scheme: dark;
+}
+option,
+optgroup {
+  background-color: #10160f;
+  color: #e9f3ed;
+}
+option:checked {
+  background-color: rgba(47, 138, 102, 0.35);
+}
+
 /* ---- global ON AIR lamp (topbar) ---- */
 .onair {
   display: inline-flex;

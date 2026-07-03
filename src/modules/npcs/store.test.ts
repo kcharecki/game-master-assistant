@@ -101,4 +101,39 @@ describe('NpcStore', () => {
     npcs.removeStat(n.id, row.id);
     expect(get(n.id).stats).toHaveLength(0);
   });
+
+  it('adds, updates, and removes attack rows by id', () => {
+    const n = npcs.add('Mummy');
+    const row = npcs.addAttack(n.id)!;
+    expect(get(n.id).attacks).toHaveLength(1);
+    npcs.updateAttack(n.id, row.id, { name: 'Fighting', chance: '70%', damage: '1d6+DB' });
+    const a = get(n.id).attacks!.find((x) => x.id === row.id)!;
+    expect(a.name).toBe('Fighting');
+    expect(a.chance).toBe('70%');
+    expect(a.damage).toBe('1d6+DB');
+    npcs.removeAttack(n.id, row.id);
+    expect(get(n.id).attacks).toHaveLength(0);
+  });
+
+  it('adds, updates, and removes skill rows by id', () => {
+    const n = npcs.add('Sneak');
+    const row = npcs.addSkill(n.id)!;
+    expect(get(n.id).skills).toHaveLength(1);
+    npcs.updateSkill(n.id, row.id, { name: 'Stealth', value: '50%' });
+    const s = get(n.id).skills!.find((x) => x.id === row.id)!;
+    expect(s.name).toBe('Stealth');
+    expect(s.value).toBe('50%');
+    npcs.removeSkill(n.id, row.id);
+    expect(get(n.id).skills).toHaveLength(0);
+  });
+
+  it('attaches and detaches spell references (deduped)', () => {
+    const n = npcs.add('Sorcerer');
+    npcs.attachSpell(n.id, 'spl-1');
+    npcs.attachSpell(n.id, 'spl-1'); // dupe ignored
+    npcs.attachSpell(n.id, 'spl-2');
+    expect(get(n.id).spellIds).toEqual(['spl-1', 'spl-2']);
+    npcs.detachSpell(n.id, 'spl-1');
+    expect(get(n.id).spellIds).toEqual(['spl-2']);
+  });
 });

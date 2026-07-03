@@ -3,8 +3,12 @@
   import { filterNpcs } from './roster';
   import { assetUrl } from '../../lib/db';
   import { t } from '../../lib/i18n';
+  import NpcPeek from '../../lib/components/NpcPeek.svelte';
 
   const rep: Record<Disposition, string> = { ally: '+', neutral: '·', hostile: '–' };
+
+  // GM cheatsheet: hover a roster row to peek the NPC's full record (no broadcast).
+  let peek: ReturnType<typeof NpcPeek> | undefined;
 
   let query = $state('');
   const shown = $derived(filterNpcs(npcs.list, query));
@@ -36,7 +40,13 @@
 <input class="npcsearch" bind:value={query} placeholder={t('npcs.searchDesktop')} />
 
 {#each shown as n (n.id)}
-  <div class="combatant" class:foe={n.disposition === 'hostile'}>
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="combatant"
+    class:foe={n.disposition === 'hostile'}
+    onpointerenter={(e) => peek?.schedule(e.currentTarget, n.id)}
+    onpointerleave={() => peek?.scheduleClose()}
+  >
     <span class="av">
       {#if n.portraitId && urls[n.portraitId]}
         <img class="avimg" src={urls[n.portraitId]} alt="" />
@@ -48,6 +58,8 @@
     <span class="iv">{rep[n.disposition]}</span>
   </div>
 {/each}
+
+<NpcPeek bind:this={peek} />
 
 <style>
   .npcsearch {

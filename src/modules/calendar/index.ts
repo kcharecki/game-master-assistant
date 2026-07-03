@@ -4,7 +4,7 @@ import Desktop from './Desktop.svelte';
 const calendar: ModuleManifest = {
   id: 'calendar',
   title: 'Calendar',
-  size: { w: 300, h: 280 },
+  size: { w: 360, h: 520 },
   desktop: Desktop,
 };
 

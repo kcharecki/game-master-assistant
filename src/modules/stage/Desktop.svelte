@@ -4,7 +4,6 @@
   import { formatCountdown } from './board';
   import { npcs } from '../npcs/store.svelte';
   import { calendar } from '../calendar/store.svelte';
-  import { schedule } from '../schedule/store.svelte';
   import { onairHistory } from '../../lib/stores/onairHistory.svelte';
   import { describeOnAir } from '../../lib/onair';
   import { assetPut, assetUrl } from '../../lib/db';
@@ -15,6 +14,7 @@
   import type { DisplayMode, GridArea } from '../../lib/types';
   import { t } from '../../lib/i18n';
   import Icon from '../../lib/components/Icon.svelte';
+  import NpcPeek from '../../lib/components/NpcPeek.svelte';
 
   let board = $state<HTMLDivElement | null>(null);
   let hovered = $state(false);
@@ -23,6 +23,16 @@
   // Laser pointer mode: while on, cursor over the board drives a live dot on air.
   let laserOn = $state(false);
   let lastLaser = 0;
+
+  // --- GM-only NPC peek (never broadcast) -----------------------------------
+  // Hovering a placed NPC tile shows a floating cheatsheet of that NPC's FULL
+  // record (gmNotes/inventory) as a presenting aid — see NpcPeek. Its image
+  // picker sets the NPC's broadcast portrait; re-airs immediately when live.
+  let peek: ReturnType<typeof NpcPeek> | undefined;
+  function pickBroadcastImage(assetId: string, id: string) {
+    npcs.setPrimaryPhoto(id, assetId);
+    if (stage.live) stage.broadcast();
+  }
 
   const cols = $derived(stage.active.cols);
   const rows = $derived(stage.active.rows);
@@ -104,6 +114,7 @@
   function startMove(e: PointerEvent, tl: Tile) {
     if ((e.target as HTMLElement).closest('[data-control]')) return;
     e.preventDefault();
+    peek?.cancel(); // dragging shouldn't pop a hover card
     stage.beginGesture();
     stage.selected = tl.id;
     stage.raise(tl.id);
@@ -239,11 +250,11 @@
 
   // Snapshot the calendar's in-world date + moon and the Timeline clock onto a new tile.
   function addDateTile() {
-    stage.addTile('date', { date: calendar.label, time: schedule.clock, moon: calendar.moon });
+    stage.addTile('date', { date: calendar.label, time: calendar.clock, moon: calendar.moon });
   }
   // Refresh a date tile from the calendar + Timeline current state.
   function refreshDate(tl: Tile) {
-    stage.patchTile(tl.id, { date: calendar.label, time: schedule.clock, moon: calendar.moon });
+    stage.patchTile(tl.id, { date: calendar.label, time: calendar.clock, moon: calendar.moon });
   }
   // --- laser pointer --------------------------------------------------------
   function toggleLaser() {
@@ -447,6 +458,11 @@
             onpointerdown={(e) => startMove(e, tl)}
             onpointermove={onMove}
             onpointerup={endMove}
+            onpointerenter={(e) => {
+              if (tl.kind === 'npc' && tl.npcId && !moving && !resizing)
+                peek?.schedule(e.currentTarget, tl.npcId);
+            }}
+            onpointerleave={() => peek?.scheduleClose()}
           >
             <!-- Full-bleed content: a faithful preview of the broadcast cell. -->
             <div class="content">
@@ -713,6 +729,9 @@
       {/if}
     {/if}
   </div>
+
+  <!-- GM-only NPC peek: a fixed overlay in the GM window; never broadcast. -->
+  <NpcPeek bind:this={peek} onPickImage={pickBroadcastImage} />
 </div>
 
 <style>

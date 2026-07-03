@@ -1,5 +1,7 @@
 import { kvSet, kvGet } from '../../lib/db';
 import { generateNpc, type Rng } from './generator';
+import { spellLibrary } from './spells.svelte';
+import type { NpcImport } from './import';
 import { toast } from '../../lib/stores/toast.svelte';
 import { t } from '../../lib/i18n';
 
@@ -18,6 +20,21 @@ export interface StatRow {
   val: string;
 }
 
+/** A combat attack line: e.g. name "Walka" / chance "70% (35/14)" / damage "1K6+MO". */
+export interface AttackRow {
+  id: string;
+  name: string;
+  chance?: string;
+  damage?: string;
+}
+
+/** A skill line: e.g. name "Ukrywanie" / value "50%". */
+export interface SkillRow {
+  id: string;
+  name: string;
+  value?: string;
+}
+
 export interface Npc {
   id: string;
   name: string;
@@ -33,8 +50,15 @@ export interface Npc {
   gmNotes?: string;
   /** what players may see */
   publicBlurb?: string;
-  /** system-neutral key/value rows */
+  /** system-neutral key/value rows (characteristics, HP/MP, move, DB, build…) */
   stats?: StatRow[];
+  /** combat statblock — all GM-only, never broadcast */
+  attacks?: AttackRow[];
+  skills?: SkillRow[];
+  armor?: string;
+  sanityLoss?: string;
+  /** ids into the shared spell library (see spells.svelte) — GM-only */
+  spellIds?: string[];
 }
 
 const SEED: Npc[] = [
@@ -171,6 +195,105 @@ class NpcStore {
     const npc = this.list.find((n) => n.id === npcId);
     if (npc?.stats) npc.stats = npc.stats.filter((s) => s.id !== statId);
     this.persist();
+  }
+
+  // --- Attack rows ---------------------------------------------------------
+
+  addAttack(npcId: string): AttackRow | undefined {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return undefined;
+    const row: AttackRow = { id: crypto.randomUUID(), name: '' };
+    if (!npc.attacks) npc.attacks = [];
+    npc.attacks.push(row);
+    this.persist();
+    return row;
+  }
+
+  updateAttack(npcId: string, attackId: string, patch: Partial<Omit<AttackRow, 'id'>>): void {
+    const row = this.list.find((n) => n.id === npcId)?.attacks?.find((a) => a.id === attackId);
+    if (row) Object.assign(row, patch);
+    this.persist();
+  }
+
+  removeAttack(npcId: string, attackId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (npc?.attacks) npc.attacks = npc.attacks.filter((a) => a.id !== attackId);
+    this.persist();
+  }
+
+  // --- Skill rows ----------------------------------------------------------
+
+  addSkill(npcId: string): SkillRow | undefined {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return undefined;
+    const row: SkillRow = { id: crypto.randomUUID(), name: '' };
+    if (!npc.skills) npc.skills = [];
+    npc.skills.push(row);
+    this.persist();
+    return row;
+  }
+
+  updateSkill(npcId: string, skillId: string, patch: Partial<Omit<SkillRow, 'id'>>): void {
+    const row = this.list.find((n) => n.id === npcId)?.skills?.find((s) => s.id === skillId);
+    if (row) Object.assign(row, patch);
+    this.persist();
+  }
+
+  removeSkill(npcId: string, skillId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (npc?.skills) npc.skills = npc.skills.filter((s) => s.id !== skillId);
+    this.persist();
+  }
+
+  // --- Spells (references into the shared library) -------------------------
+
+  attachSpell(npcId: string, spellId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (!npc) return;
+    if (!npc.spellIds) npc.spellIds = [];
+    if (!npc.spellIds.includes(spellId)) npc.spellIds.push(spellId);
+    this.persist();
+  }
+
+  detachSpell(npcId: string, spellId: string): void {
+    const npc = this.list.find((n) => n.id === npcId);
+    if (npc?.spellIds) npc.spellIds = npc.spellIds.filter((id) => id !== spellId);
+    this.persist();
+  }
+
+  // --- JSON import ---------------------------------------------------------
+
+  /**
+   * Create NPCs from parsed import shapes: mint ids for every nested row, and
+   * resolve inline spells against the shared library (reusing by name). Returns
+   * the created NPCs (in order).
+   */
+  importNpcs(inputs: NpcImport[]): Npc[] {
+    const uid = () => crypto.randomUUID();
+    const created: Npc[] = [];
+    for (const input of inputs) {
+      const npc: Npc = {
+        id: uid(),
+        name: input.name,
+        role: input.role ?? '',
+        disposition: input.disposition ?? 'neutral',
+      };
+      if (input.voice) npc.voice = input.voice;
+      if (input.publicBlurb) npc.publicBlurb = input.publicBlurb;
+      if (input.gmNotes) npc.gmNotes = input.gmNotes;
+      if (input.armor) npc.armor = input.armor;
+      if (input.sanityLoss) npc.sanityLoss = input.sanityLoss;
+      if (input.stats?.length) npc.stats = input.stats.map((s) => ({ id: uid(), ...s }));
+      if (input.attacks?.length) npc.attacks = input.attacks.map((a) => ({ id: uid(), ...a }));
+      if (input.skills?.length) npc.skills = input.skills.map((s) => ({ id: uid(), ...s }));
+      if (input.spells?.length) {
+        npc.spellIds = spellLibrary.importMany(input.spells).map((s) => s.id);
+      }
+      this.list.push(npc);
+      created.push(npc);
+    }
+    this.persist();
+    return created;
   }
 
   persist(): void {

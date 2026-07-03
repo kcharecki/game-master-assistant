@@ -19,8 +19,6 @@
     lore: '<path d="M12 6C9 4 5 4 3 5v13c2-1 6-1 9 1 3-2 7-2 9-1V5c-2-1-6-1-9 1z"/><path d="M12 6v13"/>',
     // Hooded cultist — NPCs.
     npcs: '<path d="M12 3c-4 0-6 4-6 10 0 0 2-2 6-2s6 2 6 2c0-6-2-10-6-10z"/><path d="M9 11c.3 2.5 1.5 4 3 4s2.7-1.5 3-4"/>',
-    // Timeline — beaded thread of events.
-    schedule: '<path d="M3 12h18"/><circle cx="6.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="17.5" cy="12" r="1.6"/><path d="M12 6.5v3.5M17.5 14v3.5"/>',
     // Folded map with an X — battle map.
     map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/><path d="M11 9.5l2.5 2.5M13.5 9.5L11 12"/>',
     // Monitor with a play glyph — broadcast preview.

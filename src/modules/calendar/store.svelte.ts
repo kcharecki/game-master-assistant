@@ -1,76 +1,162 @@
 import { kvSet, kvGet } from '../../lib/db';
 import {
-  advance,
+  advanceTime,
   moonPhase,
-  upcoming,
+  upcomingTimes,
+  eventsForDay,
   formatDate,
-  DEFAULT_CONFIG,
+  formatClock,
+  clampDate,
+  CALENDARS,
+  MINUTES_PER_DAY,
   type WorldDate,
-  type WorldEvent,
+  type WorldTime,
+  type ScheduledEvent,
   type MoonPhase,
+  type CalendarId,
 } from './logic';
+import type { GameSystem } from '../../lib/system';
 
-export type { WorldDate, WorldEvent } from './logic';
+export type { WorldDate, WorldTime, ScheduledEvent, CalendarId } from './logic';
 
 interface CalState {
-  current: WorldDate;
-  events: WorldEvent[];
+  calId: CalendarId;
+  current: WorldTime;
+  events: ScheduledEvent[];
+  touched: boolean;
 }
 
-const SEED: CalState = {
-  current: { day: 12, month: 5, year: 1492 },
-  events: [
-    { id: 'fest', date: { day: 20, month: 5, year: 1492 }, title: 'Greengrass festival' },
-    { id: 'eclipse', date: { day: 1, month: 7, year: 1492 }, title: 'Lunar eclipse omen' },
-  ],
+/** Per-system default calendar + starting date (CoC → 1920s Gregorian). */
+const DEFAULTS: Record<GameSystem, { calId: CalendarId; date: WorldTime }> = {
+  coc7e: { calId: 'gregorian', date: { day: 15, month: 10, year: 1920, hour: 20, minute: 0 } },
+  dnd5e: { calId: 'faerun', date: { day: 12, month: 5, year: 1492, hour: 8, minute: 0 } },
 };
 
-/** In-world calendar: a current date, scheduled events, computed moon phase. */
+const SEED_EVENTS: ScheduledEvent[] = [
+  { id: 'arrival', time: { day: 15, month: 10, year: 1920, hour: 21, minute: 0 }, title: 'Train arrives in Arkham' },
+  { id: 'ritual', time: { day: 15, month: 10, year: 1920, hour: 23, minute: 30 }, title: 'Midnight ritual at the docks' },
+];
+
+/**
+ * Merged in-world calendar + timeline: a current date & time, events pinned to
+ * times, a selectable calendar preset, and a computed moon phase. Replaces the
+ * old separate Calendar and Timeline stores.
+ */
 class CalendarStore {
-  current = $state<WorldDate>({ ...SEED.current });
-  events = $state<WorldEvent[]>([...SEED.events]);
+  calId = $state<CalendarId>(DEFAULTS.coc7e.calId);
+  current = $state<WorldTime>({ ...DEFAULTS.coc7e.date });
+  events = $state<ScheduledEvent[]>(SEED_EVENTS.map((e) => ({ ...e, time: { ...e.time } })));
+  /** True once the GM edits anything — stops the auto system-default override. */
+  touched = $state(false);
 
+  get config() {
+    return CALENDARS[this.calId].config;
+  }
+  get calendarName(): string {
+    return CALENDARS[this.calId].name;
+  }
   get moon(): MoonPhase {
-    return moonPhase(this.current, DEFAULT_CONFIG);
+    return moonPhase(this.current, this.config);
   }
-
+  /** Date only, e.g. "15 October, 1920". */
   get label(): string {
-    return formatDate(this.current, DEFAULT_CONFIG);
+    return formatDate(this.current, this.config);
+  }
+  /** Time only, e.g. "20:00". */
+  get clock(): string {
+    return formatClock(this.current);
+  }
+  /** Events on the current day, earliest first. */
+  get today(): ScheduledEvent[] {
+    return eventsForDay($state.snapshot(this.events), this.current, this.config);
+  }
+  /** Next events at or after now, across days. */
+  get upcoming(): ScheduledEvent[] {
+    return upcomingTimes($state.snapshot(this.events), this.current, 5, this.config);
   }
 
-  /** Next events on or after the current date. */
-  get upcoming(): WorldEvent[] {
-    return upcoming($state.snapshot(this.events), this.current, 5, DEFAULT_CONFIG);
+  // --- navigation ----------------------------------------------------------
+  advanceMinutes(minutes: number): void {
+    this.current = advanceTime(this.current, minutes, this.config);
+    this.touch();
   }
-
-  /** Move the current date forward (or back) by `days`. */
   advanceBy(days: number): void {
-    this.current = advance(this.current, days, DEFAULT_CONFIG);
-    this.persist();
+    this.advanceMinutes(days * MINUTES_PER_DAY);
+  }
+  setClock(hour: number, minute: number): void {
+    const h = Math.min(23, Math.max(0, Math.floor(hour)));
+    const m = Math.min(59, Math.max(0, Math.floor(minute)));
+    this.current = { ...this.current, hour: h, minute: m };
+    this.touch();
+  }
+  setDate(date: Partial<WorldDate>): void {
+    this.current = clampDate({ ...this.current, ...date }, this.config);
+    this.touch();
+  }
+  setYear(year: number): void {
+    this.setDate({ year: Math.floor(year) || this.current.year });
   }
 
-  addEvent(date: WorldDate, title = 'New event'): WorldEvent {
-    const ev: WorldEvent = { id: crypto.randomUUID(), date, title };
+  // --- calendar preset -----------------------------------------------------
+  setCalendar(calId: CalendarId): void {
+    this.calId = calId;
+    this.current = clampDate(this.current, this.config);
+    this.touch();
+  }
+  /** Apply the system's default calendar + date — unless the GM customized it. */
+  useSystemDefault(system: GameSystem): void {
+    if (this.touched) return;
+    const d = DEFAULTS[system];
+    this.calId = d.calId;
+    this.current = { ...d.date };
+    this.persist(); // persist but stay "untouched"
+  }
+
+  // --- events --------------------------------------------------------------
+  addEvent(time: WorldTime, title = 'New event'): ScheduledEvent {
+    const ev: ScheduledEvent = { id: crypto.randomUUID(), time: { ...time }, title };
     this.events.push(ev);
-    this.persist();
+    this.touch();
     return ev;
   }
-
+  updateEvent(id: string, patch: Partial<Omit<ScheduledEvent, 'id'>>): void {
+    const ev = this.events.find((e) => e.id === id);
+    if (ev) Object.assign(ev, patch);
+    this.touch();
+  }
   removeEvent(id: string): void {
     this.events = this.events.filter((e) => e.id !== id);
+    this.touch();
+  }
+
+  private touch(): void {
+    this.touched = true;
     this.persist();
   }
 
   persist(): void {
-    void kvSet('calendar', { current: $state.snapshot(this.current), events: $state.snapshot(this.events) });
+    void kvSet('calendar', {
+      calId: this.calId,
+      current: $state.snapshot(this.current),
+      events: $state.snapshot(this.events),
+      touched: this.touched,
+    });
   }
 
   async load(): Promise<void> {
     const saved = await kvGet<CalState>('calendar');
-    if (saved?.current) {
-      this.current = saved.current;
-      this.events = saved.events ?? [];
-    }
+    if (!saved?.current) return;
+    const c = saved.current as WorldTime & { hour?: number; minute?: number };
+    this.calId = saved.calId ?? 'faerun'; // legacy saves predate presets
+    this.current = { ...c, hour: c.hour ?? 0, minute: c.minute ?? 0 };
+    // Legacy events were date-based ({ date, title }); pin them to midnight.
+    this.events = (saved.events ?? []).map((e) => {
+      const legacy = e as ScheduledEvent & { date?: WorldDate };
+      if (legacy.time) return { ...legacy, time: { ...legacy.time } };
+      const d = legacy.date ?? { day: this.current.day, month: this.current.month, year: this.current.year };
+      return { id: legacy.id, title: legacy.title, time: { ...d, hour: 0, minute: 0 } };
+    });
+    this.touched = saved.touched ?? true; // legacy = treat as already customized
   }
 }
 

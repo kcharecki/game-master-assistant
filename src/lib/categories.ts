@@ -22,7 +22,6 @@ export const categoryMap: Record<ModuleId, CategoryInfo> = {
   npcs: { category: 'NPCs & World', icon: '🧑' },
   lore: { category: 'NPCs & World', icon: '📜' },
   calendar: { category: 'NPCs & World', icon: '🗓️' },
-  schedule: { category: 'NPCs & World', icon: '⏱️' },
   // Maps & Broadcast
   map: { category: 'Maps & Broadcast', icon: '🗺️' },
   reveal: { category: 'Maps & Broadcast', icon: '🖼️' },

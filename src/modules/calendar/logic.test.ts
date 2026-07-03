@@ -7,9 +7,20 @@ import {
   upcoming,
   formatDate,
   daysPerYear,
+  clampDate,
   DEFAULT_CONFIG,
+  GREGORIAN_CONFIG,
+  toMinuteIndex,
+  fromMinuteIndex,
+  advanceTime,
+  formatClock,
+  formatDateTime,
+  eventsForDay,
+  upcomingTimes,
   type WorldDate,
   type WorldEvent,
+  type WorldTime,
+  type ScheduledEvent,
 } from './logic';
 
 const d = (day: number, month: number, year: number): WorldDate => ({ day, month, year });
@@ -76,5 +87,70 @@ describe('upcoming', () => {
 describe('formatDate', () => {
   it('uses the month name', () => {
     expect(formatDate(d(12, 5, 1492))).toBe('12 Mirtul, 1492');
+  });
+  it('formats a Gregorian date (CoC 1920)', () => {
+    expect(formatDate(d(15, 10, 1920), GREGORIAN_CONFIG)).toBe('15 October, 1920');
+  });
+});
+
+describe('gregorian config', () => {
+  it('has 365 days (leap years ignored)', () => {
+    expect(daysPerYear(GREGORIAN_CONFIG)).toBe(365);
+  });
+});
+
+describe('clampDate', () => {
+  it('clamps a day past the month length', () => {
+    // Faerûn day 40 → 30; Gregorian Feb 31 → 28.
+    expect(clampDate(d(40, 1, 1492), DEFAULT_CONFIG)).toEqual(d(30, 1, 1492));
+    expect(clampDate({ day: 31, month: 2, year: 1920 }, GREGORIAN_CONFIG)).toEqual({
+      day: 28,
+      month: 2,
+      year: 1920,
+    });
+  });
+  it('preserves extra fields (hour/minute)', () => {
+    const t: WorldTime = { day: 5, month: 1, year: 1920, hour: 9, minute: 15 };
+    expect(clampDate(t, GREGORIAN_CONFIG)).toEqual(t);
+  });
+});
+
+// --- time layer (merged from the former Timeline module) ---
+const base: WorldTime = { day: 12, month: 5, year: 1492, hour: 8, minute: 0 };
+
+describe('minute index round-trip', () => {
+  it('is invertible and encodes hour/minute', () => {
+    expect(fromMinuteIndex(toMinuteIndex(base))).toEqual(base);
+    expect(toMinuteIndex({ ...base, hour: 14, minute: 5 }) - toMinuteIndex({ ...base, hour: 0, minute: 0 })).toBe(
+      14 * 60 + 5,
+    );
+  });
+});
+
+describe('advanceTime', () => {
+  it('rolls days forward and rewinds past midnight', () => {
+    expect(advanceTime({ ...base, hour: 23, minute: 30 }, 60)).toEqual({ ...base, day: 13, hour: 0, minute: 30 });
+    expect(advanceTime({ ...base, hour: 0, minute: 30 }, -60)).toEqual({ ...base, day: 11, hour: 23, minute: 30 });
+  });
+});
+
+describe('clock formatting', () => {
+  it('pads and joins', () => {
+    expect(formatClock({ ...base, hour: 9, minute: 5 })).toBe('09:05');
+    expect(formatDateTime({ ...base, hour: 14, minute: 0 })).toBe('12 Mirtul, 1492 · 14:00');
+  });
+});
+
+describe('eventsForDay & upcomingTimes', () => {
+  const evs: ScheduledEvent[] = [
+    { id: 'b', time: { ...base, hour: 18, minute: 0 }, title: 'dusk' },
+    { id: 'a', time: { ...base, hour: 9, minute: 0 }, title: 'market' },
+    { id: 'c', time: { ...base, day: 13, hour: 9, minute: 0 }, title: 'next day' },
+  ];
+  it('returns same-day events sorted by time', () => {
+    expect(eventsForDay(evs, base).map((e) => e.id)).toEqual(['a', 'b']);
+  });
+  it('lists upcoming across days, soonest first', () => {
+    expect(upcomingTimes(evs, { ...base, hour: 10, minute: 0 }).map((e) => e.id)).toEqual(['b', 'c']);
   });
 });
