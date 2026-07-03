@@ -7,6 +7,8 @@ import { handouts } from '../handouts/store.svelte';
 import { rulesEntries } from '../rules/data';
 import { forSystem } from '../rules/logic';
 import { system } from '../../lib/stores/system.svelte';
+import { loc } from '../../lib/loc';
+import { lang } from '../../lib/stores/lang.svelte';
 
 /**
  * Gather every searchable thing across the app's stores into one flat list.
@@ -19,7 +21,13 @@ export function collectSources(): PaletteItem[] {
 
   // NPCs
   for (const n of npcs.list) {
-    out.push({ id: `npc-${n.id}`, label: n.name, detail: n.role || 'NPC', module: 'npcs', kind: 'editor' });
+    out.push({
+      id: `npc-${n.id}`,
+      label: loc(n.name, lang.current),
+      detail: loc(n.role, lang.current) || 'NPC',
+      module: 'npcs',
+      kind: 'editor',
+    });
   }
   // Lore pages
   for (const p of lore.pages) {

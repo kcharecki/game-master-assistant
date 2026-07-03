@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Assistant — Spell Rolodex</title>
+<style>
+  :root{
+    --serif:'IM Fell English','Cormorant','Georgia',serif;
+    --bg:#080d0b; --bg2:#0b1411; --panel:#0f1815; --panel2:#13201b;
+    --line:rgba(95,150,120,.18); --line2:rgba(95,150,120,.32);
+    --txt:#dbeae1; --muted:#a7bcb0; --faint:#8a9d93;
+    --green:#6fd0a0; --green-dim:#4fa37b; --green-glow:#1f7a4f;
+    --gold:#d6b65e; --red:#d97a7a; --red-dim:#8a4a4a; --focus:#7dffc0; --r:9px;
+    --card-paper:#e9e2cd; --card-paper2:#ded4b8; --card-ink:#2b241a;
+    --card-ink-muted:#5c5240; --card-line:rgba(43,36,26,.18); --card-line2:rgba(43,36,26,.32);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);font-size:14px;line-height:1.4;
+    background:radial-gradient(1100px 700px at 80% -8%,rgba(31,122,79,.15),transparent 60%),
+      radial-gradient(900px 600px at -6% 108%,rgba(31,122,79,.09),transparent 60%),var(--bg);
+    overflow:hidden;width:1440px;height:900px}
+  .num{font-variant-numeric:tabular-nums}
+  :where(button,[tabindex]){outline:none}
+  :where(button,[tabindex]):focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+  .app{display:flex;flex-direction:column;height:900px;width:1440px}
+
+  .topbar{flex:0 0 auto;height:52px;display:flex;align-items:center;padding:0 16px;
+    background:linear-gradient(180deg,#0e1815,#0a110e);border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:10px;min-width:200px}
+  .brand .logo{filter:drop-shadow(0 0 7px rgba(70,232,154,.45))}
+  .brand .bt{font-family:var(--serif);font-size:17px;font-weight:700;letter-spacing:.02em;line-height:1;color:var(--txt)}
+  .brand .bs{font-size:9px;letter-spacing:.28em;color:var(--green);font-weight:700;margin-top:3px}
+  .tb-sep{width:1px;height:28px;background:var(--line);margin:0 12px}
+  .seg{display:flex;background:rgba(0,0,0,.28);border:1px solid var(--line2);border-radius:9px;padding:3px}
+  .seg button{height:26px;padding:0 15px;border:0;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;
+    letter-spacing:.02em;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:7px}
+  .seg button.on{background:linear-gradient(180deg,#1c3d2c,#132920);color:var(--green);box-shadow:0 0 0 1px var(--green-glow) inset}
+  .spacer{flex:1}
+  .search{display:flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--line2);
+    background:rgba(0,0,0,.22);color:var(--muted);font-size:12px;cursor:text;min-width:220px}
+  .search kbd{margin-left:auto;font-size:10px;font-family:inherit;border:1px solid var(--line2);border-radius:4px;padding:1px 5px;color:var(--faint)}
+  .btn{height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--txt);
+    font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;margin-left:10px}
+  .btn:hover{border-color:var(--green-dim);color:var(--green)}
+  .btn.primary{background:linear-gradient(180deg,#1c3d2c,#132920);border-color:var(--green-glow);color:var(--green)}
+  .btn.primary:hover{box-shadow:0 0 0 1px var(--green-glow),0 0 14px rgba(31,122,79,.4)}
+
+  .main{flex:1;display:flex;min-height:0;position:relative}
+  .stage{flex:1;position:relative;overflow:hidden;
+    background:radial-gradient(760px 500px at 50% 46%,rgba(111,208,160,.06),transparent 65%);
+    display:flex;flex-direction:column;align-items:center}
+  .spindle-wrap{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center;padding:20px 20px 8px}
+  .spindle{position:absolute;left:50%;top:26px;bottom:70px;width:6px;transform:translateX(-50%);
+    background:linear-gradient(90deg,#3a4a42,#8a9d93 45%,#3a4a42);border-radius:3px;box-shadow:0 0 10px rgba(0,0,0,.5);z-index:1}
+  .spindle::before,.spindle::after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:26px;height:10px;border-radius:50%;
+    background:linear-gradient(180deg,#9aab9f,#5c6f66);box-shadow:0 2px 4px rgba(0,0,0,.5)}
+  .spindle::before{top:-6px}.spindle::after{bottom:-6px}
+
+  .deck{position:relative;width:600px;height:648px;z-index:2}
+  .peek{position:absolute;top:0;left:0;width:600px;height:648px;border-radius:10px;
+    background:linear-gradient(155deg,var(--card-paper) 0%,var(--card-paper2) 100%);border:1px solid rgba(43,36,26,.4);box-shadow:0 10px 24px rgba(0,0,0,.45)}
+  .peek1{transform:rotate(-7deg) translate(-28px,10px)}.peek2{transform:rotate(6deg) translate(26px,14px)}.peek3{transform:rotate(-3deg) translate(-11px,20px)}
+  .peek1,.peek2,.peek3{filter:brightness(.82) saturate(.85)}
+
+  .card{position:relative;z-index:3;width:600px;height:648px;border-radius:10px;
+    background:radial-gradient(140% 100% at 15% 0%,rgba(255,255,255,.35),transparent 55%),
+      linear-gradient(160deg,var(--card-paper) 0%,var(--card-paper2) 100%);
+    color:var(--card-ink);box-shadow:0 22px 46px rgba(0,0,0,.55),0 2px 0 rgba(255,255,255,.15) inset;
+    border:1px solid rgba(43,36,26,.35);padding:22px 26px 16px;display:flex;flex-direction:column;overflow:hidden}
+  .card::before,.card::after{content:'';position:absolute;top:14px;width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#0b0d09,#1c1a12 70%);box-shadow:inset 0 1px 2px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.12)}
+  .card::before{left:24px}.card::after{right:24px}
+
+  /* spell card head */
+  .sp-top{display:flex;align-items:flex-start;gap:14px;padding-bottom:12px;border-bottom:2px solid var(--card-line2);margin-top:6px}
+  .glyph{width:74px;height:74px;flex:0 0 auto;border-radius:8px;border:1px solid var(--card-line2);
+    background:radial-gradient(circle at 50% 40%,#2b3b33,#12100a);box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
+  .sp-id{flex:1;min-width:0}
+  .sp-kicker{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#7a5a1e;font-weight:800}
+  .sp-id .nm{font-family:var(--serif);font-size:27px;font-weight:700;line-height:1.04;color:#1c170f;margin-top:2px}
+  .sp-id .alt{font-size:11.5px;color:var(--card-ink-muted);font-style:italic;margin-top:4px}
+  .metarow{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+  .mtag{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid var(--card-line2);background:rgba(255,255,255,.28);color:#241f14}
+  .mtag.cost{color:#7a2f12;border-color:rgba(122,47,18,.4);background:rgba(122,47,18,.08)}
+  .mtag.san{color:#93762c;border-color:rgba(147,118,44,.45);background:rgba(147,118,44,.1)}
+  .mtag.time{color:#1f5a3f;border-color:rgba(31,90,63,.4);background:rgba(31,90,63,.08)}
+
+  .sp-body{flex:1;min-height:0;padding-top:14px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+  .fld .k{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--card-ink-muted);font-weight:700;margin-bottom:4px}
+  .desc{font-family:var(--serif);font-size:14.5px;line-height:1.5;color:#241f14}
+  .desc::first-letter{font-size:38px;float:left;line-height:.8;padding:4px 8px 0 0;color:#7a2f12;font-weight:700}
+  .knownby{display:flex;flex-wrap:wrap;gap:6px}
+  .npcchip{display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 9px 3px 3px;border-radius:20px;
+    background:rgba(43,36,26,.07);border:1px solid var(--card-line);color:#241f14}
+  .npcchip .av{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#5c6f66,#2b3b33);flex:0 0 auto}
+  .npcchip .rd{width:7px;height:7px;border-radius:50%;margin-left:1px}
+
+  .divider{height:1px;background:var(--card-line2);margin:2px 0}
+  .note{margin-top:auto;border-radius:7px;padding:10px 12px;
+    background:repeating-linear-gradient(135deg,rgba(0,0,0,.035) 0 8px,transparent 8px 16px),rgba(20,16,10,.06);
+    border:1px dashed rgba(122,47,18,.5)}
+  .note .k{display:flex;align-items:center;gap:6px;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7a2f12;font-weight:800;margin-bottom:4px}
+  .note .v{font-size:12px;color:#2b1414;line-height:1.4;font-family:var(--serif)}
+
+  .card-foot{display:flex;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--card-line);margin-top:10px}
+  .card-foot .idx{font-size:10px;color:var(--card-ink-muted);font-family:var(--serif);font-style:italic}
+  .foot-btns{margin-left:auto;display:flex;gap:8px}
+  .cbtn{font-size:11px;padding:5px 11px;border-radius:6px;border:1px solid var(--card-line2);background:rgba(255,255,255,.35);color:#241f14;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:5px}
+  .cbtn:hover{background:rgba(255,255,255,.6)}
+  .cbtn.dark{background:#1c2b23;color:var(--green);border-color:var(--green-glow)}
+  .cbtn.dark:hover{box-shadow:0 0 10px rgba(31,122,79,.4)}
+
+  .navbtn{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:42px;height:42px;border-radius:50%;
+    border:1px solid var(--line2);background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--green);
+    font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+  .navbtn:hover{border-color:var(--green-dim);box-shadow:0 0 0 1px var(--green-glow),0 4px 14px rgba(0,0,0,.45)}
+  .navbtn.prev{left:150px}.navbtn.next{right:150px}
+
+  .tabstrip{flex:0 0 auto;height:118px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0c1512,#090f0d);
+    display:flex;align-items:flex-end;padding:0 24px;position:relative;overflow-x:auto;overflow-y:hidden}
+  .tabstrip::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--line2)}
+  .rtab{flex:0 0 auto;width:158px;height:96px;margin:0 -14px 0 0;position:relative;cursor:pointer;display:flex;flex-direction:column;
+    justify-content:flex-end;padding:8px 10px 9px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--card-paper2),#cfc4a2);
+    border:1px solid rgba(43,36,26,.4);border-bottom:none;color:var(--card-ink-muted);transition:transform .12s ease;box-shadow:-2px -2px 6px rgba(0,0,0,.25)}
+  .rtab:nth-child(1){z-index:8}.rtab:nth-child(2){z-index:7}.rtab:nth-child(3){z-index:6}.rtab:nth-child(4){z-index:5}
+  .rtab:nth-child(5){z-index:4}.rtab:nth-child(6){z-index:3}.rtab:nth-child(7){z-index:2}
+  .rtab .glz{position:absolute;top:8px;left:10px;font-size:13px;color:#7a2f12}
+  .rtab .rn{font-family:var(--serif);font-size:13px;font-weight:700;color:#1c170f;line-height:1.15}
+  .rtab .rr{font-size:9.5px;color:var(--card-ink-muted);margin-top:2px}
+  .rtab.active{height:112px;transform:translateY(-8px);background:linear-gradient(180deg,var(--card-paper),#e2d7b8);
+    box-shadow:-2px -6px 14px rgba(0,0,0,.4),0 0 0 2px var(--green-glow);z-index:20 !important}
+  .rtab:not(.active):hover{transform:translateY(-4px)}
+  .tabstrip-label{position:absolute;left:24px;top:-9px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);background:#090f0d;padding:0 8px}
+  ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg class="logo" width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="#6fd0a0" stroke-width="1.4"/>
+        <circle cx="12" cy="12" r="3.2" fill="#6fd0a0"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#4fa37b" stroke-width="1.2"/>
+      </svg>
+      <div><div class="bt">Command Deck</div><div class="bs">GM ONLY</div></div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="seg" role="tablist" aria-label="Deck">
+      <button role="tab" aria-selected="false" onclick="location.href='npc-rolodex.html'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        NPCs
+      </button>
+      <button class="on" role="tab" aria-selected="true">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Spells
+      </button>
+    </div>
+    <div class="spacer"></div>
+    <div class="search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#a7bcb0" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#a7bcb0" stroke-width="2" stroke-linecap="round"/></svg>
+      Search spells…<kbd>⌘K</kbd>
+    </div>
+    <button class="btn" onclick="location.href='import-json.html'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3v11m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Import JSON
+    </button>
+    <button class="btn primary">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      New Spell
+    </button>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+      <div class="spindle-wrap">
+        <div class="spindle"></div>
+        <button class="navbtn prev">‹</button>
+
+        <div class="deck">
+          <div class="peek peek2"></div>
+          <div class="peek peek1"></div>
+          <div class="peek peek3"></div>
+
+          <div class="card">
+            <div class="sp-top">
+              <div class="glyph">
+                <svg width="42" height="42" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="19" stroke="#8a6a2a" stroke-width="1.2" opacity=".7"/>
+                  <path d="M24 5l4.6 12.6L42 22l-13.4 4.4L24 39l-4.6-12.6L6 22l13.4-4.4z" stroke="#c79a3a" stroke-width="1.3" stroke-linejoin="round"/>
+                  <circle cx="24" cy="24" r="3" fill="#c79a3a"/>
+                </svg>
+              </div>
+              <div class="sp-id">
+                <div class="sp-kicker">Mythos Spell</div>
+                <div class="nm">Dread Curse of Azathoth</div>
+                <div class="alt">a.k.a. Utterance of the Last Syllable · Pitiful Draining</div>
+                <div class="metarow">
+                  <span class="mtag cost">◈ 4 Magic Points</span>
+                  <span class="mtag san">☾ 1d6 SAN</span>
+                  <span class="mtag time">⏱ 1 round</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-body">
+              <div class="fld">
+                <div class="k">Effect</div>
+                <p class="desc">The sorcerer draws on the energy of the Outer God to drain POWER directly from the victim. The caster must win an opposed POW roll against the target; on success the victim loses 3d6 POW. Knowing the spell implies knowledge of the secret Last Syllable, which grants respect and fear among those versed in the Mythos.</p>
+              </div>
+              <div class="divider"></div>
+              <div class="fld">
+                <div class="k">Known by</div>
+                <div class="knownby">
+                  <span class="npcchip"><span class="av"></span>Mother Vane<span class="rd" style="background:var(--red)"></span></span>
+                  <span class="npcchip"><span class="av"></span>Obed Osgood<span class="rd" style="background:var(--green)"></span></span>
+                  <span class="npcchip"><span class="av"></span>The Whisperer<span class="rd" style="background:var(--red)"></span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="note">
+              <div class="k"><span>👁</span> Keeper Note</div>
+              <div class="v">Casting in front of investigators is itself a 1/1d6 SAN sighting. If the party recovers the Fenwick fragment, they can learn the counter-syllable.</div>
+            </div>
+
+            <div class="card-foot">
+              <div class="idx">Card 2 of 6 · filed under “D”</div>
+              <div class="foot-btns">
+                <button class="cbtn">✎ Edit</button>
+                <button class="cbtn dark">📣 Send to Broadcast</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="navbtn next">›</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabstrip">
+    <span class="tabstrip-label">Flip Through Grimoire — A–Z</span>
+    <div class="rtab"><span class="glz">✦</span><div class="rn">Cause / Cure Blindness</div><div class="rr">8 MP · 1 day</div></div>
+    <div class="rtab active"><span class="glz">✦</span><div class="rn">Dread Curse of Azathoth</div><div class="rr">4 MP · 1 round</div></div>
+    <div class="rtab"><span class="glz">✦</span><div class="rn">Contact Deep Ones</div><div class="rr">Variable · 1 hour</div></div>
+    <div class="rtab"><span class="glz">✦</span><div class="rn">Elder Sign</div><div class="rr">1 MP · instant</div></div>
+    <div class="rtab"><span class="glz">✦</span><div class="rn">Shrivelling</div><div class="rr">1+ MP · 1 round</div></div>
+    <div class="rtab"><span class="glz">✦</span><div class="rn">Wrack</div><div class="rr">6 MP · 1 round</div></div>
+  </div>
+
+</div>
+</body>
+</html>

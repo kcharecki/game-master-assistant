@@ -31,6 +31,14 @@ describe('filterNpcs', () => {
   it('returns nothing when no field matches', () => {
     expect(filterNpcs(ros, 'zzzz')).toHaveLength(0);
   });
+
+  it('matches a bilingual name in either language', () => {
+    const bi: Npc[] = [
+      { id: '9', name: { en: 'Mummy', pl: 'Mumia' }, role: '', disposition: 'hostile' },
+    ];
+    expect(filterNpcs(bi, 'mumia')).toHaveLength(1);
+    expect(filterNpcs(bi, 'mummy')).toHaveLength(1);
+  });
 });
 
 describe('queryNpcs', () => {

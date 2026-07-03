@@ -11,6 +11,7 @@
   import { density } from './lib/stores/density.svelte';
   import Toast from './components/Toast.svelte';
   import { resolveWikilink } from './lib/wikilink';
+  import { locStrings } from './lib/loc';
   import { lore } from './modules/lore/store.svelte';
   import { npcs } from './modules/npcs/store.svelte';
   import { toast } from './lib/stores/toast.svelte';
@@ -27,6 +28,9 @@
   onMount(() => {
     void lang.load();
     void density.load();
+    // Load the NPC roster at boot so it survives a refresh regardless of which
+    // surface opens first (previously only the Stage window triggered the load).
+    void npcs.load();
 
     // Resolve notebook [[wikilinks]] to a lore page or NPC and jump there.
     function onWikilink(e: Event) {
@@ -35,7 +39,7 @@
       const hit = resolveWikilink(
         name,
         lore.pages.map((p) => ({ id: p.id, name: p.title })),
-        npcs.list.map((n) => ({ id: n.id, name: n.name })),
+        npcs.list.flatMap((n) => locStrings(n.name).map((nm) => ({ id: n.id, name: nm }))),
       );
       if (!hit) {
         toast.show(`No lore page or NPC named “${name}”`);

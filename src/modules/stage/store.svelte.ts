@@ -17,6 +17,7 @@ import {
 } from './board';
 import type { BroadcastPayload } from '../../lib/types';
 import { putOnAir } from '../reveal/bus-actions';
+import { lang } from '../../lib/stores/lang.svelte';
 import { toast } from '../../lib/stores/toast.svelte';
 import { t } from '../../lib/i18n';
 
@@ -129,7 +130,7 @@ class StageStore {
   // --- tiles ----------------------------------------------------------------
   npcLookup = (id: string): PublicNpc | undefined => {
     const npc = npcs.list.find((n) => n.id === id);
-    return npc ? publicView(npc) : undefined;
+    return npc ? publicView(npc, lang.current) : undefined;
   };
 
   addTile(kind: TileKind, patch: Partial<Tile> = {}): Tile {

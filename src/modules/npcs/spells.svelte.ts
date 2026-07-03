@@ -1,16 +1,17 @@
 import { kvGet, kvSet } from '../../lib/db';
+import { locEq, type LocalizedText } from '../../lib/loc';
 
 /** A spell definition in the shared library. NPCs reference these by id. */
 export interface Spell {
   id: string;
-  name: string;
+  name: LocalizedText;
   /** magic-point / sanity cost, e.g. "8 Magic Points (+2d6 SAN to cause)" */
-  cost?: string;
+  cost?: LocalizedText;
   /** casting time, e.g. "1 round", "1 day" */
-  castingTime?: string;
+  castingTime?: LocalizedText;
   /** alternative names, ";"-separated */
-  altNames?: string;
-  description?: string;
+  altNames?: LocalizedText;
+  description?: LocalizedText;
 }
 
 const SEED: Spell[] = [
@@ -62,19 +63,16 @@ class SpellLibrary {
     return this.list.find((s) => s.id === id);
   }
 
-  findByName(name: string): Spell | undefined {
-    const q = name.trim().toLowerCase();
-    return q ? this.list.find((s) => s.name.trim().toLowerCase() === q) : undefined;
+  findByName(name: LocalizedText): Spell | undefined {
+    return this.list.find((s) => locEq(s.name, name));
   }
 
   /**
    * Import spell definitions, reusing an existing library entry when the name
-   * already matches (case-insensitive) so imports don't duplicate. Returns the
+   * already matches (any language) so imports don't duplicate. Returns the
    * resolved spells (existing or freshly created).
    */
-  importMany(
-    inputs: { name: string; cost?: string; castingTime?: string; altNames?: string; description?: string }[],
-  ): Spell[] {
+  importMany(inputs: Omit<Spell, 'id'>[]): Spell[] {
     const out: Spell[] = [];
     for (const input of inputs) {
       const existing = this.findByName(input.name);

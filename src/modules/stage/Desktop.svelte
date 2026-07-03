@@ -3,6 +3,8 @@
   import { stage, type Tile, type TileKind } from './store.svelte';
   import { formatCountdown } from './board';
   import { npcs } from '../npcs/store.svelte';
+  import { loc, type LocalizedText } from '../../lib/loc';
+  import { lang } from '../../lib/stores/lang.svelte';
   import { calendar } from '../calendar/store.svelte';
   import { onairHistory } from '../../lib/stores/onairHistory.svelte';
   import { describeOnAir } from '../../lib/onair';
@@ -15,6 +17,8 @@
   import { t } from '../../lib/i18n';
   import Icon from '../../lib/components/Icon.svelte';
   import NpcPeek from '../../lib/components/NpcPeek.svelte';
+
+  const g = (v: LocalizedText | undefined) => loc(v, lang.current);
 
   let board = $state<HTMLDivElement | null>(null);
   let hovered = $state(false);
@@ -387,14 +391,14 @@
             draggable="true"
             ondragstart={(e) => e.dataTransfer?.setData('application/x-stage-npc', n.id)}
             ondblclick={() => stage.addTile('npc', { npcId: n.id })}
-            title={n.name}
+            title={g(n.name)}
           >
             {#if n.portraitId && urls[n.portraitId]}
               <img src={urls[n.portraitId]} alt="" />
             {:else}
-              <span class="ini">{n.name.slice(0, 2).toUpperCase()}</span>
+              <span class="ini">{g(n.name).slice(0, 2).toUpperCase()}</span>
             {/if}
-            <span class="cn">{n.name}</span>
+            <span class="cn">{g(n.name)}</span>
           </button>
         {:else}
           <span class="muted small">—</span>
@@ -693,7 +697,7 @@
             })}
         >
           <option value="">{t('stage.pickNpc')}</option>
-          {#each npcs.list as n (n.id)}<option value={n.id}>{n.name}</option>{/each}
+          {#each npcs.list as n (n.id)}<option value={n.id}>{g(n.name)}</option>{/each}
         </select>
       {/if}
 

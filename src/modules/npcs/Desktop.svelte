@@ -2,10 +2,13 @@
   import { npcs, type Disposition } from './store.svelte';
   import { filterNpcs } from './roster';
   import { assetUrl } from '../../lib/db';
+  import { loc, type LocalizedText } from '../../lib/loc';
+  import { lang } from '../../lib/stores/lang.svelte';
   import { t } from '../../lib/i18n';
   import NpcPeek from '../../lib/components/NpcPeek.svelte';
 
   const rep: Record<Disposition, string> = { ally: '+', neutral: '·', hostile: '–' };
+  const g = (v: LocalizedText | undefined) => loc(v, lang.current);
 
   // GM cheatsheet: hover a roster row to peek the NPC's full record (no broadcast).
   let peek: ReturnType<typeof NpcPeek> | undefined;
@@ -51,10 +54,10 @@
       {#if n.portraitId && urls[n.portraitId]}
         <img class="avimg" src={urls[n.portraitId]} alt="" />
       {:else}
-        {n.name.slice(0, 2).toUpperCase()}
+        {g(n.name).slice(0, 2).toUpperCase()}
       {/if}
     </span>
-    <span class="cn"><div class="nm">{n.name}</div><div class="rl">{n.role || t('npcs.disposition.' + n.disposition)}</div></span>
+    <span class="cn"><div class="nm">{g(n.name)}</div><div class="rl">{g(n.role) || t('npcs.disposition.' + n.disposition)}</div></span>
     <span class="iv">{rep[n.disposition]}</span>
   </div>
 {/each}

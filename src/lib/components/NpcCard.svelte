@@ -2,7 +2,12 @@
   import type { Npc, Disposition } from '../../modules/npcs/store.svelte';
   import { spellLibrary } from '../../modules/npcs/spells.svelte';
   import { assetUrl } from '../db';
+  import { loc, type LocalizedText } from '../loc';
+  import { lang } from '../stores/lang.svelte';
   import { t } from '../i18n';
+
+  // Resolve a localized value in the active app language.
+  const g = (v: LocalizedText | undefined | null) => loc(v, lang.current);
 
   // GM-eyes-only read-only view of an NPC. Shows the FULL record — including
   // gmNotes and inventory — so it must never be used on the player broadcast.
@@ -61,18 +66,18 @@
       {#if npc.portraitId && urls[npc.portraitId]}
         <img src={urls[npc.portraitId]} alt="" />
       {:else}
-        <span class="ini">{npc.name.slice(0, 2).toUpperCase() || '??'}</span>
+        <span class="ini">{g(npc.name).slice(0, 2).toUpperCase() || '??'}</span>
       {/if}
     </div>
     <div class="id">
-      <div class="name">{npc.name || t('npcs.namePlaceholder')}</div>
-      {#if npc.role}<div class="role">{npc.role}</div>{/if}
+      <div class="name">{g(npc.name) || t('npcs.namePlaceholder')}</div>
+      {#if g(npc.role)}<div class="role">{g(npc.role)}</div>{/if}
       <span class="disp {dispClass[npc.disposition]}">{t('npcs.disposition.' + npc.disposition)}</span>
     </div>
   </header>
 
-  {#if npc.voice}
-    <div class="line"><span class="vk">♪</span> {npc.voice}</div>
+  {#if g(npc.voice)}
+    <div class="line"><span class="vk">♪</span> {g(npc.voice)}</div>
   {/if}
 
   {#if onPickImage && allImages.length > 1}
@@ -101,8 +106,8 @@
       <div class="lbl">{t('npcs.stats')}</div>
       <div class="stats">
         {#each npc.stats ?? [] as s (s.id)}
-          {#if s.key || s.val}
-            <div class="stat"><span class="sk">{s.key}</span><span class="sv">{s.val}</span></div>
+          {#if g(s.key) || g(s.val)}
+            <div class="stat"><span class="sk">{g(s.key)}</span><span class="sv">{g(s.val)}</span></div>
           {/if}
         {/each}
       </div>
@@ -114,11 +119,11 @@
       <div class="lbl">{t('npcs.attacks')}</div>
       <ul class="attacks">
         {#each npc.attacks ?? [] as a (a.id)}
-          {#if a.name || a.chance || a.damage}
+          {#if g(a.name) || g(a.chance) || g(a.damage)}
             <li>
-              <span class="an">{a.name}</span>
-              {#if a.chance}<span class="ac">{a.chance}</span>{/if}
-              {#if a.damage}<span class="ad">{a.damage}</span>{/if}
+              <span class="an">{g(a.name)}</span>
+              {#if g(a.chance)}<span class="ac">{g(a.chance)}</span>{/if}
+              {#if g(a.damage)}<span class="ad">{g(a.damage)}</span>{/if}
             </li>
           {/if}
         {/each}
@@ -131,19 +136,19 @@
       <div class="lbl">{t('npcs.skills')}</div>
       <div class="stats">
         {#each npc.skills ?? [] as s (s.id)}
-          {#if s.name || s.value}
-            <div class="stat"><span class="sk">{s.name}</span><span class="sv">{s.value}</span></div>
+          {#if g(s.name) || g(s.value)}
+            <div class="stat"><span class="sk">{g(s.name)}</span><span class="sv">{g(s.value)}</span></div>
           {/if}
         {/each}
       </div>
     </section>
   {/if}
 
-  {#if npc.armor || npc.sanityLoss}
+  {#if g(npc.armor) || g(npc.sanityLoss)}
     <section>
       <div class="lbl">{t('npcs.defence')}</div>
-      {#if npc.armor}<div class="line"><span class="dk">{t('npcs.armorShort')}</span> {npc.armor}</div>{/if}
-      {#if npc.sanityLoss}<div class="line"><span class="dk">{t('npcs.sanityShort')}</span> {npc.sanityLoss}</div>{/if}
+      {#if g(npc.armor)}<div class="line"><span class="dk">{t('npcs.armorShort')}</span> {g(npc.armor)}</div>{/if}
+      {#if g(npc.sanityLoss)}<div class="line"><span class="dk">{t('npcs.sanityShort')}</span> {g(npc.sanityLoss)}</div>{/if}
     </section>
   {/if}
 
@@ -152,10 +157,10 @@
       <div class="lbl">{t('npcs.equipment')}</div>
       <ul class="equip">
         {#each npc.equipment ?? [] as it (it.id)}
-          {#if it.name}
+          {#if g(it.name)}
             <li>
-              <span class="en">{it.name}</span>{#if it.qty}<span class="eq">×{it.qty}</span>{/if}
-              {#if it.notes}<span class="enote">— {it.notes}</span>{/if}
+              <span class="en">{g(it.name)}</span>{#if it.qty}<span class="eq">×{it.qty}</span>{/if}
+              {#if g(it.notes)}<span class="enote">— {g(it.notes)}</span>{/if}
             </li>
           {/if}
         {/each}
@@ -170,12 +175,12 @@
         {#each spells as sp (sp.id)}
           <li>
             <div class="sphead">
-              <span class="spn">{sp.name || t('npcs.spellNamePlaceholder')}</span>
-              {#if sp.cost}<span class="spc">{sp.cost}</span>{/if}
-              {#if sp.castingTime}<span class="spt">⏱ {sp.castingTime}</span>{/if}
+              <span class="spn">{g(sp.name) || t('npcs.spellNamePlaceholder')}</span>
+              {#if g(sp.cost)}<span class="spc">{g(sp.cost)}</span>{/if}
+              {#if g(sp.castingTime)}<span class="spt">⏱ {g(sp.castingTime)}</span>{/if}
             </div>
-            {#if sp.description}<p class="spd">{sp.description}</p>{/if}
-            {#if sp.altNames}<div class="spa">{sp.altNames}</div>{/if}
+            {#if g(sp.description)}<p class="spd">{g(sp.description)}</p>{/if}
+            {#if g(sp.altNames)}<div class="spa">{g(sp.altNames)}</div>{/if}
           </li>
         {/each}
       </ul>

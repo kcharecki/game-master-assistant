@@ -43,6 +43,24 @@ describe('parseNpcs', () => {
   it('reports when no valid NPC is present', () => {
     expect(parseNpcs(JSON.stringify([{ role: 'x' }])).error).toBe('no-valid-npcs');
   });
+
+  it('keeps bilingual { en, pl } field objects', () => {
+    const { items } = parseNpcs(
+      JSON.stringify({
+        name: { en: 'Mummy', pl: 'Mumia' },
+        role: { en: 'Shell of dread', pl: 'Powłoka grozy' },
+        attacks: [{ name: { en: 'Fighting', pl: 'Walka' }, chance: '70%', damage: '1d6+DB' }],
+      }),
+    );
+    expect(items[0].name).toEqual({ en: 'Mummy', pl: 'Mumia' });
+    expect(items[0].role).toEqual({ en: 'Shell of dread', pl: 'Powłoka grozy' });
+    // chance is the same in both languages → stays a plain string
+    expect(items[0].attacks?.[0]).toEqual({
+      name: { en: 'Fighting', pl: 'Walka' },
+      chance: '70%',
+      damage: '1d6+DB',
+    });
+  });
 });
 
 describe('parseSpells', () => {

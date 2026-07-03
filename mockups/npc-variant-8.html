@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>NPC Command Palette — Command Deck</title>
+<style>
+  :root{
+    --serif:'IM Fell English','Cormorant','Georgia',serif;
+    --bg:#080d0b; --bg2:#0b1411; --panel:#0f1815; --panel2:#13201b;
+    --line:rgba(95,150,120,.18); --line2:rgba(95,150,120,.32);
+    --txt:#dbeae1; --muted:#a7bcb0; --faint:#8a9d93;
+    --green:#6fd0a0; --green-dim:#4fa37b; --green-glow:#1f7a4f;
+    --gold:#d6b65e; --red:#d97a7a; --red-dim:#8a4a4a;
+    --focus:#7dffc0; --r:9px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; width:1440px; height:900px; overflow:hidden;
+    background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    color:var(--txt);
+  }
+
+  /* ---------- Background desktop (dimmed roster suggestion) ---------- */
+  .desktop{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(111,208,160,.05), transparent 55%),
+      radial-gradient(ellipse at 85% 90%, rgba(111,208,160,.04), transparent 50%),
+      linear-gradient(180deg, var(--bg2), var(--bg));
+    filter:saturate(.9);
+  }
+  .desktop-topbar{
+    position:absolute; top:0; left:0; right:0; height:44px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(19,32,27,.7), rgba(19,32,27,.3));
+  }
+  .desktop-topbar .brand{
+    font-family:var(--serif); font-size:19px; letter-spacing:.5px; color:var(--green);
+  }
+  .desktop-topbar .tabs{ display:flex; gap:18px; font-size:12.5px; color:var(--faint); }
+  .desktop-topbar .tabs span{ padding:5px 2px; }
+  .desktop-topbar .tabs span.active{ color:var(--green); border-bottom:2px solid var(--green-dim); }
+
+  .roster-grid{
+    position:absolute; top:78px; left:34px; right:34px; bottom:34px;
+    display:grid; grid-template-columns:repeat(6,1fr); gap:16px;
+    opacity:.55;
+  }
+  .ghost-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--r);
+    height:150px; padding:12px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .ghost-avatar{ width:38px; height:38px; border-radius:50%; }
+  .ghost-line{ height:8px; border-radius:3px; background:rgba(167,188,176,.12); }
+  .ghost-line.w60{ width:60%; } .ghost-line.w80{ width:80%; } .ghost-line.w40{ width:40%; }
+
+  /* ---------- Dim overlay ---------- */
+  .overlay{
+    position:absolute; inset:0;
+    background:rgba(4,8,6,.72);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+  }
+
+  /* ---------- Palette stage ---------- */
+  .stage{
+    position:absolute; top:100px; left:50%; transform:translateX(-50%);
+    width:1180px; height:660px;
+    display:flex; gap:18px;
+  }
+
+  /* ---- Left: command palette ---- */
+  .palette{
+    width:520px; height:100%;
+    background:linear-gradient(180deg, var(--panel2), var(--panel));
+    border:1px solid var(--line2);
+    border-radius:14px;
+    box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(111,208,160,.04), 0 0 60px rgba(31,122,79,.12);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  .palette-search{
+    display:flex; align-items:center; gap:12px;
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+    background:rgba(0,0,0,.15);
+  }
+  .palette-search .icon{
+    width:20px; height:20px; flex:none; color:var(--green-dim);
+  }
+  .palette-search input{
+    all:unset;
+    flex:1;
+    font-size:19px;
+    font-family:var(--serif);
+    color:var(--txt);
+    letter-spacing:.2px;
+  }
+  .palette-search input::placeholder{ color:var(--faint); }
+  .palette-search .esc-chip{
+    font-size:11px; color:var(--faint);
+    border:1px solid var(--line2); border-radius:5px;
+    padding:3px 7px; font-family:ui-monospace,Consolas,monospace;
+    background:rgba(0,0,0,.25);
+  }
+
+  .palette-tabs{
+    display:flex; gap:6px; padding:10px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .palette-tabs .pt{
+    font-size:11.5px; color:var(--faint);
+    padding:5px 11px; border-radius:20px;
+    border:1px solid transparent;
+  }
+  .palette-tabs .pt.active{
+    color:var(--bg); background:var(--green); font-weight:600;
+  }
+  .palette-tabs .pt .count{ opacity:.65; margin-left:4px; }
+  .palette-tabs .pt.active .count{ opacity:.55; }
+
+  .results{
+    flex:1; overflow-y:auto; padding:8px;
+  }
+  .results::-webkit-scrollbar{ width:8px; }
+  .results::-webkit-scrollbar-thumb{ background:var(--line2); border-radius:4px; }
+
+  .result-row{
+    display:grid;
+    grid-template-columns:40px 1fr auto;
+    align-items:center;
+    gap:12px;
+    padding:9px 12px;
+    border-radius:8px;
+    margin-bottom:2px;
+    border:1px solid transparent;
+    cursor:pointer;
+    position:relative;
+  }
+  .result-row.active{
+    background:rgba(111,208,160,.09);
+    border-color:var(--green-dim);
+    box-shadow:0 0 0 1px rgba(111,208,160,.15), 0 0 18px rgba(111,208,160,.14) inset;
+  }
+  .result-row.active::before{
+    content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px;
+    background:var(--focus); border-radius:2px;
+    box-shadow:0 0 8px var(--focus);
+  }
+  .r-avatar{
+    width:40px; height:40px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-size:16px; color:var(--bg);
+    font-weight:700;
+    flex:none;
+  }
+  .r-mid{ min-width:0; }
+  .r-name-line{ display:flex; align-items:baseline; gap:8px; }
+  .r-name{ font-family:var(--serif); font-size:16px; color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .r-name mark{ background:none; color:var(--green); text-decoration:underline; text-decoration-color:rgba(111,208,160,.5); text-underline-offset:2px; }
+  .r-role{ font-size:11.5px; color:var(--muted); }
+  .r-meta{ font-size:11px; color:var(--faint); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .r-right{ display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+  .disp-dot{ display:flex; align-items:center; gap:5px; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; }
+  .disp-dot::before{ content:""; width:7px; height:7px; border-radius:50%; }
+  .disp-dot.ally{ color:var(--green); } .disp-dot.ally::before{ background:var(--green); box-shadow:0 0 6px var(--green); }
+  .disp-dot.hostile{ color:var(--red); } .disp-dot.hostile::before{ background:var(--red); box-shadow:0 0 6px var(--red); }
+  .disp-dot.neutral{ color:var(--gold); } .disp-dot.neutral::before{ background:var(--gold); box-shadow:0 0 6px var(--gold); }
+  .r-key{
+    font-size:10px; color:var(--faint);
+    border:1px solid var(--line2); border-radius:4px; padding:1px 5px;
+    font-family:ui-monospace,Consolas,monospace;
+  }
+
+  .palette-footer{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 18px; border-top:1px solid var(--line);
+    background:rgba(0,0,0,.2);
+  }
+  .hint-group{ display:flex; gap:14px; }
+  .hint{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--faint); }
+  .kbd{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:20px; height:20px; padding:0 5px;
+    border:1px solid var(--line2); border-radius:5px;
+    background:linear-gradient(180deg, rgba(111,208,160,.08), rgba(0,0,0,.2));
+    color:var(--muted); font-size:11px; font-family:ui-monospace,Consolas,monospace;
+    box-shadow:0 1px 0 rgba(0,0,0,.4);
+  }
+  .hint-total{ font-size:11px; color:var(--faint); }
+
+  /* ---- Right: peek preview panel ---- */
+  .peek{
+    flex:1; height:100%;
+    background:linear-gradient(160deg, var(--panel2), var(--panel) 55%);
+    border:1px solid var(--line2);
+    border-radius:14px;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+    overflow-y:auto;
+    position:relative;
+  }
+  .peek::-webkit-scrollbar{ width:8px; }
+  .peek::-webkit-scrollbar-thumb{ background:var(--line2); border-radius:4px; }
+
+  .peek-head{
+    display:flex; gap:16px; padding:22px 24px 18px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .peek-head::after{
+    content:""; position:absolute; left:24px; right:24px; bottom:-1px; height:1px;
+    background:linear-gradient(90deg, var(--green-dim), transparent);
+  }
+  .peek-avatar{
+    width:78px; height:78px; border-radius:14px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-size:30px; color:var(--bg); font-weight:700;
+    box-shadow:0 0 0 1px var(--line2), 0 10px 24px rgba(0,0,0,.4);
+  }
+  .peek-title h1{
+    margin:0 0 4px; font-family:var(--serif); font-size:29px; font-weight:400; color:var(--txt);
+    letter-spacing:.3px;
+  }
+  .peek-title .sub{ font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .peek-title .badges{ display:flex; gap:8px; flex-wrap:wrap; }
+  .badge{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.5px;
+    padding:3px 9px; border-radius:20px; border:1px solid var(--line2);
+    color:var(--muted); display:flex; align-items:center; gap:5px;
+  }
+  .badge.disposition-ally{ color:var(--green); border-color:rgba(111,208,160,.35); background:rgba(111,208,160,.07); }
+  .badge.disposition-hostile{ color:var(--red); border-color:rgba(217,122,122,.35); background:rgba(217,122,122,.07); }
+  .badge.disposition-neutral{ color:var(--gold); border-color:rgba(214,182,94,.35); background:rgba(214,182,94,.07); }
+
+  .peek-actions{ margin-left:auto; display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+  .peek-actions .go{
+    font-size:11.5px; color:var(--bg); background:var(--green);
+    border-radius:6px; padding:7px 14px; font-weight:600;
+    display:flex; align-items:center; gap:8px;
+  }
+  .peek-actions .go .kbd{ background:rgba(0,0,0,.25); color:var(--bg); border-color:rgba(0,0,0,.3); }
+
+  .peek-body{ padding:20px 24px 28px; display:flex; flex-direction:column; gap:20px; }
+
+  .section-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:1.2px; color:var(--faint);
+    margin-bottom:9px; display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+  .quick-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+  }
+  .quick-cell{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px;
+  }
+  .quick-cell .qv{ font-family:var(--serif); font-size:20px; color:var(--txt); }
+  .quick-cell .qv.san{ color:var(--red); }
+  .quick-cell .ql{ font-size:10.5px; color:var(--faint); text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .info-block p, .info-block .kv{ margin:0; font-size:13px; color:var(--muted); line-height:1.55; }
+  .info-block .label{ font-size:11.5px; color:var(--green-dim); font-weight:600; margin-bottom:3px; display:block; }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:7px; }
+  .chip{
+    font-size:11.5px; color:var(--muted); background:rgba(111,208,160,.06);
+    border:1px solid var(--line); border-radius:20px; padding:4px 11px;
+  }
+
+  .blurb-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:14px 16px; font-size:13.5px; color:var(--txt); line-height:1.6;
+    font-family:var(--serif); font-style:italic;
+  }
+
+  .secret-box{
+    background:linear-gradient(160deg, rgba(217,122,122,.07), rgba(15,24,21,.4));
+    border:1px solid rgba(217,122,122,.28);
+    border-radius:8px;
+    padding:14px 16px;
+    position:relative;
+  }
+  .secret-box .section-label{ color:var(--red); }
+  .secret-box .section-label::after{ background:rgba(217,122,122,.25); }
+  .secret-box p{ margin:0; font-size:13px; color:#e0b3b3; line-height:1.6; }
+  .secret-tag{
+    position:absolute; top:12px; right:14px;
+    font-size:9.5px; text-transform:uppercase; letter-spacing:1px;
+    color:var(--red-dim); border:1px solid rgba(217,122,122,.3); border-radius:4px;
+    padding:2px 6px;
+  }
+
+  /* subtle floating glow accents */
+  .glow-a{ position:absolute; width:400px; height:400px; top:-120px; left:-120px; background:radial-gradient(circle, rgba(111,208,160,.08), transparent 65%); pointer-events:none; }
+</style>
+</head>
+<body>
+
+<div class="desktop">
+  <div class="desktop-topbar">
+    <div class="brand">⌗ Command Deck — NPC Codex</div>
+    <div class="tabs">
+      <span>Roster</span>
+      <span class="active">Search</span>
+      <span>Factions</span>
+      <span>Timeline</span>
+      <span>Locations</span>
+    </div>
+  </div>
+  <div class="roster-grid">
+    <!-- faint ghost roster suggestion behind the palette -->
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);"></div><div class="ghost-line w60"></div><div class="ghost-line w40"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);"></div><div class="ghost-line w80"></div><div class="ghost-line w40"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#d6b65e,#8a6f2c);"></div><div class="ghost-line w60"></div><div class="ghost-line w80"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);"></div><div class="ghost-line w40"></div><div class="ghost-line w60"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);"></div><div class="ghost-line w80"></div><div class="ghost-line w40"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#d6b65e,#8a6f2c);"></div><div class="ghost-line w60"></div><div class="ghost-line w40"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);"></div><div class="ghost-line w60"></div><div class="ghost-line w80"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);"></div><div class="ghost-line w40"></div><div class="ghost-line w60"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#d6b65e,#8a6f2c);"></div><div class="ghost-line w80"></div><div class="ghost-line w40"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);"></div><div class="ghost-line w60"></div><div class="ghost-line w40"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);"></div><div class="ghost-line w40"></div><div class="ghost-line w80"></div></div>
+    <div class="ghost-card"><div class="ghost-avatar" style="background:linear-gradient(135deg,#d6b65e,#8a6f2c);"></div><div class="ghost-line w60"></div><div class="ghost-line w40"></div></div>
+  </div>
+</div>
+
+<div class="overlay"></div>
+
+<div class="stage">
+
+  <!-- ================= PALETTE ================= -->
+  <div class="palette">
+    <div class="glow-a"></div>
+    <div class="palette-search">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" value="cor" placeholder="Search NPCs by name, role, location…" />
+      <span class="esc-chip">esc</span>
+    </div>
+
+    <div class="palette-tabs">
+      <div class="pt active">All <span class="count">9</span></div>
+      <div class="pt">Allies <span class="count">3</span></div>
+      <div class="pt">Neutral <span class="count">3</span></div>
+      <div class="pt">Hostile <span class="count">3</span></div>
+    </div>
+
+    <div class="results">
+
+      <div class="result-row active">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);">CW</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name"><mark>Cor</mark>nelius Whitlock</span></div>
+          <div class="r-role">Antiquarian Bookseller</div>
+          <div class="r-meta">Arkham · Whitlock &amp; Sons Rare Books</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot ally">Ally</span>
+          <span class="r-key">↵</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);">DC</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Dr. <mark>Cor</mark>al Ashgrove</span></div>
+          <div class="r-role">Coroner, Innsmouth County</div>
+          <div class="r-meta">Innsmouth · County Morgue</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot neutral">Neutral</span>
+          <span class="r-key">2</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#d6b65e,#8a6f2c);">SB</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Sheriff Bram <mark>Cor</mark>witt</span></div>
+          <div class="r-role">Town Sheriff</div>
+          <div class="r-meta">Dunwich · Sheriff's Office</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot neutral">Neutral</span>
+          <span class="r-key">3</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);">MK</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Malachi Kest</span></div>
+          <div class="r-role">Cult Handler</div>
+          <div class="r-meta">Innsmouth · The Gilman House</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot hostile">Hostile</span>
+          <span class="r-key">4</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);">TG</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Talia Greymoor</span></div>
+          <div class="r-role">Half-Elf Ranger, Party Contact</div>
+          <div class="r-meta">Greywatch · The Silver Antler Inn</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot ally">Ally</span>
+          <span class="r-key">5</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#d6b65e,#8a6f2c);">HG</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Hollis Grigg</span></div>
+          <div class="r-role">Fence &amp; Information Broker</div>
+          <div class="r-meta">Greywatch · Back room, The Rusted Anchor</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot neutral">Neutral</span>
+          <span class="r-key">6</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);">VK</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Vorn Kessler</span></div>
+          <div class="r-role">Bandit Captain</div>
+          <div class="r-meta">Blackmire Road · Ambush Camp</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot hostile">Hostile</span>
+          <span class="r-key">7</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);">EP</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Elder Priestess Nyveth</span></div>
+          <div class="r-role">Temple Elder, Party Patron</div>
+          <div class="r-meta">Greywatch · Temple of the Silver Wane</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot ally">Ally</span>
+          <span class="r-key">8</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="r-avatar" style="background:linear-gradient(135deg,#8a4a4a,#d97a7a);">JR</div>
+        <div class="r-mid">
+          <div class="r-name-line"><span class="r-name">Jonas Reyes</span></div>
+          <div class="r-role">Deep One Hybrid (disguised)</div>
+          <div class="r-meta">Innsmouth · Dockside warehouse #4</div>
+        </div>
+        <div class="r-right">
+          <span class="disp-dot hostile">Hostile</span>
+          <span class="r-key">9</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="palette-footer">
+      <div class="hint-group">
+        <div class="hint"><span class="kbd">↑</span><span class="kbd">↓</span> navigate</div>
+        <div class="hint"><span class="kbd">⏎</span> open</div>
+        <div class="hint"><span class="kbd">esc</span> close</div>
+        <div class="hint"><span class="kbd">⌘K</span> new search</div>
+      </div>
+      <div class="hint-total">9 of 34 NPCs</div>
+    </div>
+  </div>
+
+  <!-- ================= PEEK PANEL ================= -->
+  <div class="peek">
+    <div class="peek-head">
+      <div class="peek-avatar" style="background:linear-gradient(135deg,#4fa37b,#1f7a4f);">CW</div>
+      <div class="peek-title">
+        <h1>Cornelius Whitlock</h1>
+        <div class="sub">Antiquarian Bookseller · Arkham, Massachusetts</div>
+        <div class="badges">
+          <span class="badge disposition-ally">● Ally</span>
+          <span class="badge">Whitlock &amp; Sons Rare Books</span>
+          <span class="badge">Recurring Contact</span>
+        </div>
+      </div>
+      <div class="peek-actions">
+        <div class="go">Open full card <span class="kbd">⏎</span></div>
+      </div>
+    </div>
+
+    <div class="peek-body">
+
+      <div>
+        <div class="section-label">Quick Reference</div>
+        <div class="quick-grid">
+          <div class="quick-cell"><div class="qv">58</div><div class="ql">Age</div></div>
+          <div class="quick-cell"><div class="qv">12 / 15</div><div class="ql">HP / Max</div></div>
+          <div class="quick-cell"><div class="qv">1d4</div><div class="ql">SAN Loss (seen)</div></div>
+          <div class="quick-cell"><div class="qv san">61</div><div class="ql">Current Sanity</div></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="info-block">
+          <span class="label">Voice &amp; Manner</span>
+          <p>Reedy, precise diction — clears throat before disagreeing. Slight Boston Brahmin affect. Never raises his voice, even when alarmed.</p>
+        </div>
+        <div class="info-block">
+          <span class="label">Quirk</span>
+          <p>Compulsively straightens books that aren't level. Keeps a magnifying loupe on a neck chain, fidgets with it when lying.</p>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="info-block">
+          <span class="label">Motivation</span>
+          <p>Wants the Whitlock name restored after his brother's disappearance discredited the shop. Will trade rare texts for information about the Kingsport incident.</p>
+        </div>
+        <div class="info-block">
+          <span class="label">Skills</span>
+          <div class="chip-row">
+            <span class="chip">Appraise 72%</span>
+            <span class="chip">Library Use 68%</span>
+            <span class="chip">Occult 41%</span>
+            <span class="chip">Persuade 35%</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Public Blurb</div>
+        <div class="blurb-box">
+          "Ah — you'll be wanting the back room, then. Mind the third step, it's been meaning to break someone's ankle for a decade now."
+        </div>
+      </div>
+
+      <div class="secret-box">
+        <span class="secret-tag">GM Only</span>
+        <div class="section-label">Secret Notes</div>
+        <p>Owns a copy of the <em>Fenwick Glossary</em> he's hidden behind a false shelf panel, aware it's cursed but too curious to burn it. His brother didn't vanish — he sold him passage to the Y'ha-nthlei cult in exchange for the shop's debts being forgiven. Will panic and confess if pressed on the topic of Innsmouth gold.</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

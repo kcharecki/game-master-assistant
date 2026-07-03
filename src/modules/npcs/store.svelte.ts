@@ -2,6 +2,7 @@ import { kvSet, kvGet } from '../../lib/db';
 import { generateNpc, type Rng } from './generator';
 import { spellLibrary } from './spells.svelte';
 import type { NpcImport } from './import';
+import type { LocalizedText } from '../../lib/loc';
 import { toast } from '../../lib/stores/toast.svelte';
 import { t } from '../../lib/i18n';
 
@@ -9,54 +10,54 @@ export type Disposition = 'ally' | 'neutral' | 'hostile';
 
 export interface EquipItem {
   id: string;
-  name: string;
+  name: LocalizedText;
   qty?: number;
-  notes?: string;
+  notes?: LocalizedText;
 }
 
 export interface StatRow {
   id: string;
-  key: string;
-  val: string;
+  key: LocalizedText;
+  val: LocalizedText;
 }
 
 /** A combat attack line: e.g. name "Walka" / chance "70% (35/14)" / damage "1K6+MO". */
 export interface AttackRow {
   id: string;
-  name: string;
-  chance?: string;
-  damage?: string;
+  name: LocalizedText;
+  chance?: LocalizedText;
+  damage?: LocalizedText;
 }
 
 /** A skill line: e.g. name "Ukrywanie" / value "50%". */
 export interface SkillRow {
   id: string;
-  name: string;
-  value?: string;
+  name: LocalizedText;
+  value?: LocalizedText;
 }
 
 export interface Npc {
   id: string;
-  name: string;
-  role: string;
+  name: LocalizedText;
+  role: LocalizedText;
   disposition: Disposition;
-  voice?: string;
+  voice?: LocalizedText;
   /** asset id of an uploaded portrait image (see lib/db assetPut) */
   portraitId?: string;
   /** extra photo asset ids (portraitId stays the primary) */
   gallery?: string[];
   equipment?: EquipItem[];
   /** PRIVATE — never broadcast */
-  gmNotes?: string;
+  gmNotes?: LocalizedText;
   /** what players may see */
-  publicBlurb?: string;
+  publicBlurb?: LocalizedText;
   /** system-neutral key/value rows (characteristics, HP/MP, move, DB, build…) */
   stats?: StatRow[];
   /** combat statblock — all GM-only, never broadcast */
   attacks?: AttackRow[];
   skills?: SkillRow[];
-  armor?: string;
-  sanityLoss?: string;
+  armor?: LocalizedText;
+  sanityLoss?: LocalizedText;
   /** ids into the shared spell library (see spells.svelte) — GM-only */
   spellIds?: string[];
 }
@@ -72,6 +73,7 @@ class NpcStore {
   list = $state<Npc[]>([...SEED]);
   /** id a cross-module jump (e.g. notebook wikilink) asked the editor to focus. */
   focusId = $state<string | null>(null);
+  private loaded = false;
 
   /** Request the editor focus/scroll to an NPC (cleared once consumed). */
   focus(id: string): void {
@@ -301,6 +303,10 @@ class NpcStore {
   }
 
   async load(): Promise<void> {
+    // Guard against a second caller (e.g. the Stage window) re-reading kv and
+    // clobbering edits the GM already made this session.
+    if (this.loaded) return;
+    this.loaded = true;
     const saved = await kvGet<Npc[]>('npcs');
     if (saved?.length) this.list = saved;
   }

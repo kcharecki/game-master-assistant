@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Assistant — NPCs · Relationship Web</title>
+<style>
+  :root{
+    --serif:'IM Fell English','Cormorant','Georgia',serif;
+    --bg:#080d0b;
+    --bg2:#0b1411;
+    --panel:#0f1815;
+    --panel2:#13201b;
+    --line:rgba(95,150,120,.18);
+    --line2:rgba(95,150,120,.32);
+    --txt:#dbeae1;
+    --muted:#a7bcb0;
+    --faint:#8a9d93;
+    --green:#6fd0a0;
+    --green-dim:#4fa37b;
+    --green-glow:#1f7a4f;
+    --gold:#d6b65e;
+    --red:#d97a7a;
+    --red-dim:#8a4a4a;
+    --focus:#7dffc0;
+    --r:9px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--txt);font-size:14px;line-height:1.4;
+    background:
+      radial-gradient(1100px 700px at 80% -8%, rgba(31,122,79,.15), transparent 60%),
+      radial-gradient(900px 600px at -6% 108%, rgba(31,122,79,.09), transparent 60%),
+      var(--bg);
+    overflow:hidden;
+  }
+  .num{font-variant-numeric:tabular-nums}
+  :where(a,button,[tabindex]){outline:none}
+  :where(a,button,[tabindex]):focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+
+  .app{width:1440px;height:900px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    flex:0 0 auto;height:54px;display:flex;align-items:center;gap:12px;
+    padding:0 16px;
+    background:linear-gradient(180deg,#0e1815,#0a110e);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand .bt{font-family:var(--serif);font-size:18px;font-weight:700;letter-spacing:.01em;line-height:1}
+  .brand .bs{font-size:9px;letter-spacing:.28em;color:var(--green);font-weight:700;margin-top:3px}
+  .tb-sep{width:1px;height:28px;background:var(--line);margin:0 4px}
+  .crumb{font-size:12.5px;color:var(--muted)}
+  .crumb b{color:var(--txt);font-weight:600}
+  .spacer{flex:1}
+  .viewtabs{display:flex;gap:2px;background:rgba(0,0,0,.22);border:1px solid var(--line2);border-radius:9px;padding:3px}
+  .viewtabs button{border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+  .viewtabs button.active{background:linear-gradient(180deg,#2f8a66,#215f47);color:#eafff3;box-shadow:0 0 10px rgba(79,163,123,.3)}
+  .viewtabs button:hover:not(.active){color:var(--txt)}
+  .search{display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;
+    border:1px solid var(--line2);background:rgba(0,0,0,.22);color:var(--muted);font-size:12.5px;cursor:text;min-width:220px}
+  .search kbd{margin-left:auto;font-size:10px;font-family:inherit;border:1px solid var(--line2);
+    border-radius:4px;padding:1px 5px;color:var(--faint)}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:7px;font-size:12.5px;font-weight:600;
+    border:1px solid var(--line2);color:var(--txt);background:rgba(79,163,123,.10);cursor:pointer;width:fit-content;font-family:inherit;white-space:nowrap}
+  .btn:hover{background:rgba(79,163,123,.2);border-color:var(--green-dim)}
+  .btn.solid{background:linear-gradient(180deg,#36996f,#256f52);border-color:#36996f;color:#eafff3;box-shadow:0 0 12px rgba(79,163,123,.3)}
+  .btn.solid:hover{filter:brightness(1.1)}
+  .btn.sm{padding:5px 10px;font-size:11.5px}
+
+  /* ---------- layout ---------- */
+  .shell{flex:1;display:flex;min-height:0}
+
+  /* ===== GRAPH PANE (left ~70%) ===== */
+  .graphpane{flex:0 0 71%;position:relative;overflow:hidden;
+    background:
+      radial-gradient(900px 620px at 74% 6%, rgba(31,122,79,.13), transparent 60%),
+      radial-gradient(760px 520px at 12% 98%, rgba(31,122,79,.08), transparent 60%),
+      var(--bg)}
+  .wp{position:absolute;inset:0;pointer-events:none}
+  .wp.grid{opacity:.45;
+    background:
+      linear-gradient(rgba(95,150,120,.05) 1px,transparent 1px) 0 0/100% 32px,
+      linear-gradient(90deg,rgba(95,150,120,.05) 1px,transparent 1px) 0 0/32px 100%;
+    -webkit-mask:radial-gradient(120% 100% at 50% 38%, #000 50%, transparent);
+            mask:radial-gradient(120% 100% at 50% 38%, #000 50%, transparent)}
+  .wp.vig{box-shadow:inset 0 0 170px rgba(0,0,0,.75)}
+
+  /* faction cluster halos */
+  .cluster{position:absolute;border-radius:50%;pointer-events:none}
+  .cluster.c-marsh{left:20px;top:56px;width:430px;height:400px;
+    background:radial-gradient(circle at 50% 45%, rgba(217,122,122,.10), transparent 68%)}
+  .cluster.c-town{left:430px;top:400px;width:460px;height:400px;
+    background:radial-gradient(circle at 50% 45%, rgba(214,182,94,.10), transparent 68%)}
+  .cluster.c-blackthorn{left:700px;top:20px;width:380px;height:360px;
+    background:radial-gradient(circle at 50% 45%, rgba(111,208,160,.12), transparent 68%)}
+
+  .cluster-label{position:absolute;font-family:var(--serif);font-size:13px;letter-spacing:.08em;
+    text-transform:uppercase;font-weight:600;padding:4px 12px;border-radius:20px;
+    border:1px solid var(--line2);background:rgba(8,13,11,.55);backdrop-filter:blur(3px)}
+  .cluster-label.marsh{left:48px;top:64px;color:#e3a5a5;border-color:rgba(217,122,122,.35)}
+  .cluster-label.town{left:456px;top:742px;color:var(--gold);border-color:rgba(214,182,94,.35)}
+  .cluster-label.blackthorn{left:836px;top:32px;color:var(--green);border-color:rgba(111,208,160,.4)}
+
+  svg.edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .edge-line{fill:none;stroke-linecap:round}
+  .edge-line.serves{stroke:var(--green);stroke-opacity:.75}
+  .edge-line.hates{stroke:var(--red);stroke-opacity:.8}
+  .edge-line.owes{stroke:var(--gold);stroke-opacity:.8}
+  .edge-line.loves{stroke:var(--green);stroke-opacity:.6;stroke-dasharray:1 6}
+  .edge-line.fears{stroke:var(--red);stroke-opacity:.55;stroke-dasharray:5 5}
+  .edge-arrow{fill:var(--muted)}
+  .edge-label{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;fill:var(--muted);
+    paint-order:stroke;stroke:#080d0b;stroke-width:5px;stroke-linejoin:round}
+  .edge-label.serves{fill:#a8e8c8}
+  .edge-label.hates{fill:#eeb3b3}
+  .edge-label.owes{fill:#ecd695}
+  .edge-label.loves{fill:#a8e8c8}
+  .edge-label.fears{fill:#eeb3b3}
+
+  .edge-line.dim{stroke-opacity:.14}
+  .edge-label.dim{opacity:.18}
+
+  /* node */
+  .node{position:absolute;width:108px;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:5}
+  .node .portrait{width:64px;height:64px;border-radius:50%;margin:0 auto 5px;position:relative;
+    border:2px solid var(--line2);box-shadow:0 6px 18px -8px rgba(0,0,0,.8);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:20px;font-weight:700;color:#0a120f}
+  .node .name{font-size:11.5px;font-weight:600;color:var(--txt);line-height:1.2;text-shadow:0 1px 3px #000}
+  .node .role{font-size:9.5px;color:var(--muted);text-shadow:0 1px 3px #000}
+  .node.dim{opacity:.3}
+  .node:hover .portrait, .node.selected .portrait{transform:scale(1.08)}
+  .node.selected .portrait{box-shadow:0 0 0 3px var(--focus), 0 8px 24px -8px rgba(0,0,0,.9)}
+  .node.selected .name{color:#eafff3}
+
+  /* disposition ring colors via border */
+  .node.disp-ally .portrait{border-color:var(--green-dim);box-shadow:0 0 14px rgba(79,163,123,.35),0 6px 18px -8px rgba(0,0,0,.8)}
+  .node.disp-hostile .portrait{border-color:var(--red-dim);box-shadow:0 0 14px rgba(138,74,74,.4),0 6px 18px -8px rgba(0,0,0,.8)}
+  .node.disp-neutral .portrait{border-color:var(--line2)}
+  .node.disp-wary .portrait{border-color:var(--gold);box-shadow:0 0 14px rgba(214,182,94,.3),0 6px 18px -8px rgba(0,0,0,.8)}
+
+  .node .flag{position:absolute;top:-3px;right:14px;width:16px;height:16px;border-radius:50%;
+    background:var(--panel);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:9px}
+
+  /* legend */
+  .legend{position:absolute;left:20px;bottom:18px;z-index:20;
+    background:rgba(9,16,13,.85);border:1px solid var(--line2);border-radius:11px;
+    padding:11px 14px;backdrop-filter:blur(8px);box-shadow:0 14px 40px -16px rgba(0,0,0,.9);width:250px}
+  .legend h4{font-family:var(--serif);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:8px;font-weight:700}
+  .legend .row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .legend .swatch{width:22px;height:0;border-top:2.5px solid;flex:0 0 auto}
+  .legend .swatch.serves{border-color:var(--green)}
+  .legend .swatch.hates{border-color:var(--red)}
+  .legend .swatch.owes{border-color:var(--gold);}
+  .legend .swatch.loves{border-color:var(--green);border-top-style:dotted}
+  .legend .swatch.fears{border-color:var(--red);border-top-style:dashed}
+  .legend .div{border-top:1px solid var(--line);margin:8px 0}
+  .legend .row .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+  .legend .dot.ally{background:var(--green-dim);box-shadow:0 0 5px rgba(79,163,123,.6)}
+  .legend .dot.hostile{background:var(--red-dim);box-shadow:0 0 5px rgba(138,74,74,.6)}
+  .legend .dot.wary{background:var(--gold)}
+  .legend .dot.neutral{background:#3a4842}
+
+  /* zoom controls */
+  .zoomctl{position:absolute;right:18px;bottom:18px;z-index:20;display:flex;flex-direction:column;gap:2px;
+    background:rgba(9,16,13,.85);border:1px solid var(--line2);border-radius:9px;overflow:hidden;
+    box-shadow:0 14px 40px -16px rgba(0,0,0,.9)}
+  .zoomctl button{width:34px;height:34px;border:none;background:transparent;color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit}
+  .zoomctl button:hover{background:rgba(79,163,123,.14);color:var(--green)}
+  .zoomctl button:first-child{border-bottom:1px solid var(--line)}
+
+  /* ===== DETAIL PANEL (right ~30%) ===== */
+  .detail{flex:1;min-width:0;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    border-left:1px solid var(--line);overflow-y:auto}
+
+  .dhead{flex:0 0 auto;padding:20px 20px 16px;border-bottom:1px solid var(--line);position:relative;
+    background:radial-gradient(120% 100% at 30% 0%, rgba(217,122,122,.10), transparent 60%)}
+  .dhead .portrait-lg{width:76px;height:76px;border-radius:50%;margin-bottom:12px;
+    border:2px solid var(--red-dim);box-shadow:0 0 20px rgba(138,74,74,.35);
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:26px;font-weight:700;color:#0a120f;
+    background:radial-gradient(circle at 35% 30%, #e0a3a3, #7a2f2f 70%)}
+  .dhead h2{font-family:var(--serif);font-size:23px;font-weight:700;color:#f3e3e3;margin-bottom:4px}
+  .dhead .sub{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+  .badgerow{display:flex;gap:6px;flex-wrap:wrap}
+  .badge{font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:20px;text-transform:uppercase}
+  .badge.faction{background:rgba(217,122,122,.16);color:#e3a5a5;border:1px solid rgba(217,122,122,.35)}
+  .badge.disp{background:rgba(138,74,74,.22);color:var(--red);border:1px solid rgba(138,74,74,.45)}
+  .badge.system{background:rgba(95,150,120,.14);color:var(--muted);border:1px solid var(--line2)}
+
+  .dbody{flex:1;padding:16px 20px 24px;display:flex;flex-direction:column;gap:16px}
+  .dsec h3{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:7px}
+  .dsec p{font-size:12.8px;color:#c2d2c8;line-height:1.55}
+  .dsec p.quirk{font-style:italic;color:var(--muted)}
+
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .statcell{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:rgba(0,0,0,.16)}
+  .statcell .l{font-size:9.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .statcell .v{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--txt)}
+
+  .rellist{display:flex;flex-direction:column;gap:6px}
+  .relrow{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:rgba(0,0,0,.14)}
+  .relrow .av{width:26px;height:26px;border-radius:50%;flex:0 0 auto;font-size:10px;font-weight:700;color:#0a120f;
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif)}
+  .relrow .rn{flex:1;font-size:12px;font-weight:600}
+  .relrow .rtag{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:20px}
+  .relrow .rtag.serves{background:rgba(111,208,160,.16);color:var(--green);border:1px solid rgba(111,208,160,.35)}
+  .relrow .rtag.hates{background:rgba(217,122,122,.16);color:var(--red);border:1px solid rgba(217,122,122,.35)}
+  .relrow .rtag.owes{background:rgba(214,182,94,.16);color:var(--gold);border:1px solid rgba(214,182,94,.35)}
+  .relrow .rtag.fears{background:rgba(217,122,122,.12);color:#e3a5a5;border:1px solid rgba(217,122,122,.28)}
+  .relrow .rtag.loved-by,.relrow .rtag.loves{background:rgba(111,208,160,.12);color:#a8e8c8;border:1px solid rgba(111,208,160,.28)}
+
+  .secret{border:1px solid rgba(217,122,122,.35);border-radius:9px;padding:11px 13px;
+    background:linear-gradient(180deg, rgba(138,74,74,.12), rgba(0,0,0,.18));position:relative}
+  .secret h3{color:var(--red)}
+  .secret p{color:#e6c9c9}
+  .secret .lock{position:absolute;top:10px;right:11px;color:var(--red);opacity:.6}
+
+  .dfoot{flex:0 0 auto;padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px}
+  .dfoot .btn{flex:1;justify-content:center}
+
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(95,150,120,.26);border-radius:6px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(95,150,120,.4)}
+  ::-webkit-scrollbar-track{background:transparent}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M16 3c5 0 9 4 9 9 0 3-1 4-1 6 0 2 2 2 2 4s-2 3-3 1c0-2-1-2-2 0-1 1-2 1-2-1 0-2-1-2-2 0 0 2-1 3-2 1-1-2-2-2-2 0 0 2-2 3-3 1-1-2-1-3-1-5 0-5 4-9 7-9z" stroke="#46e89a" stroke-width="1.4" stroke-linejoin="round"/>
+        <circle cx="13" cy="12" r="1.4" fill="#46e89a"/><circle cx="19" cy="12" r="1.4" fill="#46e89a"/>
+      </svg>
+      <div><div class="bt">NPCs</div><div class="bs">RELATIONSHIP WEB</div></div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="crumb">Campaign: <b>The Innsmouth Ledger &amp; the Blackthorn Bargain</b></div>
+    <div class="spacer"></div>
+    <div class="viewtabs" role="tablist" aria-label="NPC view mode">
+      <button role="tab"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Roster</button>
+      <button role="tab" class="active" aria-selected="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8 7l8 8M16 7l-8 8"/></svg>Web</button>
+    </div>
+    <button class="search" aria-label="Search NPCs">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      Search NPCs, factions… <kbd>⌘K</kbd>
+    </button>
+    <button class="btn solid"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21v-1a5 5 0 0 1 5-5h2"/><path d="M17 14v6M14 17h6"/></svg>Add NPC</button>
+  </header>
+
+  <div class="shell">
+    <!-- GRAPH PANE -->
+    <section class="graphpane" aria-label="NPC relationship graph">
+      <div class="wp grid" aria-hidden="true"></div>
+      <div class="wp vig" aria-hidden="true"></div>
+
+      <div class="cluster c-marsh" aria-hidden="true"></div>
+      <div class="cluster c-town" aria-hidden="true"></div>
+      <div class="cluster c-blackthorn" aria-hidden="true"></div>
+      <div class="cluster-label marsh">Cult of the Deep Ledger</div>
+      <div class="cluster-label town">Innsmouth Townsfolk</div>
+      <div class="cluster-label blackthorn">House Blackthorn</div>
+
+      <!-- EDGES (drawn under nodes) -->
+      <svg class="edges" aria-hidden="true">
+        <defs>
+          <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--green)"/></marker>
+          <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--red)"/></marker>
+          <marker id="arrow-gold" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--gold)"/></marker>
+        </defs>
+
+        <!-- Obadiah -> Selina : serves(daughter obeys) -->
+        <path class="edge-line serves" data-a="obadiah" data-b="selina" marker-end="url(#arrow-green)" d="M175,150 L233,120"/>
+        <text class="edge-label serves" x="185" y="128">GROOMS</text>
+
+        <!-- Obadiah -> Deacon : serves -->
+        <path class="edge-line serves" data-a="obadiah" data-b="deacon" marker-end="url(#arrow-green)" d="M175,150 L128,262"/>
+        <text class="edge-label serves" x="112" y="205">SERVES</text>
+
+        <!-- Deacon -> Halloway : hates -->
+        <path class="edge-line hates" data-a="deacon" data-b="halloway" marker-end="url(#arrow-red)" d="M128,262 L336,470"/>
+        <text class="edge-label hates" x="205" y="378">HATES</text>
+
+        <!-- Selina -> Thorne : loves -->
+        <path class="edge-line loves" data-a="selina" data-b="thorne" d="M233,120 L430,300"/>
+        <text class="edge-label loves" x="300" y="200">LOVES</text>
+
+        <!-- Thorne -> Obadiah : owes -->
+        <path class="edge-line owes" data-a="thorne" data-b="obadiah" marker-end="url(#arrow-gold)" d="M430,300 L175,150"/>
+        <text class="edge-label owes" x="330" y="238">OWES COIN</text>
+
+        <!-- Halloway -> Deep Ones/cult : fears (already have deacon-halloway hates; add fear of Obadiah) -->
+        <path class="edge-line fears" data-a="halloway" data-b="obadiah" d="M336,470 L175,150"/>
+        <text class="edge-label fears" x="238" y="330">FEARS</text>
+
+        <!-- Reed -> Halloway : serves (town doctor supports sergeant's investigation) -->
+        <path class="edge-line serves" data-a="reed" data-b="halloway" marker-end="url(#arrow-green)" d="M560,560 L336,470"/>
+        <text class="edge-label serves" x="448" y="530">ASSISTS</text>
+
+        <!-- Whitlock -> Reed : serves (shares research) -->
+        <path class="edge-line serves" data-a="whitlock" data-b="reed" marker-end="url(#arrow-green)" d="M560,700 L560,560"/>
+        <text class="edge-label serves" x="568" y="632">CONFIDES IN</text>
+
+        <!-- Nax -> Thorne : owes -->
+        <path class="edge-line owes" data-a="nax" data-b="thorne" marker-end="url(#arrow-gold)" d="M760,470 L430,300"/>
+        <text class="edge-label owes" x="600" y="378">OWES FAVOR</text>
+
+        <!-- Nax -> Blackthorn : serves -->
+        <path class="edge-line serves" data-a="nax" data-b="blackthorn" marker-end="url(#arrow-green)" d="M760,470 L900,190"/>
+        <text class="edge-label serves" x="840" y="335">INFORMS</text>
+
+        <!-- Vale -> Blackthorn : serves -->
+        <path class="edge-line serves" data-a="vale" data-b="blackthorn" marker-end="url(#arrow-green)" d="M1060,150 L900,190"/>
+        <text class="edge-label serves" x="985" y="158">SWORN TO</text>
+
+        <!-- Blackthorn -> Obadiah : hates (selected node) -->
+        <path class="edge-line hates" data-a="blackthorn" data-b="obadiah" marker-end="url(#arrow-red)" d="M900,190 L175,150" stroke-width="2.5"/>
+        <text class="edge-label hates" x="520" y="158" font-size="10.5">RIVALS / HATES</text>
+
+        <!-- Vale -> Deacon : hates -->
+        <path class="edge-line hates dim" data-a="vale" data-b="deacon" marker-end="url(#arrow-red)" d="M1060,150 L128,262"/>
+
+      </svg>
+
+      <!-- NODES -->
+      <div class="node disp-hostile selected" id="node-obadiah" style="left:175px;top:150px" tabindex="0" aria-label="Obadiah Marsh, selected">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #e0a3a3, #7a2f2f 70%)">OM</div>
+        <div class="name">Obadiah Marsh</div>
+        <div class="role">Cult Patriarch</div>
+      </div>
+
+      <div class="node disp-wary dim" id="node-selina" style="left:233px;top:120px" tabindex="0" aria-label="Selina Marsh">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #ecd6a0, #7a611f 70%)">SM</div>
+        <div class="name">Selina Marsh</div>
+        <div class="role">Reluctant Heir</div>
+      </div>
+
+      <div class="node disp-hostile dim" id="node-deacon" style="left:128px;top:262px" tabindex="0" aria-label="Deacon Wraith">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #e0a3a3, #7a2f2f 70%)">DW</div>
+        <div class="name">Deacon Wraith</div>
+        <div class="role">Cult Priest</div>
+      </div>
+
+      <div class="node disp-neutral dim" id="node-halloway" style="left:336px;top:470px" tabindex="0" aria-label="Sergeant Thomas Halloway">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #cbd8d0, #2f4a3f 70%)">TH</div>
+        <div class="name">Sgt. Halloway</div>
+        <div class="role">Constabulary</div>
+      </div>
+
+      <div class="node disp-ally dim" id="node-reed" style="left:560px;top:560px" tabindex="0" aria-label="Dr. Evelyn Reed">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #a3d8c2, #1f5c42 70%)">ER</div>
+        <div class="name">Dr. Evelyn Reed</div>
+        <div class="role">Town Physician</div>
+      </div>
+
+      <div class="node disp-ally dim" id="node-whitlock" style="left:560px;top:700px" tabindex="0" aria-label="Mara Whitlock">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #a3d8c2, #1f5c42 70%)">MW</div>
+        <div class="name">Mara Whitlock</div>
+        <div class="role">Archivist</div>
+      </div>
+
+      <div class="node disp-wary dim" id="node-thorne" style="left:430px;top:300px" tabindex="0" aria-label="Captain Eli Thorne">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #ecd6a0, #7a611f 70%)">ET</div>
+        <div class="name">Capt. Eli Thorne</div>
+        <div class="role">Dock Captain</div>
+      </div>
+
+      <div class="node disp-wary dim" id="node-nax" style="left:760px;top:470px" tabindex="0" aria-label="Grimsby Nax">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #ecd6a0, #7a611f 70%)">GN</div>
+        <div class="name">Grimsby Nax</div>
+        <div class="role">Fence &amp; Informant</div>
+      </div>
+
+      <div class="node disp-neutral dim" id="node-blackthorn" style="left:900px;top:190px" tabindex="0" aria-label="Lord Aldric Blackthorn">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #cbd8d0, #2f4a3f 70%)">AB</div>
+        <div class="name">Lord Blackthorn</div>
+        <div class="role">Noble Merchant</div>
+      </div>
+
+      <div class="node disp-ally dim" id="node-vale" style="left:1060px;top:150px" tabindex="0" aria-label="Ser Branwen Vale">
+        <div class="portrait" style="background:radial-gradient(circle at 35% 30%, #a3d8c2, #1f5c42 70%)">BV</div>
+        <div class="name">Ser Branwen Vale</div>
+        <div class="role">Household Knight</div>
+      </div>
+
+      <!-- LEGEND -->
+      <div class="legend" aria-label="Edge and disposition legend">
+        <h4>Edge Types</h4>
+        <div class="row"><span class="swatch serves"></span>Serves / Allied</div>
+        <div class="row"><span class="swatch hates"></span>Hates / Rival</div>
+        <div class="row"><span class="swatch owes"></span>Owes (debt/favor)</div>
+        <div class="row"><span class="swatch loves"></span>Loves</div>
+        <div class="row"><span class="swatch fears"></span>Fears</div>
+        <div class="div"></div>
+        <h4>Disposition</h4>
+        <div class="row"><span class="dot ally"></span>Ally to the party</div>
+        <div class="row"><span class="dot neutral"></span>Neutral</div>
+        <div class="row"><span class="dot wary"></span>Wary / Complicated</div>
+        <div class="row"><span class="dot hostile"></span>Hostile</div>
+      </div>
+
+      <div class="zoomctl" aria-label="Graph zoom controls">
+        <button aria-label="Zoom in">+</button>
+        <button aria-label="Zoom out">−</button>
+      </div>
+    </section>
+
+    <!-- DETAIL PANEL -->
+    <aside class="detail" aria-label="NPC detail: Obadiah Marsh">
+      <div class="dhead">
+        <div class="portrait-lg">OM</div>
+        <h2>Obadiah Marsh</h2>
+        <div class="sub">"Patriarch of the Marsh line" — Cult Patriarch, age 71</div>
+        <div class="badgerow">
+          <span class="badge faction">Cult of the Deep Ledger</span>
+          <span class="badge disp">Hostile</span>
+          <span class="badge system">Call of Cthulhu</span>
+        </div>
+      </div>
+
+      <div class="dbody">
+        <div class="dsec">
+          <h3>Location</h3>
+          <p>Marsh Refinery, north end of Innsmouth harbor — rarely seen above the tide-locked cellar door.</p>
+        </div>
+
+        <div class="dsec">
+          <h3>Quirk</h3>
+          <p class="quirk">Never blinks both eyes at once; taps a webbed ring finger against glass when calculating a lie.</p>
+        </div>
+
+        <div class="dsec">
+          <h3>Motivation</h3>
+          <p>Complete the "tithing" before the autumn tide — deliver twelve townsfolk to the Deep Ones to renew the family's century-old covenant, and secure Selina's place as the next vessel.</p>
+        </div>
+
+        <div class="dsec">
+          <h3>Stats (CoC 7e, abbrev.)</h3>
+          <div class="statgrid">
+            <div class="statcell"><div class="l">STR / CON</div><div class="v">55 / 60</div></div>
+            <div class="statcell"><div class="l">DEX / SIZ</div><div class="v">40 / 65</div></div>
+            <div class="statcell"><div class="l">HP</div><div class="v">13</div></div>
+            <div class="statcell"><div class="l">Sanity Loss</div><div class="v">1/1d6</div></div>
+          </div>
+        </div>
+
+        <div class="dsec">
+          <h3>Relationships</h3>
+          <div class="rellist">
+            <div class="relrow"><span class="av" style="background:radial-gradient(circle at 35% 30%,#ecd6a0,#7a611f 70%)">SM</span><span class="rn">Selina Marsh</span><span class="rtag serves">Grooms</span></div>
+            <div class="relrow"><span class="av" style="background:radial-gradient(circle at 35% 30%,#e0a3a3,#7a2f2f 70%)">DW</span><span class="rn">Deacon Wraith</span><span class="rtag serves">Served by</span></div>
+            <div class="relrow"><span class="av" style="background:radial-gradient(circle at 35% 30%,#ecd6a0,#7a611f 70%)">ET</span><span class="rn">Capt. Eli Thorne</span><span class="rtag owes">Owed coin</span></div>
+            <div class="relrow"><span class="av" style="background:radial-gradient(circle at 35% 30%,#cbd8d0,#2f4a3f 70%)">TH</span><span class="rn">Sgt. Halloway</span><span class="rtag fears">Feared by</span></div>
+            <div class="relrow"><span class="av" style="background:radial-gradient(circle at 35% 30%,#cbd8d0,#2f4a3f 70%)">AB</span><span class="rn">Lord Blackthorn</span><span class="rtag hates">Rivals / hates</span></div>
+          </div>
+        </div>
+
+        <div class="dsec secret">
+          <svg class="lock" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <h3>GM Secret Notes</h3>
+          <p>Obadiah is already three-quarters Deep One in physiology — remove his hat and coat only for the final reveal. He genuinely fears Lord Blackthorn's trade fleet uncovering the refinery's ledgers, since Blackthorn's audit would expose the tithe payments as bodies, not cargo. If Selina is confronted directly, Obadiah will offer the party a "tithe exemption" in exchange for silence — a trap: the exemption is temporary and applies to them alone.</p>
+        </div>
+      </div>
+
+      <div class="dfoot">
+        <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>
+        <button class="btn solid"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 9h6M9 13h4"/></svg>Peek Card</button>
+      </div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

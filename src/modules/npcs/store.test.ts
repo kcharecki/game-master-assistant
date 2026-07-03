@@ -6,6 +6,7 @@ vi.mock('../../lib/db', () => ({
 }));
 
 import { npcs } from './store.svelte';
+import { loc } from '../../lib/loc';
 
 describe('NpcStore', () => {
   beforeEach(() => {
@@ -38,8 +39,8 @@ describe('NpcStore', () => {
     expect(npcs.list).toHaveLength(1);
     expect(n.name).toBe('Bram Calloway');
     expect(n.disposition).toBe('neutral');
-    expect(n.role.length).toBeGreaterThan(0);
-    expect(n.voice).toContain(';');
+    expect(loc(n.role, 'en').length).toBeGreaterThan(0);
+    expect(loc(n.voice, 'en')).toContain(';');
   });
 
   const get = (id: string) => npcs.list.find((x) => x.id === id)!;

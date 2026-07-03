@@ -6,6 +6,7 @@ import { t } from '../../lib/i18n';
 import { initiative } from '../initiative/store.svelte';
 import { calendar } from '../calendar/store.svelte';
 import { npcs } from '../npcs/store.svelte';
+import { locStrings } from '../../lib/loc';
 import {
   parseTags,
   filterNotes,
@@ -61,9 +62,9 @@ class NotebookStore {
     return allTags($state.snapshot(this.notes));
   }
 
-  /** NPC names for `@npc` autocomplete (read-only from the roster). */
+  /** NPC names (both languages) for `@npc` autocomplete (read-only from the roster). */
   get npcNames(): string[] {
-    return $state.snapshot(npcs.list).map((n) => n.name);
+    return $state.snapshot(npcs.list).flatMap((n) => locStrings(n.name));
   }
 
   /** Best-effort snapshot of the live table state at save time. */
