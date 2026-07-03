@@ -6,7 +6,7 @@
   import { parseNpcs, parseSpells, NPC_PROMPT, SPELL_PROMPT } from './import';
   import { publicView } from './public';
   import { assetUrl } from '../../lib/db';
-  import { loc, setLoc, locStrings, type LocalizedText } from '../../lib/loc';
+  import { loc, setLoc, locStrings, paragraphs, type LocalizedText } from '../../lib/loc';
   import { lang } from '../../lib/stores/lang.svelte';
   import { t } from '../../lib/i18n';
   import Icon from '../../lib/components/Icon.svelte';
@@ -16,6 +16,7 @@
   import { putOnAir } from '../reveal/bus-actions';
 
   const g = (v: LocalizedText | undefined) => loc(v, lang.current);
+  const ps = (v: LocalizedText | undefined) => paragraphs(v, lang.current);
   const sl = (v: LocalizedText | undefined, text: string) => setLoc(v, lang.current, text);
   const dispClass: Record<Disposition, string> = { ally: 'ally', neutral: 'neutral', hostile: 'hostile' };
 
@@ -75,6 +76,8 @@
   let urls = $state<Record<string, string>>({});
   $effect(() => {
     const want = new Set(npcs.list.map((n) => n.portraitId).filter(Boolean) as string[]);
+    // Also resolve the selected NPC's full gallery for the paper-clipped photo stack.
+    for (const id of selectedNpc?.gallery ?? []) want.add(id);
     for (const [id, url] of Object.entries(urls)) {
       if (!want.has(id)) {
         URL.revokeObjectURL(url);
@@ -91,9 +94,20 @@
 
   const initials = (v: LocalizedText | undefined) => g(v).slice(0, 2).toUpperCase() || '??';
 
+  // Photos for the paper-clipped stack: primary first, then the rest of the gallery.
+  const photos = $derived.by(() => {
+    const n = selectedNpc;
+    if (!n) return [] as string[];
+    const rest = (n.gallery ?? []).filter((id) => id !== n.portraitId);
+    return [...(n.portraitId ? [n.portraitId] : []), ...rest];
+  });
+
   function selectNpc(id: string) {
     selectedNpcId = id;
     editing = false;
+  }
+  function removeNpc(n: Npc) {
+    if (confirm(`${t('npcs.deleteConfirm')}\n\n${g(n.name)}`)) npcs.remove(n.id);
   }
   function selectSpell(id: string) {
     selectedSpellId = id;
@@ -240,7 +254,7 @@
         <div class="deckwrap">
           <button class="navbtn prev" aria-label={t('npcs.prevCard')} disabled={!canNav} onclick={() => step(-1)}>‹</button>
           <div class="deck">
-            {#if !editing}{@render peekDeck()}{/if}
+            {#if !editing}{@render peekDeck()}<span class="clip" aria-hidden="true"></span>{/if}
             <article class="card" class:editmode={editing}>
               {#if !editing}{@render holes()}{/if}
           {#if editing}
@@ -255,15 +269,35 @@
             </div>
           {:else}
             <div class="card-scroll">
+              <span class="stamp" aria-hidden="true">
+                {t('npcs.stampTitle')}<small>{t('npcs.stampSub')}</small>
+              </span>
               <div class="card-top">
-                <span class="portrait">
-                  {#if n.portraitId && urls[n.portraitId]}
-                    <img src={urls[n.portraitId]} alt="" />
+                <div class="photostack" class:multi={photos.length > 1}>
+                  {#if photos.length}
+                    {#each photos as pid, i (pid)}
+                      <button
+                        class="snap"
+                        class:primary={i === 0}
+                        style="--i:{i}"
+                        disabled={i === 0}
+                        title={i === 0 ? '' : t('npcs.setPrimary')}
+                        aria-label={t('npcs.setPrimary')}
+                        onclick={() => npcs.setPrimaryPhoto(n.id, pid)}
+                      >
+                        {#if urls[pid]}<img src={urls[pid]} alt="" />{:else}<span class="pini">{initials(n.name)}</span>{/if}
+                      </button>
+                    {/each}
                   {:else}
-                    <span class="pini">{initials(n.name)}</span>
+                    <span class="snap primary empty"><span class="pini">{initials(n.name)}</span></span>
                   {/if}
-                </span>
+                </div>
                 <div class="card-id">
+                  <div class="fileline">
+                    <span>{t('npcs.dossierFileNo')} <b>{filedLetter(n.name)}-{String(idx >= 0 ? idx + 1 : 1).padStart(3, '0')}</b></span>
+                    <span class="regsec">§ XIII</span>
+                  </div>
+                  <div class="subjlabel">{t('npcs.dossierSubject')}</div>
                   <div class="nm">{g(n.name) || t('npcs.namePlaceholder')}</div>
                   {#if g(n.role)}<div class="role">{g(n.role)}</div>{/if}
                   <span class="tag {dispClass[n.disposition]}">{t('npcs.disposition.' + n.disposition)}</span>
@@ -343,12 +377,12 @@
                     <div class="fld"><div class="k">{t('npcs.voicePlaceholder')}</div><div class="v quote">{g(n.voice)}</div></div>
                   {/if}
                   {#if g(n.publicBlurb)}
-                    <div class="fld"><div class="k public">{t('npcs.publicBlurb')}</div><div class="v">{g(n.publicBlurb)}</div></div>
+                    <div class="fld"><div class="k public">{t('npcs.publicBlurb')}</div><div class="v prose">{#each ps(n.publicBlurb) as para}<p>{para}</p>{/each}</div></div>
                   {/if}
                   {#if g(n.gmNotes)}
                     <div class="secret">
                       <div class="k"><span>👁</span> {t('npcs.gmNotes')}</div>
-                      <div class="v">{g(n.gmNotes)}</div>
+                      <div class="v prose">{#each ps(n.gmNotes) as para}<p>{para}</p>{/each}</div>
                     </div>
                   {/if}
                 </div>
@@ -358,6 +392,7 @@
             <div class="card-foot">
               <span class="idx">{idx >= 0 ? idx + 1 : 1} / {shownNpcs.length} · {t('npcs.filedUnder')} “{filedLetter(n.name)}”</span>
               <div class="foot-btns">
+                <button class="cbtn danger" onclick={() => removeNpc(n)}><Icon name="trash" /> {t('npcs.delete')}</button>
                 <button class="cbtn" onclick={() => (editing = true)}>✎ {t('npcs.edit')}</button>
                 <button class="cbtn dark" onclick={() => reveal(n)}>{t('npcs.reveal')}</button>
               </div>
@@ -408,7 +443,7 @@
               </div>
             </div>
             {#if g(sp.description)}
-              <p class="desc">{g(sp.description)}</p>
+              <div class="desc">{#each ps(sp.description) as para}<p>{para}</p>{/each}</div>
             {/if}
             {#if known.length}
               <div class="fld">
@@ -474,6 +509,8 @@
     --card-ink-muted: #5c5240;
     --card-line: rgba(43, 36, 26, 0.18);
     --card-line2: rgba(43, 36, 26, 0.32);
+    --card-red: #8f271d;
+    --mono: 'Courier New', Courier, monospace;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -739,25 +776,142 @@
     padding-bottom: 12px;
     border-bottom: 2px solid var(--card-line2);
   }
-  .portrait {
-    width: 76px;
-    height: 76px;
-    border-radius: 8px;
-    flex: 0 0 auto;
-    overflow: hidden;
-    border: 1px solid var(--card-line2);
-    background: rgba(43, 36, 26, 0.12);
-    display: grid;
-    place-items: center;
-  }
-  .portrait img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
   .pini {
     font: 700 22px var(--serif, Georgia), serif;
     color: #6a5a34;
+  }
+
+  /* ===== Manila dossier masthead ===== */
+  .card-top {
+    position: relative;
+    min-height: 158px;
+  }
+  /* diagonal rubber stamp over the top-right corner */
+  .stamp {
+    position: absolute;
+    top: 34px;
+    right: 18px;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    font-family: var(--mono);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--card-red);
+    border: 3px double var(--card-red);
+    border-radius: 4px;
+    padding: 4px 13px;
+    transform: rotate(-9deg);
+    opacity: 0.66;
+    pointer-events: none;
+  }
+  .stamp small {
+    font-size: 7.5px;
+    letter-spacing: 0.24em;
+  }
+  /* paper-clipped photo stack */
+  .photostack {
+    position: relative;
+    flex: 0 0 auto;
+    width: 116px;
+    height: 150px;
+    margin-top: 6px;
+  }
+  /* the clip is a sibling of the card inside .deck, so it can hook OVER the page's
+     top edge (top loop above the paper, lower loop clamping page + photos). */
+  .clip {
+    position: absolute;
+    top: -9px;
+    left: 44px;
+    width: 26px;
+    height: 92px;
+    z-index: 6;
+    border: 5px solid #9aa0a7;
+    border-radius: 13px;
+    border-bottom-color: transparent;
+    transform: rotate(-7deg);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+  /* the sliver of clip that sits above the page edge reads as tucked behind it */
+  .clip::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    right: -5px;
+    top: 9px;
+    height: 12px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent);
+    filter: blur(1px);
+  }
+  .snap {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: #fbf7ec;
+    border: 6px solid #fbf7ec;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.42);
+    cursor: pointer;
+    transform: translate(calc(var(--i) * 15px), calc(var(--i) * 12px)) rotate(calc(var(--i) * 3.4deg));
+    z-index: calc(20 - var(--i));
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .snap.primary {
+    transform: rotate(-1.5deg);
+    z-index: 20;
+    cursor: default;
+  }
+  .snap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .snap.empty {
+    background: rgba(43, 36, 26, 0.12);
+    border-color: #fbf7ec;
+  }
+  /* a peeking photo slides aside on hover to reveal itself fully */
+  .photostack.multi .snap:not(.primary):hover {
+    transform: translate(128px, -6px) rotate(2.5deg);
+    z-index: 30;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.55);
+  }
+
+  .fileline {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--card-ink-muted);
+    border-bottom: 1px solid var(--card-line2);
+    padding-bottom: 4px;
+    margin-bottom: 7px;
+  }
+  .fileline b {
+    color: var(--card-ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .fileline .regsec {
+    color: var(--card-red);
+    font-weight: 700;
+  }
+  .subjlabel {
+    font-family: var(--mono);
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--card-ink-muted);
+    margin-bottom: 3px;
   }
   .card-id {
     flex: 1;
@@ -804,12 +958,18 @@
   }
 
   .fld .k {
-    font-size: 9.5px;
-    letter-spacing: 0.12em;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--card-ink-muted);
+    color: var(--card-red);
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--card-line2);
+  }
+  .fld .k::before {
+    content: '▍ ';
   }
   .fld .k.public {
     color: #1f7a4f;
@@ -822,6 +982,15 @@
   }
   .fld .v.quote {
     font-style: italic;
+  }
+  /* prose fields (blurb / GM notes) render as spaced paragraphs */
+  .v.prose {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .v.prose p {
+    margin: 0;
   }
   /* two-column card body: stat block beside the narrative text */
   .body2 {
@@ -1010,14 +1179,18 @@
     background: rgba(255, 255, 255, 0.28);
     color: #241f14;
   }
-  .desc {
+  .desc p {
+    margin: 0 0 8px;
     font-family: var(--serif, Georgia), serif;
     font-size: 14.5px;
     line-height: 1.5;
     color: #241f14;
     white-space: pre-wrap;
   }
-  .desc::first-letter {
+  .desc p:last-child {
+    margin-bottom: 0;
+  }
+  .desc p:first-child::first-letter {
     font-size: 36px;
     float: left;
     line-height: 0.8;

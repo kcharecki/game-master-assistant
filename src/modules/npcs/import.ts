@@ -31,7 +31,7 @@ const DISPOSITIONS: Disposition[] = ['ally', 'neutral', 'hostile'];
 
 // Every text value is a bilingual object { "en": ..., "pl": ... } so the app can
 // switch between English and Polish. The word LOC below marks such fields.
-const BILINGUAL_RULES = `Every text value must be a bilingual object of the form { "en": "English text", "pl": "Polski tekst" } — always give BOTH an English and a Polish version, translating faithfully. For values that are identical in both languages (numbers, dice, percentages like "1d6+DB" or "70%"), repeat the same string in "en" and "pl". Omit any field you cannot read — do not invent data. Return ONLY valid JSON, no markdown, no commentary.`;
+const BILINGUAL_RULES = `Every text value must be a bilingual object of the form { "en": "English text", "pl": "Polski tekst" } — always give BOTH an English and a Polish version, translating faithfully. For values that are identical in both languages (numbers, dice, percentages like "1d6+DB" or "70%"), repeat the same string in "en" and "pl". In long prose fields (publicBlurb, gmNotes, description) preserve the source paragraph breaks by separating paragraphs with a "\\n" escape inside the string. Omit any field you cannot read — do not invent data. Return ONLY valid JSON, no markdown, no commentary.`;
 
 /** The LLM prompt a GM copies, then pastes alongside a photo of a stat block. */
 export const NPC_PROMPT = `You are given a photo of a tabletop RPG NPC or monster stat block (e.g. Call of Cthulhu 7e or D&D 5e), possibly in another language. Extract everything and output JSON matching this schema (LOC = a { "en", "pl" } bilingual object):

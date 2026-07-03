@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NPC — Redacted Field Report</title>
+<style>
+  :root{
+    --paper:#f3efe2; --ink:#232019; --ink2:#55503f; --red:#a3271b;
+    --line:#c9c2ac; --bar:#161310; --mono:"Courier New",Courier,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px}
+  body{font-family:var(--mono); color:var(--ink); background:#14130f; display:grid; place-items:center}
+  .sheet{
+    position:relative; width:1080px; height:830px; background:var(--paper);
+    padding:42px 60px; box-shadow:0 26px 70px rgba(0,0,0,.6);
+    background-image:linear-gradient(180deg,rgba(0,0,0,.02),transparent 40%);
+  }
+  .edge{position:absolute; inset:0; border:1px solid #00000018; pointer-events:none}
+  .banner{
+    text-align:center; color:var(--red); font-weight:700; letter-spacing:.5em;
+    font-size:16px; border-top:3px solid var(--red); border-bottom:3px solid var(--red);
+    padding:6px 0; margin-bottom:4px;
+  }
+  .metaline{display:flex; justify-content:space-between; font-size:11px; color:var(--ink2); letter-spacing:.12em; padding:8px 0; border-bottom:1px solid var(--line)}
+  .stamp{
+    position:absolute; top:120px; right:44px; border:3px solid var(--red); color:var(--red);
+    font-size:15px; font-weight:700; letter-spacing:.2em; padding:6px 14px; transform:rotate(8deg); opacity:.8;
+  }
+  .h{font-size:11px; letter-spacing:.22em; color:var(--red); font-weight:700; margin:18px 0 8px}
+  .name{font-size:26px; font-weight:700; letter-spacing:.03em; margin-top:14px}
+  .subline{font-size:12px; color:var(--ink2); letter-spacing:.14em; margin-top:3px}
+  .redact{background:var(--bar); color:var(--bar); border-radius:1px; padding:0 4px; user-select:none}
+  .redact.rvl{background:transparent; color:var(--ink); box-shadow:inset 0 -1px 0 var(--red)}
+
+  .statline{font-size:14px; line-height:2; letter-spacing:.04em; margin-top:6px}
+  .statline .lbl{display:inline-block; width:60px; color:var(--ink2)}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:6px}
+  .rows{font-size:13px; line-height:1.9}
+  .rows .r{display:flex; justify-content:space-between; border-bottom:1px dotted var(--line)}
+  .body{font-size:12.5px; line-height:1.75; text-align:justify; margin-top:6px}
+  .cav{margin-top:8px; padding:8px 12px; border-left:3px solid var(--red); background:rgba(163,39,27,.07); font-size:12px}
+  .footer{position:absolute; left:60px; right:60px; bottom:24px; font-size:10px; color:var(--ink2); letter-spacing:.16em; text-align:center; border-top:1px solid var(--line); padding-top:8px}
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="edge"></div>
+    <div class="banner">C L A S S I F I E D</div>
+    <div class="metaline"><span>FIELD REPORT · ENTITY CONTACT</span><span>REF M-0577</span><span>ORIGIN: SECTION XIII</span></div>
+    <div class="stamp">EYES ONLY</div>
+
+    <div class="name">MUMMY, SHROUD OF TERROR <span class="redact rvl">HOSTILE</span></div>
+    <div class="subline">CLASSIFICATION: UNDEAD / GUARDIAN CONSTRUCT · SAN LOSS 1/1D8 ON SIGHT</div>
+
+    <div class="two">
+      <div>
+        <div class="h">▌ VITAL STATISTICS</div>
+        <div class="statline">
+          <span class="lbl">STR</span> 105 &nbsp;&nbsp; <span class="lbl">CON</span> 80<br>
+          <span class="lbl">SIZ</span> 65 &nbsp;&nbsp;&nbsp; <span class="lbl">DEX</span> 35<br>
+          <span class="lbl">INT</span> 50 &nbsp;&nbsp;&nbsp; <span class="lbl">POW</span> 75<br>
+          <span class="lbl">HP</span>  14 &nbsp;&nbsp;&nbsp; <span class="lbl">DB</span> +1D6<br>
+          <span class="lbl">BUILD</span> 2 &nbsp; <span class="lbl">MP</span> 15<br>
+          <span class="lbl">MOVE</span> 6 &nbsp;&nbsp; <span class="lbl">ATK/R</span> 2
+        </div>
+      </div>
+      <div>
+        <div class="h">▌ ENGAGEMENT DATA</div>
+        <div class="rows">
+          <div class="r"><b>Unarmed attack</b><span>70% (35/14) · 1D6+DB</span></div>
+          <div class="r"><b>Dodge</b><span>17% (8/3)</span></div>
+          <div class="r"><b>Stealth</b><span>50%</span></div>
+        </div>
+        <div class="cav"><b>ARMOR:</b> 2 pts skin. Impaling weapons deal <span class="redact rvl">half damage</span>.</div>
+      </div>
+    </div>
+
+    <div class="h">▌ FIELD OBSERVATIONS · CLEARED FOR BRIEFING</div>
+    <div class="body">These undead beings resemble intelligent zombies. Some cults keep them in temples as guardians. Like zombies they must be <span class="redact rvl">dismembered</span> to stop them moving. Many have no bandages and move quite quickly. A mummy has twice the Strength of the person it once was, 1.5× Constitution, and two thirds of original Dexterity. Preserved with bitumen and bandages, they are especially vulnerable to <span class="redact rvl">fire</span> — normal damage, but much harder to extinguish.</div>
+
+    <div class="h">▌ KEEPER ADDENDUM</div>
+    <div class="body">Regeneration of Magic Points: <span class="redact">██████████████ blocked ████</span>. Cult handler identity: <span class="redact">███████████████████████</span>. Recovered relic location: <span class="redact">████████████</span>.</div>
+
+    <div class="footer">UNAUTHORIZED DISCLOSURE PUNISHABLE UNDER STATUTE · DESTROY BY BURNING · DECLASSIFY: NEVER</div>
+  </div>
+</body>
+</html>

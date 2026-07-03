@@ -78,6 +78,11 @@ export const world = {
     'npcs.filedUnder': 'filed under',
     'npcs.prevCard': 'Previous card',
     'npcs.nextCard': 'Next card',
+    'npcs.dossierFileNo': 'File Nº',
+    'npcs.dossierSubject': 'Subject designation',
+    'npcs.stampTitle': 'Top Secret',
+    'npcs.stampSub': 'Keeper Eyes Only',
+    'npcs.deleteConfirm': 'Delete this NPC permanently?',
     // shared JSON-import panel
     'jsonImport.import': 'Import',
     'jsonImport.copyPrompt': '🪄 Copy AI prompt',
@@ -224,6 +229,11 @@ export const world = {
     'npcs.filedUnder': 'pod literą',
     'npcs.prevCard': 'Poprzednia karta',
     'npcs.nextCard': 'Następna karta',
+    'npcs.dossierFileNo': 'Akta Nr',
+    'npcs.dossierSubject': 'Oznaczenie podmiotu',
+    'npcs.stampTitle': 'Ściśle tajne',
+    'npcs.stampSub': 'Tylko dla MG',
+    'npcs.deleteConfirm': 'Usunąć tego BN na stałe?',
     // shared JSON-import panel
     'jsonImport.import': 'Importuj',
     'jsonImport.copyPrompt': '🪄 Kopiuj prompt AI',

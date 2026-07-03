@@ -16,6 +16,7 @@
   let pinned = $state(false);
   let x = $state(0);
   let y = $state(0);
+  let maxH = $state(0);
   let el = $state<HTMLDivElement | null>(null);
   let openTimer: ReturnType<typeof setTimeout> | null = null;
   let closeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -35,10 +36,23 @@
     let px = r.right + m;
     if (px + PEEK_W > window.innerWidth) px = r.left - PEEK_W - m; // flip to the left
     x = Math.max(m, px);
-    const maxH = window.innerHeight * 0.7;
-    y = Math.min(Math.max(m, r.top), window.innerHeight - maxH - m);
+    // Reserve space for the bottom dock bar so a tall card never hides under it.
+    const dock = 108;
+    maxH = Math.min(window.innerHeight * 0.7, window.innerHeight - 2 * m - dock);
+    y = Math.min(Math.max(m, r.top), window.innerHeight - maxH - m - dock);
     if (id !== npcId) pinned = false; // fresh hover starts unpinned
     npcId = id;
+    // A transformed ancestor makes position:fixed resolve against that box, not
+    // the viewport — so `top` can render offset. Measure after paint and pull the
+    // card up / shrink it so its real bottom clears the dock.
+    requestAnimationFrame(() => {
+      if (!el || npcId !== id) return;
+      const offY = el.getBoundingClientRect().top - y; // ancestor→viewport offset
+      const available = window.innerHeight - dock - m - offY; // usable bottom, card coords
+      const h = Math.max(160, Math.min(maxH, available - m));
+      y = Math.min(y, Math.max(m, available - h));
+      maxH = h;
+    });
   }
 
   /** Start the hover-delay timer to open the peek for `id`, anchored to `anchor`. */
@@ -97,7 +111,7 @@
     class="peek"
     class:pinned
     bind:this={el}
-    style="left:{x}px; top:{y}px; width:{PEEK_W}px"
+    style="left:{x}px; top:{y}px; width:{PEEK_W}px; max-height:{maxH}px"
     onpointerenter={keep}
     onpointerleave={scheduleClose}
   >

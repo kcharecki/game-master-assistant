@@ -27,6 +27,18 @@ export function setLoc(v: LocalizedText | undefined, lang: Locale, text: string)
   return base;
 }
 
+/**
+ * Resolve a localized value and split it into paragraphs on line breaks (any run
+ * of newlines starts a new paragraph). Blank entries are dropped. Lets imported
+ * multi-paragraph text render as distinct blocks instead of one run-on wall.
+ */
+export function paragraphs(v: LocalizedText | undefined | null, lang: Locale): string[] {
+  return loc(v, lang)
+    .split(/\r?\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 /** Every non-empty variant of a localized value (used for cross-language search). */
 export function locStrings(v: LocalizedText | undefined | null): string[] {
   if (v == null) return [];

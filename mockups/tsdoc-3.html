@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NPC — Teletype Transmission</title>
+<style>
+  :root{
+    --paper:#e9e6d6; --ink:#20241f; --ink2:#565a4f; --green:#2f6b45; --red:#8f2f22;
+    --hole:#14130f; --mono:"Courier New",Courier,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px}
+  body{font-family:var(--mono); background:#111; display:grid; place-items:center; color:var(--ink)}
+  .telex{
+    position:relative; width:940px; height:836px; background:var(--paper);
+    box-shadow:0 26px 70px rgba(0,0,0,.6);
+    padding:40px 78px;
+    background-image:repeating-linear-gradient(0deg,transparent 0 31px,rgba(0,0,0,.03) 31px 32px);
+  }
+  /* perforated sprocket edges */
+  .telex::before,.telex::after{
+    content:""; position:absolute; top:0; bottom:0; width:34px;
+    background-image:radial-gradient(circle at center, var(--hole) 0 4px, transparent 5px);
+    background-size:34px 30px; background-position:center 12px; opacity:.5;
+  }
+  .telex::before{left:0} .telex::after{right:0}
+  .wrap{padding:0 6px}
+  .rule{border:0; border-top:1px dashed var(--ink2); margin:10px 0}
+  pre{font-family:var(--mono); font-size:13.5px; line-height:1.72; letter-spacing:.02em; white-space:pre-wrap; color:var(--ink)}
+  .hdr{color:var(--red); font-weight:700}
+  .lbl{color:var(--ink2)}
+  .name{font-size:21px; font-weight:700; letter-spacing:.06em; color:var(--ink)}
+  .pub{color:var(--green); font-weight:700}
+  .stampbox{position:absolute; right:60px; top:44px; border:3px solid var(--red); color:var(--red); font-weight:700; letter-spacing:.16em; font-size:13px; padding:5px 12px; transform:rotate(6deg); opacity:.82}
+  .blink{position:absolute; left:78px; bottom:30px; font-size:11px; color:var(--ink2); letter-spacing:.14em}
+</style>
+</head>
+<body>
+  <div class="telex">
+    <div class="stampbox">TOP SECRET</div>
+    <div class="wrap">
+<pre><span class="hdr">*** INCOMING TRANSMISSION — SECTION XIII TELEX ***</span>
+<span class="lbl">TO..:</span> KEEPER STATION / EYES ONLY
+<span class="lbl">REF.:</span> M-0577          <span class="lbl">PRTY:</span> FLASH
+<span class="lbl">CLAS:</span> UNDEAD / CONSTRUCT   <span class="lbl">DISP:</span> HOSTILE</pre>
+      <hr class="rule">
+<pre><span class="name">SUBJECT: MUMMY, SHROUD OF TERROR</span>
+SANITY ON SIGHT ... 1 / 1D8 SAN</pre>
+      <hr class="rule">
+<pre><span class="hdr">-- CHARACTERISTICS --------------------------------</span>
+  STR 105    CON 80     SIZ 65
+  DEX 35     INT 50     POW 75
+  HP  14     DB  +1D6   BUILD 2
+  MP  15     MOVE 6     ATK/RND 2
+
+<span class="hdr">-- COMBAT -----------------------------------------</span>
+  UNARMED ATTACK ... 70% (35/14) ... 1D6 + DB
+  DODGE .......... 17% (8/3)
+
+<span class="hdr">-- SKILLS / DEFENCE -------------------------------</span>
+  STEALTH ........ 50%
+  ARMOR .......... 2 PTS SKIN. IMPALING WEAPONS
+                   DEAL HALF DAMAGE.</pre>
+      <hr class="rule">
+<pre><span class="pub">-- PUBLIC BRIEFING [CLEARED FOR PLAYERS] ----------</span>
+INTELLIGENT-ZOMBIE CLASS UNDEAD. KEPT BY CULTS AS
+TEMPLE GUARDIANS. MUST BE DISMEMBERED TO STOP.
+MANY LACK BANDAGES + MOVE QUICKLY. STR 2X / CON
+1.5X / DEX 2/3 OF LIVING SUBJECT. HIGHLY VULNERABLE
+TO FIRE: NORMAL DMG BUT HARD TO EXTINGUISH.</pre>
+    </div>
+    <div class="blink">▮ END OF MESSAGE ·· NNNN ·· DESTROY AFTER READING</div>
+  </div>
+</body>
+</html>

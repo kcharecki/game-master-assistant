@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPC Display — Top Secret Document Variants</title>
+<style>
+  :root{
+    --serif:'IM Fell English','Cormorant','Georgia','Times New Roman',serif;
+    --bg:#080d0b; --panel:#0f1815; --panel2:#13201b;
+    --line:rgba(95,150,120,.18); --line2:rgba(95,150,120,.32);
+    --txt:#dbeae1; --muted:#a7bcb0; --faint:#8a9d93;
+    --green:#6fd0a0; --green-dim:#4fa37b; --gold:#d6b65e; --r:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--txt); min-height:100%;
+    background:
+      radial-gradient(900px 620px at 72% 8%,rgba(31,122,79,.16),transparent 60%),
+      radial-gradient(760px 520px at 12% 100%,rgba(31,122,79,.10),transparent 60%),
+      var(--bg);
+  }
+  header{max-width:1400px;margin:0 auto;padding:46px 32px 6px}
+  .kicker{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:14px;text-shadow:0 0 9px rgba(70,232,154,.35)}
+  h1{font-family:var(--serif);font-size:38px;line-height:1.05;font-weight:600}
+  h1 span{color:var(--muted)}
+  .sub{margin-top:14px;color:var(--muted);max-width:760px;font-size:15px;line-height:1.6}
+  .meta{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+  .pill{font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+
+  .grid{max-width:1400px;margin:30px auto 90px;padding:0 32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:26px}
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:transform .18s,border-color .18s,box-shadow .18s}
+  .card:hover{transform:translateY(-4px);border-color:var(--green-dim);box-shadow:0 24px 60px -22px rgba(0,0,0,.92),0 0 0 1px rgba(79,163,123,.32),0 0 24px rgba(79,163,123,.20)}
+
+  .frame{position:relative;aspect-ratio:16/10;background:#14130f;overflow:hidden;border-bottom:1px solid var(--line)}
+  /* 400/1440 = .2778 */
+  .frame iframe{position:absolute;top:0;left:0;border:0;width:1440px;height:900px;transform:scale(.2778);transform-origin:top left;pointer-events:none;background:#14130f}
+  .frame a.cover{position:absolute;inset:0;z-index:2}
+  .badge{position:absolute;top:12px;left:12px;z-index:3;font-size:11px;font-weight:700;letter-spacing:.04em;background:rgba(8,13,11,.82);border:1px solid var(--line2);color:var(--green);padding:5px 10px;border-radius:8px;backdrop-filter:blur(6px)}
+  .num{position:absolute;top:12px;right:12px;z-index:3;font-size:11px;font-family:ui-monospace,monospace;color:var(--faint);background:rgba(8,13,11,.82);border:1px solid var(--line);padding:5px 9px;border-radius:8px;backdrop-filter:blur(6px)}
+  .open-hint{position:absolute;bottom:12px;right:12px;z-index:3;opacity:0;font-size:12px;font-weight:700;background:linear-gradient(180deg,#36996f,#256f52);color:#eafff3;padding:7px 13px;border-radius:8px;transition:opacity .18s;box-shadow:0 0 12px rgba(79,163,123,.35)}
+  .card:hover .open-hint{opacity:1}
+
+  .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:9px;flex:1}
+  .name{font-family:var(--serif);font-size:19px;font-weight:600}
+  .style{font-size:12px;font-weight:600;color:var(--gold)}
+  .desc{font-size:13px;color:var(--muted);line-height:1.55}
+  .tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+  .tag{font-size:11px;color:var(--faint);background:rgba(0,0,0,.28);border:1px solid var(--line2);padding:4px 9px;border-radius:6px}
+  .actions{margin-top:auto;display:flex;gap:10px;padding-top:6px}
+  .btn{flex:1;text-align:center;text-decoration:none;font-size:13px;font-weight:600;padding:9px 12px;border-radius:8px;border:1px solid var(--line2);color:var(--txt);background:rgba(79,163,123,.10);transition:.15s}
+  .btn:hover{border-color:var(--green-dim);background:rgba(79,163,123,.20)}
+  .btn.primary{background:linear-gradient(180deg,#36996f,#256f52);color:#eafff3;border-color:#36996f}
+  .btn.primary:hover{filter:brightness(1.08)}
+  footer{max-width:1400px;margin:0 auto;padding:0 32px 60px;color:var(--faint);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">NPC Display · 5 Top-Secret Document Directions</div>
+  <h1>Case File <span>— Declassified Variants</span></h1>
+  <p class="sub">Five ways to render a single NPC stat block as a genuine period document — manila dossier, redacted field report, teletype printout, official intake form, and detective index card. Same mummy data, five aged-paper aesthetics. Hover to preview; click to open full-screen.</p>
+  <div class="meta">
+    <span class="pill">Aged-paper / typewriter</span>
+    <span class="pill">Self-contained HTML</span>
+    <span class="pill">No network fonts</span>
+    <span class="pill">5 directions</span>
+  </div>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<footer>All mockups are self-contained HTML — no build, no network. Open any file directly in a browser. Sample subject: <em>Mummy, shroud of terror</em> (Call of Cthulhu).</footer>
+
+<script>
+const mocks = [
+  { file:"tsdoc-1.html", n:"01", name:"Manila Dossier", style:"Buff Folder + Photo",
+    desc:"Classic case folder on aged buff stock — attached mugshot, form-field header, boxed characteristics grid, red TOP SECRET stamp and coffee ring.",
+    tags:["Folder","Photo attd.","Stamp","Form fields"] },
+  { file:"tsdoc-2.html", n:"02", name:"Redacted Report", style:"Field Report w/ Redaction Bars",
+    desc:"Typed contact report with CLASSIFIED banner. Keeper-only lines blacked out with redaction bars; player-cleared observations left legible.",
+    tags:["Redaction","EYES ONLY","Typewriter"] },
+  { file:"tsdoc-3.html", n:"03", name:"Teletype", style:"Perforated Telex Printout",
+    desc:"Incoming-transmission telex on sprocket-fed continuous paper — all-caps monospace, dashed section rules, FLASH priority, END OF MESSAGE.",
+    tags:["Telex","Perforated","All-caps"] },
+  { file:"tsdoc-4.html", n:"04", name:"Intake Form", style:"Official Ruled Form XIII-E",
+    desc:"Bureaucratic threat-assessment form on green ledger grid — bordered field table, disposition checkboxes, official seal, signature lines.",
+    tags:["Form","Checkboxes","Seal","Ledger"] },
+  { file:"tsdoc-5.html", n:"05", name:"Index Card", style:"Catalog Card + Evidence Tape",
+    desc:"A detective's ruled index card pulled from the drawer — red margin rule, paperclip, tape, disposition tags, peeking cards behind. Tactile.",
+    tags:["Index card","Paperclip","Tags","Stacked"] },
+];
+
+const cardHTML = m=>`
+  <article class="card">
+    <div class="frame">
+      <span class="badge">${m.style}</span>
+      <span class="num">№ ${m.n}</span>
+      <iframe src="${m.file}" loading="lazy" scrolling="no" tabindex="-1" title="${m.name} preview"></iframe>
+      <span class="open-hint">Open full ↗</span>
+      <a class="cover" href="${m.file}" target="_blank" aria-label="Open ${m.name}"></a>
+    </div>
+    <div class="body">
+      <span class="name">${m.name}</span>
+      <span class="style">${m.style}</span>
+      <p class="desc">${m.desc}</p>
+      <div class="tags">${m.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+      <div class="actions">
+        <a class="btn primary" href="${m.file}" target="_blank">Open mockup</a>
+        <a class="btn" href="${m.file}" target="_blank">New tab ↗</a>
+      </div>
+    </div>
+  </article>
+`;
+document.getElementById("grid").innerHTML = mocks.map(cardHTML).join("");
+</script>
+</body>
+</html>

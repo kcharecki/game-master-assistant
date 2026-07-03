@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NPC — Manila Dossier</title>
+<style>
+  :root{
+    --paper:#e7ddc4; --paper2:#ded2b3; --ink:#2b2620; --ink2:#4a4236;
+    --red:#9c2b21; --stamp:#8f271d; --line:#b7a982; --box:#cdbf9b;
+    --mono:"Courier New",Courier,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px}
+  body{
+    font-family:var(--mono); color:var(--ink);
+    background:#1b1a16;
+    display:grid; place-items:center;
+  }
+  .folder{
+    position:relative; width:1180px; height:820px;
+    background:
+      repeating-linear-gradient(0deg,transparent 0 27px,rgba(0,0,0,.025) 27px 28px),
+      linear-gradient(180deg,var(--paper) 0%,var(--paper2) 100%);
+    box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 60px rgba(120,100,60,.18);
+    padding:38px 46px; border:1px solid #00000022;
+  }
+  /* coffee ring */
+  .folder::after{
+    content:""; position:absolute; right:120px; bottom:60px; width:120px; height:120px;
+    border-radius:50%; border:9px solid rgba(120,80,30,.10);
+    box-shadow:inset 0 0 8px rgba(120,80,30,.10); transform:rotate(12deg);
+  }
+  .topbar{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid var(--ink); padding-bottom:10px}
+  .agency{font-size:12px; letter-spacing:.32em; color:var(--ink2)}
+  .agency b{color:var(--ink)}
+  .fileno{text-align:right; font-size:12px; color:var(--ink2); letter-spacing:.12em; line-height:1.7}
+  .fileno b{color:var(--ink)}
+
+  .stamp{
+    position:absolute; top:60px; right:70px; z-index:5;
+    border:4px double var(--stamp); color:var(--stamp);
+    padding:8px 18px; font-size:26px; font-weight:700; letter-spacing:.14em;
+    transform:rotate(-11deg); opacity:.82; border-radius:4px;
+    box-shadow:0 0 0 2px rgba(143,39,29,.15);
+  }
+  .stamp small{display:block; text-align:center; font-size:10px; letter-spacing:.34em}
+
+  .subject{display:flex; gap:22px; margin-top:22px}
+  .photo{
+    width:150px; height:186px; flex:0 0 auto; background:#3a352c;
+    border:8px solid #faf6ea; box-shadow:0 6px 16px rgba(0,0,0,.4);
+    display:grid; place-items:center; transform:rotate(-2deg);
+  }
+  .photo span{color:#9c9484; font-size:11px; letter-spacing:.2em}
+  .photo::after{content:"PHOTO ATTD."; position:absolute}
+  .idblock{flex:1; padding-top:4px}
+  .fieldrow{display:flex; gap:8px; align-items:flex-end; margin-bottom:14px}
+  .flabel{font-size:11px; letter-spacing:.14em; color:var(--ink2); white-space:nowrap}
+  .fval{flex:1; border-bottom:1px dotted var(--ink2); padding:0 4px 3px}
+  .fval.big{font-size:30px; font-weight:700; letter-spacing:.02em; border-bottom:2px solid var(--ink)}
+  .chip{display:inline-block; border:2px solid var(--red); color:var(--red); font-size:12px; font-weight:700; letter-spacing:.14em; padding:3px 12px; transform:rotate(-1deg)}
+
+  .cols{display:grid; grid-template-columns:1.15fr 1fr; gap:34px; margin-top:26px}
+  .sechead{font-size:12px; letter-spacing:.24em; font-weight:700; color:var(--red); border-bottom:1px solid var(--line); padding-bottom:4px; margin-bottom:10px}
+  .grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line)}
+  .cell{background:var(--paper); padding:7px 9px}
+  .cell .k{font-size:9px; letter-spacing:.1em; color:var(--ink2)}
+  .cell .v{font-size:15px; font-weight:700}
+  .lines{font-size:13px; line-height:1.55}
+  .lines .r{display:flex; justify-content:space-between; border-bottom:1px dotted var(--line); padding:4px 0}
+  .lines .r b{font-weight:700}
+  .note{font-size:12px; line-height:1.6; margin-top:8px; text-align:justify}
+  .flag{background:rgba(156,43,33,.10); border-left:3px solid var(--red); padding:7px 10px; font-size:12px; margin-top:10px}
+  .brief{font-size:12.5px; line-height:1.7; text-align:justify; margin-top:6px; column-count:1}
+  .publictag{color:#5a6e40; border-color:#5a6e40 !important}
+  .footer{position:absolute; left:46px; right:46px; bottom:26px; display:flex; justify-content:space-between; font-size:10px; color:var(--ink2); letter-spacing:.14em; border-top:1px solid var(--line); padding-top:8px}
+</style>
+</head>
+<body>
+  <div class="folder">
+    <div class="stamp">TOP SECRET<small>KEEPER EYES ONLY</small></div>
+
+    <div class="topbar">
+      <div class="agency"><b>BUREAU OF PRETERNATURAL AFFAIRS</b><br>ENTITY REGISTRY · SECTION XIII</div>
+      <div class="fileno">FILE&nbsp;NO. <b>M-0577</b><br>CLASS: <b>UNDEAD / CONSTRUCT</b><br>DATE: 03 JUL</div>
+    </div>
+
+    <div class="subject">
+      <div class="photo"><span>PHOTO ATTD.</span></div>
+      <div class="idblock">
+        <div class="fieldrow"><span class="flabel">SUBJECT DESIGNATION</span><span class="fval big">MUMMY, SHROUD OF TERROR</span></div>
+        <div class="fieldrow"><span class="flabel">DISPOSITION</span><span class="fval"><span class="chip">HOSTILE</span></span>
+          <span class="flabel">MOVE</span><span class="fval">6</span>
+          <span class="flabel">ATK/RND</span><span class="fval">2</span></div>
+        <div class="fieldrow"><span class="flabel">SANITY EXPOSURE</span><span class="fval">1 / 1D8 SAN — on sighting</span></div>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="sechead">▍ CHARACTERISTICS</div>
+        <div class="grid">
+          <div class="cell"><div class="k">STR</div><div class="v">105</div></div>
+          <div class="cell"><div class="k">CON</div><div class="v">80</div></div>
+          <div class="cell"><div class="k">SIZ</div><div class="v">65</div></div>
+          <div class="cell"><div class="k">DEX</div><div class="v">35</div></div>
+          <div class="cell"><div class="k">INT</div><div class="v">50</div></div>
+          <div class="cell"><div class="k">POW</div><div class="v">75</div></div>
+          <div class="cell"><div class="k">HIT PTS</div><div class="v">14</div></div>
+          <div class="cell"><div class="k">DMG BONUS</div><div class="v">+1D6</div></div>
+          <div class="cell"><div class="k">BUILD</div><div class="v">2</div></div>
+          <div class="cell"><div class="k">MAGIC PTS</div><div class="v">15</div></div>
+          <div class="cell"><div class="k">MOVE</div><div class="v">6</div></div>
+          <div class="cell"><div class="k">ATK / RND</div><div class="v">2</div></div>
+        </div>
+
+        <div class="sechead" style="margin-top:20px">▍ COMBAT LOG</div>
+        <div class="lines">
+          <div class="r"><b>Unarmed attack</b><span>70% (35/14) · 1D6 + DB</span></div>
+          <div class="r"><b>Dodge</b><span>17% (8/3)</span></div>
+        </div>
+
+        <div class="sechead" style="margin-top:20px">▍ SKILLS &amp; DEFENCE</div>
+        <div class="lines">
+          <div class="r"><b>Stealth</b><span>50%</span></div>
+        </div>
+        <div class="flag"><b>ARMOR ·</b> 2 points of skin. Impaling weapons less effective — deal half damage.</div>
+      </div>
+
+      <div>
+        <div class="sechead publictag" style="color:#5a6e40; border-color:#5a6e40">▍ PUBLIC BRIEFING · PLAYERS MAY VIEW</div>
+        <p class="brief">These undead beings resemble intelligent zombies. Some cults keep mummies in temples to serve as guardians. Like zombies, they must be dismembered to stop them moving. Contrary to popular belief, many mummies have no bandages and can move quite quickly. A mummy has twice the Strength of the living person it once was, 1.5× the Constitution, and two thirds of the original Dexterity. Because Egyptian mummies were preserved with bitumen and bandages, fire is especially effective — it deals normal damage but is much harder to extinguish.</p>
+      </div>
+    </div>
+
+    <div class="footer"><span>FORM BPA-13 · REV. 1928</span><span>DECLASSIFY ON: NEVER</span><span>PAGE 1 OF 1</span></div>
+  </div>
+</body>
+</html>
