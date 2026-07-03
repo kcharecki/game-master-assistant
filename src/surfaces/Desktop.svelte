@@ -11,7 +11,6 @@
 
   function seed() {
     wm.add('initiative', 22, 20);
-    wm.add('roller', 384, 20);
     wm.add('npcs', 702, 20);
     wm.add('handouts', 384, 338);
     wm.add('notebook', 22, 470);

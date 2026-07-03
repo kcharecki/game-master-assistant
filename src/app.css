@@ -536,6 +536,8 @@ button {
   padding: 10px 9px;
   background: linear-gradient(180deg, #0b1310, #080e0c);
   border-right: 1px solid var(--line);
+  overflow-y: auto;
+  min-height: 0;
 }
 .nav {
   display: flex;

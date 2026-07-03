@@ -1,8 +1,11 @@
 export const dicerules = {
   en: {
     // roller
-    'roller.adv': 'adv',
-    'roller.dis': 'dis',
+    'roller.adv': 'Adv',
+    'roller.dis': 'Dis',
+    'roller.norm': 'Norm',
+    'roller.tapDie': 'tap a die to roll',
+    'roller.air': 'Air',
     'roller.badExpr': 'bad expression',
     'roller.hiddenTag': '· hidden',
     'roller.enterRoll': 'enter a roll',
@@ -53,8 +56,11 @@ export const dicerules = {
   },
   pl: {
     // roller
-    'roller.adv': 'przew.',
-    'roller.dis': 'utrud.',
+    'roller.adv': 'Przew.',
+    'roller.dis': 'Utrud.',
+    'roller.norm': 'Norm.',
+    'roller.tapDie': 'dotknij kość, by rzucić',
+    'roller.air': 'Pokaż',
     'roller.badExpr': 'błędne wyrażenie',
     'roller.hiddenTag': '· ukryty',
     'roller.enterRoll': 'wpisz rzut',

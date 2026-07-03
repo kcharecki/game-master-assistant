@@ -1,254 +1,163 @@
 <script lang="ts">
-  import {
-    roll,
-    DEFAULT_MACROS,
-    rollCardModel,
-    trimHistory,
-    type RollMode,
-    type RollResult,
-    type HistoryEntry,
-  } from './logic';
+  import { roll, rollCardModel, type RollMode, type RollResult } from './logic';
   import { sendRollCard } from './bus-actions';
   import { t } from '../../lib/i18n';
 
-  let expr = $state('1d20');
-  let label = $state('');
+  const DICE = [4, 6, 8, 10, 12, 20, 100];
+
   let mode = $state<RollMode>('normal');
-  let hidden = $state(false);
   let result = $state<RollResult | null>(null);
-  let error = $state(false);
-  // Last-N roll log (newest first); public rolls can be re-aired from here.
-  let history = $state<HistoryEntry[]>([]);
+  let expr = $state('');
+  let lastSides = $state<number | null>(null);
 
-  function doRoll(e = expr): HistoryEntry | null {
-    expr = e;
-    const r = roll(e, mode, hidden);
-    if (!r) {
-      error = true;
-      result = null;
-      return null;
-    }
-    error = false;
+  // Roll a single die of `sides`. adv/dis only applies to d20 (a d100 kept-high
+  // would be wrong for CoC, where low rolls are good). Result is GM-side until aired.
+  function rollDie(sides: number) {
+    const e = `1d${sides}`;
+    const r = roll(e, sides === 20 ? mode : 'normal');
+    if (!r) return;
     result = r;
-    const entry: HistoryEntry = {
-      id: crypto.randomUUID(),
-      expr: e,
-      ...(label.trim() ? { label: label.trim() } : {}),
-      result: r,
-      at: Date.now(),
-    };
-    history = trimHistory(history, entry);
-    return entry;
-    // Hidden GM rolls are kept GM-side and are never sent to the broadcast bus.
+    expr = e;
+    lastSides = sides;
   }
 
-  // Roll and, if not hidden, air the result as a big card on the broadcast.
-  function rollPublic() {
-    const entry = doRoll();
-    if (entry && !entry.result.hidden) air(entry);
-  }
-
-  // Re-air a past (non-hidden) roll as a broadcast card. Hidden entries are
-  // never aired — the guard here backs up the GM-only invariant.
-  function air(entry: HistoryEntry) {
-    if (entry.result.hidden) return;
-    sendRollCard(rollCardModel(entry.result, entry.expr, entry.label));
+  // Push the current (GM-side) result onto the broadcast as a big card.
+  function air() {
+    if (!result) return;
+    sendRollCard(rollCardModel(result, expr));
   }
 </script>
 
-<div class="diebox">
-  <div class="dt">{expr}{mode !== 'normal'
-      ? ` · ${mode === 'advantage' ? t('roller.adv') : t('roller.dis')}`
-      : ''}</div>
-  <div class="dn">{result ? result.total : '—'}</div>
-  <div class="ds">
-    {#if error}
-      <span class="err">{t('roller.badExpr')}</span>
-    {:else if result}
-      [{result.kept.join(', ')}]{result.modifier
-        ? (result.modifier > 0 ? ' +' : ' ') + result.modifier
-        : ''}
-      {#if result.hidden}<span class="hid">{t('roller.hiddenTag')}</span>{/if}
+<div class="res">
+  <div class="num">{result ? result.total : '—'}</div>
+  <div class="meta">
+    {#if result}
+      <div class="lbl">{expr}{expr === '1d20' && mode !== 'normal'
+          ? ` · ${mode === 'advantage' ? t('roller.adv') : t('roller.dis')}`
+          : ''}</div>
+      {#if result.rolls.length > 1}
+        <div class="sub">[{result.rolls.join(', ')}]</div>
+      {/if}
     {:else}
-      {t('roller.enterRoll')}
+      <div class="lbl faint">{t('roller.tapDie')}</div>
     {/if}
   </div>
-</div>
-
-<div class="macros" data-no-drag>
-  {#each DEFAULT_MACROS as m (m.id)}
-    <button class="chip" onclick={() => doRoll(m.expr)}>{m.label}</button>
-  {/each}
-</div>
-
-<form class="add-row" data-no-drag onsubmit={(ev) => (ev.preventDefault(), doRoll())}>
-  <input class="in" bind:value={expr} aria-label={t('roller.expr')} placeholder={t('roller.exprPlaceholder')} />
-  <button class="btn solid sm" type="submit">{t('roller.roll')}</button>
-</form>
-
-<div class="opts" data-no-drag>
-  <input class="in lbl" bind:value={label} aria-label={t('roller.label')} placeholder={t('roller.labelPlaceholder')} />
-  <button class="btn air sm" type="button" onclick={rollPublic} title={t('roller.airThis')}>
-    {t('roller.rollPublic')}
+  <button class="air" type="button" onclick={air} disabled={!result} title={t('roller.airThis')}>
+    {t('roller.air')}
   </button>
 </div>
 
-<div class="opts" data-no-drag>
-  <select class="in sel" bind:value={mode} aria-label={t('roller.mode')}>
-    <option value="normal">{t('roller.normal')}</option>
-    <option value="advantage">{t('roller.advantage')}</option>
-    <option value="disadvantage">{t('roller.disadvantage')}</option>
-  </select>
-  <label class="hidchk">
-    <input type="checkbox" bind:checked={hidden} /> {t('roller.hidden')}
-  </label>
+<div class="tray" data-no-drag>
+  {#each DICE as s (s)}
+    <button class="die" class:hero={s === lastSides} type="button" onclick={() => rollDie(s)}>d{s}</button>
+  {/each}
 </div>
 
-<div class="hist" data-no-drag>
-  <div class="hist-h">{t('roller.history')}</div>
-  {#if history.length === 0}
-    <div class="hist-empty">{t('roller.noHistory')}</div>
-  {:else}
-    <ul class="hist-list">
-      {#each history as h (h.id)}
-        <li class="hist-row">
-          <span class="hist-expr">{h.label ? `${h.label}: ` : ''}{h.expr}</span>
-          <span class="hist-total">{h.result.total}</span>
-          {#if h.result.hidden}
-            <span class="hid">{t('roller.hiddenNoAir')}</span>
-          {:else}
-            <button class="chip reair" type="button" onclick={() => air(h)}>{t('roller.reair')}</button>
-          {/if}
-        </li>
-      {/each}
-    </ul>
-  {/if}
+<div class="modes" data-no-drag>
+  <div class="seg">
+    <button class:on={mode === 'disadvantage'} type="button" onclick={() => (mode = 'disadvantage')}>{t('roller.dis')}</button>
+    <button class:on={mode === 'normal'} type="button" onclick={() => (mode = 'normal')}>{t('roller.norm')}</button>
+    <button class:on={mode === 'advantage'} type="button" onclick={() => (mode = 'advantage')}>{t('roller.adv')}</button>
+  </div>
 </div>
 
 <style>
-  .macros {
+  .res {
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 10px;
-  }
-  .chip {
-    padding: 4px 9px;
-    border-radius: 999px;
-    font-size: 12px;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.25);
     border: 1px solid var(--line2);
-    background: rgba(47, 138, 102, 0.1);
-    color: var(--txt);
-    cursor: pointer;
+    border-radius: 9px;
+    padding: 9px 12px;
+    margin-bottom: 12px;
   }
-  .chip:hover {
-    background: rgba(47, 138, 102, 0.2);
+  .num {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--green);
+    min-width: 52px;
   }
-  .add-row {
-    display: flex;
-    gap: 6px;
-  }
-  .in {
+  .meta {
     flex: 1;
     min-width: 0;
-    padding: 7px 9px;
-    border-radius: 7px;
-    border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
-    color: var(--txt);
-    font: inherit;
-    font-size: 13px;
-  }
-  .btn.sm {
-    padding: 5px 13px;
-    font-size: 13px;
-  }
-  .opts {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 9px;
-  }
-  .sel {
-    flex: 1;
-  }
-  .hidchk {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .err {
-    color: var(--red);
-  }
-  .hid {
-    color: var(--gold);
   }
   .lbl {
-    flex: 1;
-    font-size: 12px;
+    font-size: 13px;
+    color: var(--txt);
   }
-  .btn.air {
+  .lbl.faint {
+    color: var(--faint);
+  }
+  .sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .air {
     background: rgba(47, 138, 102, 0.18);
     border: 1px solid var(--green);
     color: var(--green);
     border-radius: 7px;
-    padding: 5px 11px;
+    padding: 6px 12px;
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
   }
-  .btn.air:hover {
+  .air:hover {
     background: rgba(47, 138, 102, 0.3);
   }
-  .hist {
-    margin-top: 12px;
-    border-top: 1px solid var(--line2);
-    padding-top: 8px;
+  .air:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
-  .hist-h {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 6px;
+  .tray {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 6px;
+    margin-bottom: 11px;
   }
-  .hist-empty {
-    font-size: 12px;
-    color: var(--faint);
-  }
-  .hist-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    max-height: 120px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .hist-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-  }
-  .hist-expr {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .die {
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--line2);
+    background: rgba(47, 138, 102, 0.1);
     color: var(--txt);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
   }
-  .hist-total {
-    font-weight: 700;
+  .die:hover {
+    background: rgba(47, 138, 102, 0.24);
+    border-color: var(--green);
+  }
+  .die:active {
+    transform: scale(0.94);
+  }
+  .die.hero {
+    background: rgba(47, 138, 102, 0.22);
+    border-color: var(--green);
+  }
+  .modes {
+    display: flex;
+    justify-content: center;
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--line2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .seg button {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 4px 14px;
+    cursor: pointer;
+  }
+  .seg button.on {
+    background: rgba(111, 208, 160, 0.22);
     color: var(--green);
-  }
-  .reair {
-    padding: 2px 8px;
-    font-size: 11px;
   }
 </style>

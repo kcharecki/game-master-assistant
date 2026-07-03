@@ -6,7 +6,7 @@
   import ModuleIcon from './ModuleIcon.svelte';
 
   // Only modules with a live desktop view make sense as spawnable windows.
-  const spawnable = moduleList.filter((m) => m.desktop);
+  const spawnable = moduleList.filter((m) => m.desktop && m.dock !== false);
   const groups = categorized(spawnable);
 
   // Which modules currently have a *visible* window — drives the running-dot

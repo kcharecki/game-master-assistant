@@ -1,5 +1,6 @@
 <script lang="ts">
   import KeeperEye from './KeeperEye.svelte';
+  import Roller from '../modules/roller/Desktop.svelte';
   import { moduleList } from '../lib/registry';
   import { t } from '../lib/i18n';
   import type { ModuleId } from '../lib/module';
@@ -125,9 +126,16 @@
       ></iframe>
       <span class="pvtag">{t('preview.live')}</span>
     </div>
+
+    <div class="roller">
+      <div class="bhead">{t('mod.roller.title')}</div>
+      <Roller />
+    </div>
   </div>
 
-  <KeeperEye />
+  <div class="keeperwrap">
+    <KeeperEye />
+  </div>
 </aside>
 
 <style>
@@ -205,6 +213,19 @@
     border: 0;
     /* Read-only mirror — the GM controls from the real windows. */
     pointer-events: none;
+  }
+  .roller {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .roller .bhead {
+    margin-bottom: 8px;
+  }
+  .keeperwrap {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
   }
   .pvtag {
     position: absolute;

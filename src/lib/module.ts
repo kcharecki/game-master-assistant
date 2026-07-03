@@ -31,6 +31,8 @@ export interface ModuleManifest {
   size: { w: number; h: number };
   /** live windowed widget on the Desktop surface */
   desktop?: Component;
+  /** show in the dock's spawnable "Widgets" rail (default true) */
+  dock?: boolean;
   /** authoring/customization tab on the Editors surface */
   editor?: Component;
   /** optional player-facing render hint for the Broadcast surface */
