@@ -192,6 +192,22 @@ class StageStore {
     this.commit();
   }
 
+  /** Clone a tile in place (nudged one cell down-right), selecting the copy. */
+  duplicateTile(id: string): Tile | null {
+    const src = this.active.tiles.find((t) => t.id === id);
+    if (!src) return null;
+    this.snapshot();
+    const copy = clampTile(
+      { ...$state.snapshot(src), id: crypto.randomUUID(), col: src.col + 1, row: src.row + 1 },
+      this.active.cols,
+      this.active.rows,
+    );
+    this.active.tiles = [...this.active.tiles, copy];
+    this.selected = copy.id;
+    this.commit();
+    return copy;
+  }
+
   toggleHidden(id: string): void {
     const t = this.active.tiles.find((x) => x.id === id);
     if (t) this.patchTile(id, { hidden: !t.hidden });
