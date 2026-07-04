@@ -106,6 +106,35 @@ export function groupBySession(notes: Note[], gapMs = SESSION_GAP_MS): SessionGr
   return groups.reverse();
 }
 
+/**
+ * Compact relative age of a timestamp: `now`, `2m`, `3h`, `5d`. Used for the
+ * per-note age chip in the widget stream and Editor timeline. Pure.
+ */
+export function relativeShort(at: number, now = Date.now()): string {
+  const s = Math.max(0, Math.round((now - at) / 1000));
+  if (s < 60) return 'now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+
+/**
+ * Gap in hours between a session group's first note and the previous (older)
+ * group's last note — drives the "6h gap → new" divider in the Editor timeline.
+ * Returns null for the oldest group. Pure.
+ */
+export function sessionGapHours(groups: SessionGroup[], i: number): number | null {
+  // groups are newest-first; the older neighbour is at i+1.
+  const older = groups[i + 1];
+  if (!older) return null;
+  // newest note of the older group → the gap that started this session
+  const prevLast = Math.max(...older.notes.map((n) => n.at));
+  const curFirst = groups[i].startAt;
+  return Math.round((curFirst - prevLast) / (60 * 60 * 1000));
+}
+
 // --- Tag management ---------------------------------------------------------
 
 /**
@@ -234,6 +263,14 @@ export function renderMarkdown(body: string, opts: RenderOptions = {}): string {
   };
 
   for (const raw of lines) {
+    // ATX heading: `#`..`######` followed by a space. `#tag` (no space) is not
+    // a heading and falls through to inline tag styling.
+    const heading = raw.match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      closeList();
+      html.push(`<h4 class="md-h">${inline(heading[2], opts)}</h4>`);
+      continue;
+    }
     const todo = raw.match(/^[ \t]*[-*] \[([ xX])\]\s?(.*)$/);
     if (todo) {
       if (!listOpen) {
@@ -280,6 +317,8 @@ function inline(text: string, opts: RenderOptions): string {
       return `<a class="md-wiki" data-wiki="${escapeAttr(label)}" href="#">${label}</a>`;
     });
   }
+  // @npc mentions
+  s = s.replace(/(^|\s)@([a-z0-9][a-z0-9_'-]*)/gi, '$1<span class="md-npc">@$2</span>');
   // #tags
   s = s.replace(/(^|\s)#([a-z0-9][a-z0-9_-]*)/gi, '$1<span class="md-tag">#$2</span>');
   return s;

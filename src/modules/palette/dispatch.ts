@@ -36,7 +36,7 @@ export function dispatchVerb(intent: VerbIntent): string | null {
     }
     case 'playAudio': {
       const pl = matchTarget(
-        audio.playlists.map((p) => ({ id: p.id, name: p.scene })),
+        audio.scenes.map((p) => ({ id: p.id, name: p.name })),
         intent.target
       );
       if (!pl) return null;

@@ -11,13 +11,34 @@ export interface Track {
   duration?: number;
 }
 
-export interface Playlist {
+export interface Scene {
   id: string;
-  /** scene tag, e.g. 'tavern' | 'dungeon' | 'boss' */
-  scene: string;
+  /** display name, e.g. 'Tavern' | 'Dungeon' | 'Boss Fight' */
+  name: string;
   tracks: Track[];
-  /** per-playlist gain trim 0..1 (defaults to 1) */
+  /** per-scene gain trim 0..1 (defaults to 1) */
   gain?: number;
+}
+
+/** How the ambient queue repeats. Maps to the two wire booleans loopList/loopTrack. */
+export type RepeatMode = 'off' | 'scene' | 'track';
+
+/** Derive the UI repeat mode from the two stored booleans. */
+export function repeatMode(loopList: boolean, loopTrack: boolean): RepeatMode {
+  if (loopTrack) return 'track';
+  return loopList ? 'scene' : 'off';
+}
+
+/** Map a UI repeat mode back to the two wire booleans. */
+export function repeatFlags(mode: RepeatMode): { loopList: boolean; loopTrack: boolean } {
+  switch (mode) {
+    case 'track':
+      return { loopList: true, loopTrack: true };
+    case 'scene':
+      return { loopList: true, loopTrack: false };
+    default:
+      return { loopList: false, loopTrack: false };
+  }
 }
 
 export interface Sfx {

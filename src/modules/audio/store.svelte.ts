@@ -6,17 +6,33 @@ import {
   parseYouTubeId,
   perceptual,
   reorder,
+  repeatFlags,
   shuffle,
-  type Playlist,
+  type RepeatMode,
+  type Scene,
   type Sfx,
   type Track,
 } from './logic';
 
-const SEED_PLAYLISTS: Playlist[] = [
-  { id: 'tavern', scene: 'Tavern', tracks: [] },
-  { id: 'dungeon', scene: 'Dungeon', tracks: [] },
-  { id: 'boss', scene: 'Boss Fight', tracks: [] },
+const SEED_SCENES: Scene[] = [
+  { id: 'tavern', name: 'Tavern', tracks: [] },
+  { id: 'dungeon', name: 'Dungeon', tracks: [] },
+  { id: 'boss', name: 'Boss Fight', tracks: [] },
 ];
+
+/**
+ * Normalise a scene loaded from IndexedDB. Older saves used `scene` for the
+ * display name (before the Playlist→Scene rename); map it onto `name`.
+ */
+function normalizeScene(raw: unknown): Scene {
+  const s = raw as Partial<Scene> & { scene?: string };
+  return {
+    id: s.id ?? crypto.randomUUID(),
+    name: (s.name ?? s.scene ?? 'Scene').trim() || 'Scene',
+    tracks: Array.isArray(s.tracks) ? s.tracks : [],
+    gain: typeof s.gain === 'number' ? s.gain : undefined,
+  };
+}
 
 const DEFAULT_CROSSFADE_MS = 1500;
 
@@ -38,12 +54,12 @@ function toQueueItem(t: Track, audioOnly: boolean): AudioQueueItem {
   };
 }
 
-/** Ambient playlists + one-shot SFX, routed to the broadcast tab. */
+/** Ambient scenes + one-shot SFX, routed to the broadcast tab. */
 class AudioStore {
-  playlists = $state<Playlist[]>([...SEED_PLAYLISTS]);
+  scenes = $state<Scene[]>([...SEED_SCENES]);
   sfx = $state<Sfx[]>([]);
 
-  /** id of the playlist currently playing on air, if any */
+  /** id of the scene currently playing on air, if any */
   playingScene = $state<string | null>(null);
   /** true while the on-air ambient track is a YouTube embed (no native seek) */
   playingYouTube = $state(false);
@@ -93,10 +109,10 @@ class AudioStore {
    * Effective ambient channel volume sent to the broadcast tab, on a perceptual
    * (squared) curve. Includes the target scene's per-playlist gain trim.
    */
-  private ambientGainFor(playlistId?: string | null): number {
+  private ambientGainFor(sceneId?: string | null): number {
     if (this.masterMuted || this.ambientMuted) return 0;
-    const id = playlistId ?? this.playingScene;
-    const pl = id ? this.playlists.find((p) => p.id === id) : undefined;
+    const id = sceneId ?? this.playingScene;
+    const pl = id ? this.scenes.find((p) => p.id === id) : undefined;
     return perceptual(effectiveVolume(this.masterVol, this.ambientVol, pl?.gain ?? 1));
   }
   /** Effective sfx channel volume (per-clip gain applied on top), perceptual curve. */
@@ -125,32 +141,32 @@ class AudioStore {
     return assetPut(file, type || (file as File).type || 'audio/mpeg');
   }
 
-  // ---- playlist + track CRUD ------------------------------------------------
+  // ---- scene + track CRUD ---------------------------------------------------
 
-  addPlaylist(scene: string): Playlist {
-    const pl: Playlist = { id: crypto.randomUUID(), scene: scene.trim() || 'New scene', tracks: [] };
-    this.playlists.push(pl);
+  addScene(name: string): Scene {
+    const sc: Scene = { id: crypto.randomUUID(), name: name.trim() || 'New scene', tracks: [] };
+    this.scenes.push(sc);
     this.persist();
-    return pl;
+    return sc;
   }
 
-  renamePlaylist(playlistId: string, scene: string): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
-    if (!pl) return;
-    pl.scene = scene.trim() || pl.scene;
+  renameScene(sceneId: string, name: string): void {
+    const sc = this.scenes.find((p) => p.id === sceneId);
+    if (!sc) return;
+    sc.name = name.trim() || sc.name;
     this.persist();
   }
 
-  removePlaylist(playlistId: string): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  removeScene(sceneId: string): void {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (pl) for (const t of pl.tracks) if (t.assetId) void assetDelete(t.assetId);
-    this.playlists = this.playlists.filter((p) => p.id !== playlistId);
-    if (this.playingScene === playlistId) this.stopScene();
+    this.scenes = this.scenes.filter((p) => p.id !== sceneId);
+    if (this.playingScene === sceneId) this.stopScene();
     this.persist();
   }
 
-  async addTrack(playlistId: string, file: File): Promise<Track | undefined> {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  async addTrack(sceneId: string, file: File): Promise<Track | undefined> {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl) return;
     const assetId = await this.importFile(file);
     const track: Track = { id: crypto.randomUUID(), assetId, label: file.name, gain: 1 };
@@ -167,8 +183,8 @@ class AudioStore {
   }
 
   /** Add a YouTube URL as an ambient track. Returns undefined if the url has no id. */
-  addYouTube(playlistId: string, url: string, label?: string): Track | undefined {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  addYouTube(sceneId: string, url: string, label?: string): Track | undefined {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl) return;
     const youtubeId = parseYouTubeId(url);
     if (!youtubeId) return;
@@ -192,8 +208,8 @@ class AudioStore {
     return track;
   }
 
-  removeTrack(playlistId: string, trackId: string): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  removeTrack(sceneId: string, trackId: string): void {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl) return;
     const tr = pl.tracks.find((t) => t.id === trackId);
     if (tr?.assetId) void assetDelete(tr.assetId);
@@ -201,45 +217,45 @@ class AudioStore {
     this.persist();
   }
 
-  renameTrack(playlistId: string, trackId: string, label: string): void {
-    const tr = this.playlists.find((p) => p.id === playlistId)?.tracks.find((t) => t.id === trackId);
+  renameTrack(sceneId: string, trackId: string, label: string): void {
+    const tr = this.scenes.find((p) => p.id === sceneId)?.tracks.find((t) => t.id === trackId);
     if (!tr) return;
     tr.label = label.trim() || tr.label;
     this.persist();
   }
 
   /** Move a track within its playlist by `delta` (e.g. -1 up, +1 down). */
-  moveTrack(playlistId: string, index: number, delta: number): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  moveTrack(sceneId: string, index: number, delta: number): void {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl) return;
     pl.tracks = reorder(pl.tracks, index, index + delta);
     this.persist();
   }
 
   /** Move a track from one index to another (drag-to-reorder). */
-  moveTrackTo(playlistId: string, from: number, to: number): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  moveTrackTo(sceneId: string, from: number, to: number): void {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl || from === to) return;
     pl.tracks = reorder(pl.tracks, from, to);
     this.persist();
   }
 
   /** Set a track's gain trim (0..1) and push it live if it's the on-air track. */
-  setTrackGain(playlistId: string, trackId: string, gain: number): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  setTrackGain(sceneId: string, trackId: string, gain: number): void {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     const tr = pl?.tracks.find((t) => t.id === trackId);
     if (!pl || !tr) return;
     tr.gain = Math.min(1, Math.max(0, gain));
     this.persist();
     // If this scene is on air, re-send the queue so the new gain takes effect.
-    if (this.playingScene === playlistId) this.requeue(playlistId);
+    if (this.playingScene === sceneId) this.requeue(sceneId);
   }
 
   // ---- ambient transport ----------------------------------------------------
 
   /** Build the queue cue for a playlist (does not change playhead). */
-  private queueCue(playlistId: string, index = 0): Extract<BroadcastPayload, { kind: 'audio' }> | null {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  private queueCue(sceneId: string, index = 0): Extract<BroadcastPayload, { kind: 'audio' }> | null {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl || !pl.tracks.length) return null;
     return {
       kind: 'audio',
@@ -250,56 +266,58 @@ class AudioStore {
       loopTrack: this.loopTrack,
       loopList: this.loopList,
       crossfadeMs: this.crossfadeMs,
-      volume: this.ambientGainFor(playlistId),
+      volume: this.ambientGainFor(sceneId),
     };
   }
 
   /** Play a scene playlist as looping ambience from the first track. */
-  playScene(playlistId: string): void {
-    this.playSceneAt(playlistId, 0);
+  playScene(sceneId: string): void {
+    this.playSceneAt(sceneId, 0);
   }
 
   /** Play a scene playlist starting at a specific track index (click-to-play). */
-  playSceneAt(playlistId: string, index: number): void {
-    const cue = this.queueCue(playlistId, index);
+  playSceneAt(sceneId: string, index: number): void {
+    const cue = this.queueCue(sceneId, index);
     if (!cue) return;
     sendAudio(cue);
-    const pl = this.playlists.find((p) => p.id === playlistId)!;
-    this.playingScene = playlistId;
+    const pl = this.scenes.find((p) => p.id === sceneId)!;
+    this.playingScene = sceneId;
     this.playingYouTube = !!pl.tracks[index]?.youtubeId;
     this.paused = false;
     this.position = 0;
     this.duration = 0;
     this.trackIndex = index;
     this.trackCount = pl.tracks.length;
+    this.syncMonitor();
   }
 
-  /** Randomise a playlist's track order (persisted). Re-queues if on air. */
-  shufflePlaylist(playlistId: string): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  /** Randomise a scene's track order (persisted). Re-queues if on air. */
+  shuffleScene(sceneId: string): void {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl) return;
     pl.tracks = shuffle(pl.tracks);
     this.persist();
-    if (this.playingScene === playlistId) this.requeue(playlistId);
+    if (this.playingScene === sceneId) this.requeue(sceneId);
   }
 
   /** Set a playlist's gain trim (0..1). Pushes live if the scene is on air. */
-  setPlaylistGain(playlistId: string, gain: number): void {
-    const pl = this.playlists.find((p) => p.id === playlistId);
+  setSceneGain(sceneId: string, gain: number): void {
+    const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl) return;
     pl.gain = clamp01(gain);
     this.persist();
-    if (this.playingScene === playlistId) this.pushVolumes();
+    if (this.playingScene === sceneId) this.pushVolumes();
   }
 
   /** Re-send the on-air queue keeping the current index (after edits/gain). */
-  private requeue(playlistId: string): void {
-    const cue = this.queueCue(playlistId, this.trackIndex);
+  private requeue(sceneId: string): void {
+    const cue = this.queueCue(sceneId, this.trackIndex);
     if (cue) sendAudio(cue);
   }
 
   stopScene(): void {
     sendAudio({ kind: 'audio', channel: 'ambient', action: 'stop' });
+    this.stopMonitor();
     this.playingScene = null;
     this.playingYouTube = false;
     this.paused = false;
@@ -314,12 +332,14 @@ class AudioStore {
     if (!this.playingScene) return;
     sendAudio({ kind: 'audio', channel: 'ambient', action: 'pause' });
     this.paused = true;
+    this.stopMonitor();
   }
 
   resume(): void {
     if (!this.playingScene) return;
     sendAudio({ kind: 'audio', channel: 'ambient', action: 'resume' });
     this.paused = false;
+    this.syncMonitor();
   }
 
   togglePause(): void {
@@ -348,14 +368,16 @@ class AudioStore {
     this.seek(0);
   }
 
-  toggleLoopList(): void {
-    this.loopList = !this.loopList;
-    this.persist();
-    if (this.playingScene) this.requeue(this.playingScene);
+  /** Current repeat mode derived from the two wire booleans. */
+  get repeat(): RepeatMode {
+    return this.loopTrack ? 'track' : this.loopList ? 'scene' : 'off';
   }
 
-  toggleLoopTrack(): void {
-    this.loopTrack = !this.loopTrack;
+  /** Set repeat as one control (Off / Scene / Track); re-queues if on air. */
+  setRepeat(mode: RepeatMode): void {
+    const flags = repeatFlags(mode);
+    this.loopList = flags.loopList;
+    this.loopTrack = flags.loopTrack;
     this.persist();
     if (this.playingScene) this.requeue(this.playingScene);
   }
@@ -385,6 +407,7 @@ class AudioStore {
 
   /** Push the live ambient channel volume to the running sequencer. */
   private pushVolumes(): void {
+    if (this.monitorEl) this.monitorEl.volume = this.ambientGainFor();
     if (!this.playingScene) return;
     sendAudio({ kind: 'audio', channel: 'ambient', action: 'volume', volume: this.ambientGainFor() });
   }
@@ -461,6 +484,7 @@ class AudioStore {
   panic(): void {
     sendAudio({ kind: 'audio', channel: 'ambient', action: 'panic' });
     this.stopAudition();
+    this.stopMonitor();
     this.playingScene = null;
     this.playingYouTube = false;
     this.paused = false;
@@ -493,6 +517,55 @@ class AudioStore {
     if (this.auditionEl) {
       this.auditionEl.pause();
       this.auditionEl = null;
+    }
+  }
+
+  // ---- GM monitor -----------------------------------------------------------
+
+  /** Local monitor: hear the ambient bed in the GM tab (even with broadcast closed). */
+  monitor = $state(false);
+  private monitorEl: HTMLAudioElement | null = null;
+
+  /** Toggle the GM-local monitor on/off. */
+  setMonitor(on: boolean): void {
+    this.monitor = on;
+    this.persist();
+    if (on) this.syncMonitor();
+    else this.stopMonitor();
+  }
+
+  /**
+   * (Re)load the local monitor so it mirrors the current on-air ambient track.
+   * Native audio only — YouTube tracks can't be monitored locally. Best-effort;
+   * not sample-synced to the broadcast tab, just an audible reference.
+   */
+  syncMonitor(): void {
+    if (!this.monitor || typeof Audio === 'undefined') return;
+    const cur = this.scenes.find((p) => p.id === this.playingScene)?.tracks[this.trackIndex];
+    if (!this.playingScene || this.paused || !cur?.assetId) {
+      this.stopMonitor();
+      return;
+    }
+    const assetId = cur.assetId;
+    this.stopMonitor();
+    void assetUrl(assetId).then((url) => {
+      if (!url || !this.monitor) {
+        if (url) URL.revokeObjectURL(url);
+        return;
+      }
+      const el = new Audio(url);
+      el.loop = this.loopTrack;
+      el.volume = this.ambientGainFor();
+      el.onended = () => URL.revokeObjectURL(url);
+      this.monitorEl = el;
+      void el.play().catch(() => URL.revokeObjectURL(url));
+    });
+  }
+
+  private stopMonitor(): void {
+    if (this.monitorEl) {
+      this.monitorEl.pause();
+      this.monitorEl = null;
     }
   }
 
@@ -551,10 +624,13 @@ class AudioStore {
       this.position = m.current;
       this.duration = m.duration;
       this.playing = m.playing;
+      const prevIndex = this.trackIndex;
       if (typeof m.index === 'number') this.trackIndex = m.index;
       if (typeof m.count === 'number') this.trackCount = m.count;
-      const cur = this.playlists.find((p) => p.id === this.playingScene)?.tracks[this.trackIndex];
+      const cur = this.scenes.find((p) => p.id === this.playingScene)?.tracks[this.trackIndex];
       this.playingYouTube = !!cur?.youtubeId;
+      // Follow track advances driven by the broadcast engine on the local monitor.
+      if (this.monitor && this.trackIndex !== prevIndex) this.syncMonitor();
     });
     return () => {
       off();
@@ -563,12 +639,12 @@ class AudioStore {
   }
 
   /**
-   * Persist playlist + soundboard metadata + mixer prefs (the blobs already live
+   * Persist scenes + soundboard metadata + mixer prefs (the blobs already live
    * in the asset store; only the lists referencing them need saving).
    */
   persist(): void {
     void kvSet('audio', {
-      playlists: $state.snapshot(this.playlists),
+      scenes: $state.snapshot(this.scenes),
       sfx: $state.snapshot(this.sfx),
       ytAudioOnly: this.ytAudioOnly,
       masterVol: this.masterVol,
@@ -581,12 +657,16 @@ class AudioStore {
       masterMuted: this.masterMuted,
       ambientMuted: this.ambientMuted,
       sfxMuted: this.sfxMuted,
+      monitor: this.monitor,
     });
   }
 
   async load(): Promise<void> {
     const saved = await kvGet<{
-      playlists?: Playlist[];
+      /** current key */
+      scenes?: unknown[];
+      /** legacy key (pre Playlist→Scene rename) */
+      playlists?: unknown[];
       sfx?: Sfx[];
       ytAudioOnly?: boolean;
       masterVol?: number;
@@ -599,11 +679,14 @@ class AudioStore {
       masterMuted?: boolean;
       ambientMuted?: boolean;
       sfxMuted?: boolean;
+      monitor?: boolean;
     }>('audio');
     if (!saved) return;
     // Presence, not length: an empty array means the GM deleted every scene —
-    // honour that instead of resurrecting the seed list on reload.
-    if (Array.isArray(saved.playlists)) this.playlists = saved.playlists;
+    // honour that instead of resurrecting the seed list on reload. Accept the
+    // legacy `playlists` key and normalise each entry's `scene`→`name`.
+    const rawScenes = saved.scenes ?? saved.playlists;
+    if (Array.isArray(rawScenes)) this.scenes = rawScenes.map(normalizeScene);
     if (saved.sfx) this.sfx = saved.sfx;
     if (typeof saved.ytAudioOnly === 'boolean') this.ytAudioOnly = saved.ytAudioOnly;
     if (typeof saved.masterVol === 'number') this.masterVol = clamp01(saved.masterVol);
@@ -616,6 +699,7 @@ class AudioStore {
     if (typeof saved.masterMuted === 'boolean') this.masterMuted = saved.masterMuted;
     if (typeof saved.ambientMuted === 'boolean') this.ambientMuted = saved.ambientMuted;
     if (typeof saved.sfxMuted === 'boolean') this.sfxMuted = saved.sfxMuted;
+    if (typeof saved.monitor === 'boolean') this.monitor = saved.monitor;
   }
 }
 

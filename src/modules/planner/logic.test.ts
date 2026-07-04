@@ -4,6 +4,7 @@ import {
   moveBeat,
   stepCursor,
   beatRefs,
+  branchTarget,
   threadTally,
   type Beat,
   type Thread,
@@ -68,6 +69,20 @@ describe('beatRefs', () => {
   });
   it('returns nothing for a plain body', () => {
     expect(beatRefs('just prose')).toEqual([]);
+  });
+});
+
+describe('branchTarget', () => {
+  const list = beats('Cold open', 'The Innkeeper', 'Arrival on Federal St.');
+  it('matches a beat title case- and whitespace-insensitively', () => {
+    expect(branchTarget(list, 'the  innkeeper ')).toBe('The Innkeeper');
+    expect(branchTarget(list, 'ARRIVAL ON FEDERAL ST.')).toBe('Arrival on Federal St.');
+  });
+  it('returns undefined for a terminal outcome with no matching beat', () => {
+    expect(branchTarget(list, 'He panics and flees')).toBeUndefined();
+  });
+  it('returns undefined for an empty label', () => {
+    expect(branchTarget(list, '   ')).toBeUndefined();
   });
 });
 

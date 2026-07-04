@@ -93,6 +93,18 @@ export function beatRefs(body: string): BeatRef[] {
   return refs;
 }
 
+/**
+ * Resolve a branch's `to` label to a beat id by matching it against beat titles
+ * (case- and whitespace-insensitive). Returns undefined when `to` is a terminal
+ * outcome with no matching beat (e.g. "He panics and flees"). Pure.
+ */
+export function branchTarget(beats: Beat[], to: string): string | undefined {
+  const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+  const want = norm(to);
+  if (!want) return undefined;
+  return beats.find((b) => norm(b.title) === want)?.id;
+}
+
 /** Count of open vs. resolved threads, for the header tally. */
 export function threadTally(threads: Thread[]): { open: number; resolved: number } {
   let open = 0;

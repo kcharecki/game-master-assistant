@@ -30,24 +30,52 @@
 {#each initiative.order as c, i (c.id)}
   <div class="combatant" class:active={i === initiative.active} class:foe={c.foe}>
     <span class="av">{initials(c.name)}</span>
-    <span class="cn">
+    <span class="cn" data-no-drag>
       <div class="nm">
-        {c.name}
+        <input
+          class="nm-in"
+          value={c.name}
+          oninput={(e) => initiative.set(c.id, { name: e.currentTarget.value })}
+          aria-label={t('initiative.name')}
+        />
         {#if isBloodied(c)}<span class="blood" title={t('initiative.bloodied')}>●</span>{/if}
         {#if c.hidden}<span class="hid" title={t('initiative.hiddenHp')}>◐</span>{/if}
       </div>
       <div class="rl">
-        {#if c.hidden}
-          {vagueStatus(c)}
-        {:else}
-          <span class="hp" class:low={isBloodied(c)}>{c.hp}/{c.maxHp}</span> · AC {c.ac}
-        {/if}
+        <input
+          class="num hp-in"
+          class:low={isBloodied(c)}
+          type="number"
+          value={c.hp}
+          oninput={(e) => initiative.set(c.id, { hp: e.currentTarget.valueAsNumber || 0 })}
+          aria-label={t('initiative.hp')}
+        />/<input
+          class="num"
+          type="number"
+          value={c.maxHp}
+          oninput={(e) => initiative.set(c.id, { maxHp: e.currentTarget.valueAsNumber || 0 })}
+          aria-label={t('initiative.maxHp')}
+        />
+        · AC <input
+          class="num"
+          type="number"
+          value={c.ac}
+          oninput={(e) => initiative.set(c.id, { ac: e.currentTarget.valueAsNumber || 0 })}
+          aria-label={t('initiative.ac')}
+        />
+        {#if c.hidden}<span class="vague" title={vagueStatus(c)}>({vagueStatus(c)})</span>{/if}
         {#if c.conditions.length}
           · <span class="cond">{c.conditions.join(', ')}</span>
         {/if}
       </div>
     </span>
-    <span class="iv">{c.init}</span>
+    <input
+      class="num iv-in"
+      type="number"
+      value={c.init}
+      oninput={(e) => initiative.set(c.id, { init: e.currentTarget.valueAsNumber || 0 })}
+      aria-label={t('initiative.init')}
+    />
     <span class="ord" data-no-drag>
       <button class="ob" onclick={() => initiative.damage(c.id, 1)} aria-label={t('initiative.damage1')}>−</button>
       <button class="ob" onclick={() => initiative.heal(c.id, 1)} aria-label={t('initiative.heal1')}>+</button>
@@ -86,9 +114,59 @@
   .btn.add {
     margin-top: 6px;
   }
-  .hp.low {
+  .nm-in {
+    border: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    padding: 1px 3px;
+    border-radius: 4px;
+    width: 12ch;
+    min-width: 0;
+  }
+  .nm-in:hover,
+  .nm-in:focus {
+    border-color: var(--line2);
+    background: rgba(95, 150, 120, 0.1);
+    outline: none;
+  }
+  .num {
+    border: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    padding: 0 2px;
+    border-radius: 4px;
+    width: 3.2ch;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .num::-webkit-outer-spin-button,
+  .num::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .num:hover,
+  .num:focus {
+    border-color: var(--line2);
+    background: rgba(95, 150, 120, 0.1);
+    outline: none;
+  }
+  .hp-in.low {
     color: var(--red);
     font-weight: 600;
+  }
+  .iv-in {
+    color: var(--green);
+    font-weight: 600;
+    width: 3.5ch;
+  }
+  .vague {
+    color: var(--gold);
+    font-style: italic;
+    font-size: 11px;
   }
   .blood {
     color: var(--red);

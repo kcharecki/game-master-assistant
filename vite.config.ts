@@ -13,6 +13,8 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL('index.html', import.meta.url)),
         broadcast: fileURLToPath(new URL('broadcast.html', import.meta.url)),
+        // Dev-only component preview harness (see CLAUDE.md). Harmless if shipped.
+        preview: fileURLToPath(new URL('preview.html', import.meta.url)),
       },
     },
   },

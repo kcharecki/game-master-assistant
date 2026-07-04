@@ -5,7 +5,7 @@
   import { t } from '../../lib/i18n';
   import Icon from '../../lib/components/Icon.svelte';
 
-  let pick = $state(audio.playlists[0]?.id ?? '');
+  let pick = $state(audio.scenes[0]?.id ?? '');
   let ytUrl = $state('');
   // Inline-rename target ('' = none) keyed by an entity id.
   let editing = $state('');
@@ -13,8 +13,8 @@
   // Drag-to-reorder cursor.
   let dragFrom = $state<number | null>(null);
 
-  const playlist = $derived(audio.playlists.find((p) => p.id === pick));
-  const tracks = $derived(playlist?.tracks ?? []);
+  const scene = $derived(audio.scenes.find((p) => p.id === pick));
+  const tracks = $derived(scene?.tracks ?? []);
 
   onMount(() => void audio.load());
 
@@ -23,11 +23,11 @@
     editVal = current;
   }
   function commitScene() {
-    if (playlist) audio.renamePlaylist(playlist.id, editVal);
+    if (scene) audio.renameScene(scene.id, editVal);
     editing = '';
   }
   function commitTrack(trackId: string) {
-    if (playlist) audio.renameTrack(playlist.id, trackId, editVal);
+    if (scene) audio.renameTrack(scene.id, trackId, editVal);
     editing = '';
   }
   function commitSfx(sfxId: string) {
@@ -36,14 +36,14 @@
   }
 
   function addScene() {
-    const pl = audio.addPlaylist('New scene');
-    pick = pl.id;
-    startRename(pl.id, pl.scene);
+    const sc = audio.addScene('New scene');
+    pick = sc.id;
+    startRename(sc.id, sc.name);
   }
   function delScene() {
-    if (!playlist) return;
-    audio.removePlaylist(playlist.id);
-    pick = audio.playlists[0]?.id ?? '';
+    if (!scene) return;
+    audio.removeScene(scene.id);
+    pick = audio.scenes[0]?.id ?? '';
   }
 
   function importTracks(e: Event) {
@@ -75,6 +75,7 @@
 
 <div class="ed">
   <p class="hint">{t('audio.libraryHint')}</p>
+  <p class="hint balance">⚖ {t('audio.balanceHint')}</p>
 
   <!-- Scene rail -->
   <section>
@@ -83,7 +84,7 @@
       <button class="btn sm" onclick={addScene} aria-label={t('audio.newScene')} title={t('audio.newScene')}><Icon name="plus" /></button>
     </header>
     <div class="scenes">
-      {#each audio.playlists as p (p.id)}
+      {#each audio.scenes as p (p.id)}
         <div class="scene" class:on={pick === p.id}>
           {#if editing === p.id}
             <input
@@ -94,27 +95,27 @@
               aria-label={t('audio.sceneName')}
             />
           {:else}
-            <button class="pick" onclick={() => (pick = p.id)} ondblclick={() => startRename(p.id, p.scene)} title={t('audio.renameHint')}>
-              {p.scene} <span class="cnt">{p.tracks.length}</span>
+            <button class="pick" onclick={() => (pick = p.id)} ondblclick={() => startRename(p.id, p.name)} title={t('audio.renameHint')}>
+              {p.name} <span class="cnt">{p.tracks.length}</span>
             </button>
           {/if}
         </div>
       {/each}
     </div>
-    {#if playlist}
+    {#if scene}
       <div class="scenetools">
         <label class="gainlbl" title={t('audio.playlistGain')}>
           {t('audio.playlistGain')}
-          <input type="range" min="0" max="1" step="0.05" value={playlist.gain ?? 1} oninput={(e) => audio.setPlaylistGain(pick, e.currentTarget.valueAsNumber)} />
+          <input type="range" min="0" max="1" step="0.05" value={scene.gain ?? 1} oninput={(e) => audio.setSceneGain(pick, e.currentTarget.valueAsNumber)} />
         </label>
-        <button class="btn sm" onclick={() => audio.shufflePlaylist(pick)} disabled={tracks.length < 2}>🔀 {t('audio.shuffle')}</button>
+        <button class="btn sm" onclick={() => audio.shuffleScene(pick)} disabled={tracks.length < 2}>🔀 {t('audio.shuffle')}</button>
         <button class="btn sm danger" onclick={delScene}><Icon name="trash" /> {t('audio.deleteScene')}</button>
       </div>
     {/if}
   </section>
 
   <!-- Track list -->
-  {#if playlist}
+  {#if scene}
     <section>
       <header class="hdr"><strong>{t('audio.tracks')}</strong></header>
       {#if tracks.length}
@@ -202,6 +203,12 @@
   .hint {
     color: var(--muted);
     margin: 0;
+  }
+  .hint.balance {
+    font-size: 11px;
+    color: var(--faint);
+    border-left: 2px solid var(--green-dim);
+    padding-left: 8px;
   }
   .hdr {
     display: flex;

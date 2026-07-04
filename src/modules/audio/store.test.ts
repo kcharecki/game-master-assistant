@@ -19,63 +19,87 @@ import { audio } from './store.svelte';
 describe('audio store persistence', () => {
   beforeEach(() => {
     kv.clear();
-    audio.playlists = [
-      { id: 'tavern', scene: 'Tavern', tracks: [] },
-      { id: 'dungeon', scene: 'Dungeon', tracks: [] },
-      { id: 'boss', scene: 'Boss Fight', tracks: [] },
+    audio.scenes = [
+      { id: 'tavern', name: 'Tavern', tracks: [] },
+      { id: 'dungeon', name: 'Dungeon', tracks: [] },
+      { id: 'boss', name: 'Boss Fight', tracks: [] },
     ];
     audio.sfx = [];
   });
 
   it('persists a YouTube track and reloads it', async () => {
     audio.addYouTube('tavern', 'https://youtu.be/dQw4w9WgXcQ', 'Tavern loop');
-    expect(audio.playlists[0].tracks).toHaveLength(1);
+    expect(audio.scenes[0].tracks).toHaveLength(1);
 
     // Simulate a refresh: wipe in-memory state, then load from the kv snapshot.
-    audio.playlists = [{ id: 'tavern', scene: 'Tavern', tracks: [] }];
+    audio.scenes = [{ id: 'tavern', name: 'Tavern', tracks: [] }];
     await audio.load();
 
-    const track = audio.playlists.find((p) => p.id === 'tavern')?.tracks[0];
+    const track = audio.scenes.find((p) => p.id === 'tavern')?.tracks[0];
     expect(track?.youtubeId).toBe('dQw4w9WgXcQ');
     expect(track?.label).toBe('Tavern loop');
   });
 
-  it('does not resurrect seed playlists after all are deleted', async () => {
-    audio.removePlaylist('tavern');
-    audio.removePlaylist('dungeon');
-    audio.removePlaylist('boss');
-    expect(audio.playlists).toHaveLength(0);
+  it('does not resurrect seed scenes after all are deleted', async () => {
+    audio.removeScene('tavern');
+    audio.removeScene('dungeon');
+    audio.removeScene('boss');
+    expect(audio.scenes).toHaveLength(0);
 
     // Simulate a refresh with a non-empty in-memory seed, then load.
-    audio.playlists = [{ id: 'tavern', scene: 'Tavern', tracks: [] }];
+    audio.scenes = [{ id: 'tavern', name: 'Tavern', tracks: [] }];
     await audio.load();
-    expect(audio.playlists).toHaveLength(0);
+    expect(audio.scenes).toHaveLength(0);
   });
 
-  it('shufflePlaylist keeps the same track set', () => {
-    audio.playlists[0].tracks = [
+  it('migrates a legacy `playlists`/`scene` snapshot on load', async () => {
+    // Write an old-format snapshot straight into the mocked kv.
+    kv.set('audio', {
+      playlists: [{ id: 'old', scene: 'Old Tavern', tracks: [] }],
+    });
+    audio.scenes = [{ id: 'seed', name: 'Seed', tracks: [] }];
+    await audio.load();
+    expect(audio.scenes).toHaveLength(1);
+    expect(audio.scenes[0].id).toBe('old');
+    expect(audio.scenes[0].name).toBe('Old Tavern');
+  });
+
+  it('shuffleScene keeps the same track set', () => {
+    audio.scenes[0].tracks = [
       { id: 'a', assetId: 'a', label: 'A', gain: 1 },
       { id: 'b', assetId: 'b', label: 'B', gain: 1 },
       { id: 'c', assetId: 'c', label: 'C', gain: 1 },
     ];
-    audio.shufflePlaylist('tavern');
+    audio.shuffleScene('tavern');
     expect(
-      audio.playlists[0].tracks
+      audio.scenes[0].tracks
         .map((t) => t.id)
         .sort()
     ).toEqual(['a', 'b', 'c']);
   });
 
-  it('setPlaylistGain clamps and persists', () => {
-    audio.setPlaylistGain('tavern', 2);
-    expect(audio.playlists.find((p) => p.id === 'tavern')?.gain).toBe(1);
-    audio.setPlaylistGain('tavern', -1);
-    expect(audio.playlists.find((p) => p.id === 'tavern')?.gain).toBe(0);
+  it('setSceneGain clamps and persists', () => {
+    audio.setSceneGain('tavern', 2);
+    expect(audio.scenes.find((p) => p.id === 'tavern')?.gain).toBe(1);
+    audio.setSceneGain('tavern', -1);
+    expect(audio.scenes.find((p) => p.id === 'tavern')?.gain).toBe(0);
+  });
+
+  it('setRepeat maps modes to the two wire booleans', () => {
+    audio.setRepeat('off');
+    expect([audio.loopList, audio.loopTrack]).toEqual([false, false]);
+    expect(audio.repeat).toBe('off');
+    audio.setRepeat('scene');
+    expect([audio.loopList, audio.loopTrack]).toEqual([true, false]);
+    expect(audio.repeat).toBe('scene');
+    audio.setRepeat('track');
+    expect(audio.loopTrack).toBe(true);
+    expect(audio.repeat).toBe('track');
   });
 
   it('removeTrack deletes the backing asset blob', () => {
     deleted.length = 0;
-    audio.playlists[0].tracks = [{ id: 'x', assetId: 'blob-x', label: 'X', gain: 1 }];
+    audio.scenes[0].tracks = [{ id: 'x', assetId: 'blob-x', label: 'X', gain: 1 }];
     audio.removeTrack('tavern', 'x');
     expect(deleted).toContain('blob-x');
   });

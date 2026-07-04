@@ -20,6 +20,7 @@ import {
   type SessionGroup,
 } from './logic';
 import { generateRecap } from './recap';
+import { putOnAir } from '../reveal/bus-actions';
 
 export type { Note, NoteContext } from './logic';
 
@@ -45,6 +46,8 @@ class NotebookStore {
   recap = $state<string | null>(null);
   /** last-deleted (archived) note id, for the undo toast */
   lastArchivedId = $state<string | null>(null);
+  /** Editor two-pane: id of the note shown in the focused (right) pane. */
+  focusedId = $state<string | null>(null);
 
   /** Notes matching the current search + tag filter, newest first. */
   get visible(): Note[] {
@@ -60,6 +63,16 @@ class NotebookStore {
 
   get tags(): string[] {
     return allTags($state.snapshot(this.notes));
+  }
+
+  /** The note shown in the Editor's focused pane (falls back to newest visible). */
+  get focused(): Note | undefined {
+    const list = this.visible;
+    return list.find((n) => n.id === this.focusedId) ?? list[0];
+  }
+
+  focus(id: string): void {
+    this.focusedId = id;
   }
 
   /** NPC names (both languages) for `@npc` autocomplete (read-only from the roster). */
@@ -167,6 +180,13 @@ class NotebookStore {
 
   makeRecap(): void {
     this.recap = generateRecap(activeNotes($state.snapshot(this.notes)));
+  }
+
+  /** Air the current recap as a parchment read-aloud on the Broadcast Stage. */
+  pushRecapToBroadcast(text?: string): void {
+    const body = (text ?? this.recap ?? '').trim();
+    if (!body) return;
+    putOnAir({ kind: 'text', title: t('notebook.prevOn'), body, theme: 'parchment' });
   }
 
   persist(): void {

@@ -32,3 +32,29 @@ Pure-web Svelte 5 + TS, three surfaces (desktop / editor tabs / broadcast), Inde
   `[[lore]]` reference chips, plot-thread rail, read-aloud → broadcast (parchment via `putOnAir`).
   Supersedes the originally-planned separate `beats` / `quests` ids.
 - i18n (en/pl) in `src/lib/i18n/messages/*.ts`; module titles in `shell.ts` must match manifest titles.
+
+# Gotchas & tooling (learned the hard way)
+
+- **CSS class collisions with global `app.css`.** Svelte scopes a component's *own* rules, but global
+  `app.css` rules still match the same class names on your elements. Generic names (`.cap`, `.in`,
+  `.row`, `.btn`, `.card`, `.chip`, `.search`, `.muted`, `.find`, `.save`) silently pick up global
+  styles — e.g. global `.cap { align-items:center }` shrink-wrapped the Session Notes capture box.
+  **Prefix every module component class** with a module-unique token (`nb-`/`nbe-`/`nbw-` in notebook).
+- **Screenshots fail on any Vite dev page.** The HMR WebSocket never goes network-idle, so
+  `preview_screenshot` hangs the full 30s and times out (all app pages, incl. bare ones). Static pages
+  (served by `python -m http.server`) screenshot fine. To see real pixels: `npm run build` then serve
+  `dist/` statically (there's a `static` config in `.claude/launch.json` → `dist/` on :8794).
+- **Component preview harness** (`preview.html` + `src/preview/`): dev-only page that mounts individual
+  module components with deterministic mock data on a bare dark background — no app shell, no broadcast
+  iframe. Added to vite build inputs so it lands in `dist/` (harmless if shipped). URL params:
+  `?c=widget|editor`, `?q=<search>`, `?tag=<tag>`. Use it to iterate a component and screenshot it in
+  isolation instead of the whole app. Extend `Preview.svelte` to add more components.
+- **Session Notes v2 look:** gold (`--gold`) + serif (`--serif`) theme. `@npc` / `#tag` / `[[wikilink]]`
+  render gold everywhere. The capture box is a **live-preview mirror**: a transparent-text `<textarea>`
+  over a styled mirror `<div>`; markers (`## `, `- `) are kept but hidden/dimmed so char widths match
+  and the caret stays aligned (true bold/size changes on headings cause minor drift — accepted).
+- **Iterating on visuals (workflow):** don't eyeball the whole app. 1) add/point the harness at the
+  component, 2) `npm run build`, 3) start the `static` launch server, 4) `preview_screenshot` the
+  `dist/preview.html?c=…` URL, 5) compare to the design mock, 6) edit CSS, repeat from step 2. Verify
+  non-visual behaviour with `preview_eval`/`preview_inspect` (those work on dev too). Green gate before
+  commit: `check · lint · test · build`.

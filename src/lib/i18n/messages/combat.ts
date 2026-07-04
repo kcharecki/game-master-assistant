@@ -13,6 +13,11 @@ export const combat = {
     'initiative.remove': 'Remove',
     'initiative.addCombatant': 'Combatant',
     'initiative.empty': 'No combatants yet. Add the party and their foes to start the fight.',
+    'initiative.name': 'Name',
+    'initiative.hp': 'Current HP',
+    'initiative.maxHp': 'Max HP',
+    'initiative.ac': 'Armor class',
+    'initiative.init': 'Initiative',
 
     // conditions
     'conditions.active': 'active',
@@ -71,6 +76,11 @@ export const combat = {
     'initiative.remove': 'Usuń',
     'initiative.addCombatant': 'Walczący',
     'initiative.empty': 'Brak walczących. Dodaj drużynę i wrogów, aby rozpocząć walkę.',
+    'initiative.name': 'Imię',
+    'initiative.hp': 'Aktualne PŻ',
+    'initiative.maxHp': 'Maks. PŻ',
+    'initiative.ac': 'Klasa pancerza',
+    'initiative.init': 'Inicjatywa',
 
     // conditions
     'conditions.active': 'aktywne',

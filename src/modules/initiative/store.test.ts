@@ -93,6 +93,25 @@ describe('InitiativeStore', () => {
     expect(s.order.find((x) => x.id === c.id)!.hp).toBe(10);
   });
 
+  it('set() edits fields and clamps hp within [0, maxHp]', () => {
+    const c = s.add('Guard', 12, true); // hp/maxHp = 10
+    s.set(c.id, { name: 'Captain', init: 18, ac: 16 });
+    const g = () => s.order.find((x) => x.id === c.id)!;
+    expect(g().name).toBe('Captain');
+    expect(g().init).toBe(18);
+    expect(g().ac).toBe(16);
+    // lowering maxHp below hp clamps hp down
+    s.set(c.id, { maxHp: 6 });
+    expect(g().hp).toBe(6);
+    // raising hp above maxHp clamps to maxHp
+    s.set(c.id, { hp: 99 });
+    expect(g().hp).toBe(6);
+    // negative maxHp floors at 0
+    s.set(c.id, { maxHp: -5 });
+    expect(g().maxHp).toBe(0);
+    expect(g().hp).toBe(0);
+  });
+
   it('toggles conditions and hidden flag', () => {
     const c = s.add('Cultist', 10, true);
     s.toggleCondition(c.id, 'poisoned');

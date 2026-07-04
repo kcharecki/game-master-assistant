@@ -744,7 +744,13 @@
               {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
             </div>
           {:else}
-            <div class="gcell gtext" style={area}>
+            <div
+              class="gcell gtext"
+              class:parchment={cell.theme === 'parchment'}
+              class:letter={cell.theme === 'letter'}
+              class:telegram={cell.theme === 'telegram'}
+              style={area}
+            >
               {#if cell.title}<h2>{cell.title}</h2>{/if}
               {#if cell.body}<p>{cell.body}</p>{/if}
             </div>
@@ -780,7 +786,12 @@
             {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
           </div>
         {:else}
-          <div class="gcell gtext">
+          <div
+            class="gcell gtext"
+            class:parchment={cell.theme === 'parchment'}
+            class:letter={cell.theme === 'letter'}
+            class:telegram={cell.theme === 'telegram'}
+          >
             {#if cell.title}<h2>{cell.title}</h2>{/if}
             {#if cell.body}<p>{cell.body}</p>{/if}
           </div>
@@ -1026,6 +1037,59 @@
   .gtext p {
     font-size: clamp(13px, 1.7vw, 19px);
     line-height: 1.5;
+  }
+  /* Themed text cell skins (parchment/letter/telegram) — fill the grid cell. */
+  .gtext.parchment,
+  .gtext.letter,
+  .gtext.telegram {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: clamp(10px, 2vw, 26px);
+    border-radius: 6px;
+    text-align: left;
+    overflow: auto;
+  }
+  .gtext.parchment {
+    background: linear-gradient(#efe2c0, #e3d2a6);
+    color: #3a2c14;
+    border: 1px solid #b39a63;
+  }
+  .gtext.parchment h2 {
+    font-family: var(--serif);
+    color: #5a3b1c;
+    margin-bottom: 0;
+  }
+  .gtext.parchment p {
+    color: #3a2c14;
+  }
+  .gtext.letter {
+    background: #f6f4ee;
+    color: #22201c;
+    border: 1px solid #cfc9bb;
+  }
+  .gtext.letter h2,
+  .gtext.letter p {
+    font-family: 'Courier New', monospace;
+    color: #22201c;
+    margin-bottom: 0;
+  }
+  .gtext.telegram {
+    background: #f0ead6;
+    color: #1a1a1a;
+    border: 2px dashed #7a6a3a;
+    text-align: center;
+  }
+  .gtext.telegram h2,
+  .gtext.telegram p {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #1a1a1a;
+    margin-bottom: 0;
   }
 
   /* --- new stage tile kinds: countdown clock, in-world date/moon, dice result */

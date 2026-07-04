@@ -9,6 +9,8 @@ import {
   reorder,
   formatTime,
   parseYouTubeId,
+  repeatMode,
+  repeatFlags,
 } from './logic';
 
 describe('perceptual', () => {
@@ -92,6 +94,24 @@ describe('advanceIndex', () => {
 
   it('is safe on an empty queue', () => {
     expect(advanceIndex(0, 0)).toBe(-1);
+  });
+});
+
+describe('repeat mode mapping', () => {
+  it('derives the mode from the two booleans (loopTrack wins)', () => {
+    expect(repeatMode(false, false)).toBe('off');
+    expect(repeatMode(true, false)).toBe('scene');
+    expect(repeatMode(false, true)).toBe('track');
+    expect(repeatMode(true, true)).toBe('track');
+  });
+  it('maps a mode back to booleans and round-trips', () => {
+    expect(repeatFlags('off')).toEqual({ loopList: false, loopTrack: false });
+    expect(repeatFlags('scene')).toEqual({ loopList: true, loopTrack: false });
+    expect(repeatFlags('track').loopTrack).toBe(true);
+    for (const m of ['off', 'scene', 'track'] as const) {
+      const f = repeatFlags(m);
+      expect(repeatMode(f.loopList, f.loopTrack)).toBe(m);
+    }
   });
 });
 

@@ -65,6 +65,17 @@ export class InitiativeStore {
     return this.order.find((c) => c.id === id);
   }
 
+  /** Edit combatant fields directly. Numeric fields are clamped so hp never exceeds maxHp. */
+  set(id: string, patch: Partial<Omit<Combatant, 'id'>>): void {
+    const c = this.#find(id);
+    if (!c) return;
+    Object.assign(c, patch);
+    if (c.maxHp < 0) c.maxHp = 0;
+    if (c.hp > c.maxHp) c.hp = c.maxHp;
+    if (c.hp < 0) c.hp = 0;
+    this.persist();
+  }
+
   /** Apply damage, clamped to 0. */
   damage(id: string, amount: number): void {
     const c = this.#find(id);

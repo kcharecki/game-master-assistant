@@ -8,6 +8,7 @@ import {
   moveBeat,
   stepCursor,
   threadTally,
+  branchTarget,
   type Beat,
   type BeatType,
   type Branch,
@@ -27,7 +28,7 @@ const SEED_BEATS: Beat[] = [
     body: 'Set the dread. Reference [[Innsmouth]] and the [[Marsh Refinery]] on the skyline.',
     branches: [
       { id: 'br-1', cond: 'they question the driver', to: 'The nervous driver' },
-      { id: 'br-2', cond: 'ready to explore', to: 'Arrival on Federal St.' },
+      { id: 'br-2', cond: 'ready to explore', to: 'The Innkeeper' },
     ],
   },
   {
@@ -137,6 +138,19 @@ class PlannerStore {
   setCurrent(id: string): void {
     if (!this.beats.some((b) => b.id === id)) return;
     this.currentId = id;
+    this.persist();
+  }
+
+  /** Beat id a branch's `to` points at, or undefined for a terminal outcome. */
+  branchTargetId(to: string): string | undefined {
+    return branchTarget($state.snapshot(this.beats), to);
+  }
+
+  /** Move both the run cursor and the detail selection to a beat. */
+  jumpTo(id: string): void {
+    if (!this.beats.some((b) => b.id === id)) return;
+    this.currentId = id;
+    this.selectedId = id;
     this.persist();
   }
 

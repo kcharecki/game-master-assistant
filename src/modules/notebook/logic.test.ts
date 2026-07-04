@@ -15,6 +15,8 @@ import {
   escapeHtml,
   renderMarkdown,
   highlight,
+  relativeShort,
+  sessionGapHours,
   TEMPLATES,
   type Note,
 } from './logic';
@@ -214,6 +216,11 @@ describe('renderMarkdown', () => {
   it('renders #tags as spans', () => {
     expect(renderMarkdown('a #tag')).toContain('<span class="md-tag">#tag</span>');
   });
+
+  it('renders ATX headings but leaves #tag lines as tags', () => {
+    expect(renderMarkdown('## Encounter')).toBe('<h4 class="md-h">Encounter</h4>');
+    expect(renderMarkdown('#prep')).toBe('<p><span class="md-tag">#prep</span></p>');
+  });
 });
 
 describe('highlight', () => {
@@ -227,6 +234,32 @@ describe('highlight', () => {
 
   it('blank query returns escaped body unchanged', () => {
     expect(highlight('a & b', '  ')).toBe('a &amp; b');
+  });
+});
+
+describe('relativeShort', () => {
+  const now = 1_000_000_000_000;
+  it('formats seconds/minutes/hours/days', () => {
+    expect(relativeShort(now, now)).toBe('now');
+    expect(relativeShort(now - 30_000, now)).toBe('now');
+    expect(relativeShort(now - 5 * 60_000, now)).toBe('5m');
+    expect(relativeShort(now - 3 * 3_600_000, now)).toBe('3h');
+    expect(relativeShort(now - 5 * 86_400_000, now)).toBe('5d');
+  });
+});
+
+describe('sessionGapHours', () => {
+  const mk = (id: string, at: number): Note => ({ id, body: id, at, tags: [] });
+  it('returns the gap to the older group, null for the oldest', () => {
+    // groups are newest-first, notes within newest-first
+    const groups = groupBySession([
+      mk('a', 0),
+      mk('b', 60 * 60 * 1000), // +1h → same session as a
+      mk('c', 10 * 60 * 60 * 1000), // +9h from b → new session
+    ]);
+    expect(groups).toHaveLength(2);
+    expect(sessionGapHours(groups, 0)).toBe(9); // newest group → 9h gap to older
+    expect(sessionGapHours(groups, 1)).toBeNull(); // oldest group
   });
 });
 

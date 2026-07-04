@@ -540,7 +540,12 @@
             <div class="content">
               {#if tl.kind === 'text'}
                 {#if tl.title || tl.body}
-                  <div class="ttext">
+                  <div
+                    class="ttext"
+                    class:parchment={tl.theme === 'parchment'}
+                    class:letter={tl.theme === 'letter'}
+                    class:telegram={tl.theme === 'telegram'}
+                  >
                     {#if tl.title}<strong>{tl.title}</strong>{/if}
                     {#if tl.body}<span>{tl.body}</span>{/if}
                   </div>
@@ -1372,6 +1377,52 @@
   .ttext span {
     font-size: 12px;
     line-height: 1.4;
+  }
+  /* themed text-tile skins — mirror the broadcast so the board previews it. */
+  .ttext.parchment,
+  .ttext.letter,
+  .ttext.telegram {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    text-align: left;
+  }
+  .ttext.parchment {
+    background: linear-gradient(#efe2c0, #e3d2a6);
+    border: 1px solid #b39a63;
+  }
+  .ttext.parchment strong {
+    font-family: Georgia, serif;
+    color: #5a3b1c;
+  }
+  .ttext.parchment span {
+    color: #3a2c14;
+  }
+  .ttext.letter {
+    background: #f6f4ee;
+    border: 1px solid #cfc9bb;
+  }
+  .ttext.letter strong,
+  .ttext.letter span {
+    font-family: 'Courier New', monospace;
+    color: #22201c;
+  }
+  .ttext.telegram {
+    background: #f0ead6;
+    border: 1px dashed #7a6a3a;
+    text-align: center;
+  }
+  .ttext.telegram strong,
+  .ttext.telegram span {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #1a1a1a;
   }
   .ph {
     color: var(--faint);
