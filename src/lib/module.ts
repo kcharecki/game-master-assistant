@@ -10,6 +10,7 @@ export type ModuleId =
   | 'calendar'
   | 'handouts'
   | 'notebook'
+  | 'planner'
   | 'map'
   | 'audio'
   | 'sanity'

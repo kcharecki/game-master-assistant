@@ -11,6 +11,7 @@ import map from '../modules/map';
 import audio from '../modules/audio';
 import sanity from '../modules/sanity';
 import notebook from '../modules/notebook';
+import planner from '../modules/planner';
 import palette from '../modules/palette';
 import rules from '../modules/rules';
 import stage from '../modules/stage';
@@ -29,6 +30,7 @@ export const modules: Record<ModuleId, ModuleManifest> = {
   audio,
   handouts,
   notebook,
+  planner,
   sanity,
   palette,
   rules,

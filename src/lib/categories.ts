@@ -35,6 +35,7 @@ export const categoryMap: Record<ModuleId, CategoryInfo> = {
   rules: { category: 'Dice & Rules', icon: '📖' },
   // Prep & Notes
   notebook: { category: 'Prep & Notes', icon: '📝' },
+  planner: { category: 'Prep & Notes', icon: '🎬' },
   // Utility
   palette: { category: 'Utility', icon: '⌘' },
   // Timer lives with Utility — a session-pacing tool.
