@@ -24,7 +24,7 @@
   font-display: swap;
 }
 
-/* ---- Keeper design tokens (Command Deck — from mockup-12) ---- */
+/* ---- Keeper design tokens (Command Deck) ---- */
 :root {
   /* display serif for window titles + section headers; body stays sans */
   --serif: 'IM Fell English', 'Cormorant', 'Georgia', 'Times New Roman', serif;

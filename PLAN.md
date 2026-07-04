@@ -1,14 +1,10 @@
 # GM Assistant — Build Plan
 
 ## Chosen Design
-**[mockup-12.html](mockups/mockup-12.html) — "Keeper · Command Deck" / séance-green desktop.** All UI work follows this direction.
-(Evolution of mockup-11: denser layout + AA-accessibility, same séance-green Cthulhu vibe.) Explore alternates: [mockups/index.html](mockups/index.html).
-
-### Locked design tokens (from mockup-12, live in `src/app.css`)
-- Palette: deep desaturated greens. bg `#080d0b`, panels `#0f1815`/`#13201b`, accent green `#6fd0a0` / glow `#46e89a`, danger red `#d97a7a`, gold note `#d6b65e`. AA-bumped muted `#a7bcb0` / faint `#8a9d93`. Focus ring `#7dffc0`.
-- Type: system-ui body; Georgia serif for big numerals (dice, initiative) + scene titles. Tabular numerals on stats.
-- Borders hairline green `rgba(95,150,120,.18)`; soft shadows; 10px radius. Compact density: 50px topbar, 196px sidebar, tight window chrome.
-- A11y: `:focus-visible` outlines, `prefers-reduced-motion` kills eye animation.
+**"Keeper · Command Deck" — séance-green Cthulhu desktop** (compact + AA-accessible). All UI follows
+this direction. Design tokens (palette, type, borders, density, a11y) are the source of truth in
+[`src/app.css`](src/app.css); Georgia serif for big numerals + scene titles, hairline green borders,
+animated Keeper eye.
 
 ### Core UX model
 - **Desktop canvas**: components are draggable floating **windows** on a grid+vignette wallpaper. Click = focus/raise (z-index). Position clamped to canvas.
@@ -22,14 +18,12 @@
 - Players see ONE screen-shared broadcast/reveal window. All else GM-eyes-only.
 - Single Game Master tool.
 
-## Windows / modules (initial set)
-Built as desktop windows; full list in [gm-assistant-features.md](gm-assistant-features.md).
-- Live now: Current Scene, Initiative Tracker, Quick Roller (d100 + Chaos/Sanity), NPCs, Handouts, Notebook,
-  Reveal/broadcast (image upload + display mode), Battle map (pan/zoom, tokens, fog, ping), Ambient audio + soundboard.
-- Next: Clue board, Calendar/timeline, lore wiki, faction web (M3).
+## Windows / modules
+Built as desktop windows / editor tabs; all 18 shipped. Feature → module map in [ROADMAP.md](ROADMAP.md);
+feature spec in [gm-assistant-features.md](gm-assistant-features.md).
 
-## Window system — to implement
-- [x] Drag (done in mockup) + **resize** handles
+## Window system
+- [x] Drag + **resize** handles
 - [x] **Minimize / close**, restore from dock
 - [x] **＋ Widget** menu → spawn any module window
 - [ ] Snap-to-grid + saved **layout presets** per system (D&D vs CoC)

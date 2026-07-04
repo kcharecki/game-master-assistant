@@ -2,17 +2,18 @@
 
 GM-only virtual desktop for running online tabletop RPG sessions (D&D 5e / Call of Cthulhu).
 Design + plan: [PLAN.md](PLAN.md). Feature list: [gm-assistant-features.md](gm-assistant-features.md).
-UI direction: [mockups/mockup-11.html](mockups/mockup-11.html) (explore all: [mockups/index.html](mockups/index.html)).
+Architecture: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Stack
 Pure web · Svelte 5 + TypeScript · Vite · IndexedDB (`idb`) · Vitest + Playwright + ESLint.
 
 ## Architecture
+Three surfaces (desktop / editor tabs / broadcast) + self-contained modules. Full detail in
+[ARCHITECTURE.md](ARCHITECTURE.md).
 - **GM app** (`index.html`): private desktop of draggable windows.
 - **Broadcast renderer** (`broadcast.html`): the shared page; screen-share only this.
 - GM → Broadcast over **BroadcastChannel** (`src/lib/bus.ts`); state mirrored to IndexedDB
   (`src/lib/db.ts`) so the broadcast tab rehydrates on open.
-- Window manager: `src/lib/stores/windows.svelte.ts`; drag action: `src/lib/actions/drag.ts`.
 
 ## Quickstart
 ```bash
@@ -34,9 +35,6 @@ dock to push content. Screen-share the broadcast tab to players.
 | `npm test` | Vitest unit tests |
 | `npm run test:e2e` | Playwright e2e (builds + previews first) |
 
-## Architecture
-Three surfaces (desktop / editor tabs / broadcast) + self-contained modules. See [ARCHITECTURE.md](ARCHITECTURE.md).
-
 ## Layout
 ```
 index.html / broadcast.html   entry pages (Vite multi-page)
@@ -55,7 +53,7 @@ src/
   surfaces/                   Desktop.svelte, EditorHost.svelte
   components/                 WindowFrame, Topbar, Sidebar, Dock, KeeperEye, Stub
   modules/<id>/               manifest + Desktop/Editor/store + co-located *.test.ts
-    scene · initiative · roller · npcs · reveal (others: registry stubs)
+                              (18 shipped: initiative, npcs, lore, map, audio, planner, …)
   broadcast/                  broadcast renderer
 tests/
   unit/                       cross-cutting Vitest (bus, windows)
