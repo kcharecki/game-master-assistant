@@ -12,8 +12,8 @@ import type { PublicNpc } from '../npcs/public';
 export const STAGE_COLS = 12;
 export const STAGE_ROWS = 8;
 
-// image/text/npc are content sources; clock/date are computed/snapshot tiles
-// (see IMPROVEMENTS §2 "New tile kinds"). All project to player-safe grid cells.
+// image/text/npc are content sources; clock/date are computed/snapshot tiles.
+// All project to player-safe grid cells.
 export type TileKind = 'image' | 'text' | 'npc' | 'clock' | 'date';
 
 /** One placed element on the stage. Placement is 1-based, CSS-grid semantics. */
