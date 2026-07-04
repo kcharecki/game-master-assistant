@@ -21,11 +21,23 @@ export interface Beat {
   title: string;
   type: BeatType;
   status: BeatStatus;
+  /** act grouping label, e.g. "Act II · The Crossing"; blank = ungrouped */
+  act?: string;
   /** player-facing narration, shown as "read aloud" boxed text */
   boxed: string;
   /** GM-only notes; supports #tags, @npc, [[lore]] via the notebook renderer */
   body: string;
+  /** one-line glance cue for the run cockpit (not read-aloud) */
+  cue?: string;
+  /** rough time budget in minutes for this beat */
+  mins?: number;
   branches: Branch[];
+}
+
+/** A run of consecutive beats sharing an act label, for grouped rendering. */
+export interface ActGroup {
+  act: string;
+  beats: Beat[];
 }
 
 /** A plot thread / open question tracked across the whole campaign. */
@@ -67,6 +79,53 @@ export function moveBeat(beats: Beat[], id: string, dir: -1 | 1): Beat[] {
   const out = beats.slice();
   [out[i], out[j]] = [out[j], out[i]];
   return out;
+}
+
+/**
+ * Move the beat `fromId` to sit where `toId` currently is (drag-and-drop
+ * reorder). Returns a new array; unknown ids or a no-op self-move return the
+ * input unchanged. Pure — unit-tested.
+ */
+export function reorderBeats(beats: Beat[], fromId: string, toId: string): Beat[] {
+  if (fromId === toId) return beats;
+  const from = beats.findIndex((b) => b.id === fromId);
+  const to = beats.findIndex((b) => b.id === toId);
+  if (from < 0 || to < 0) return beats;
+  const out = beats.slice();
+  const [moved] = out.splice(from, 1);
+  out.splice(to, 0, moved);
+  return out;
+}
+
+/**
+ * Bucket beats into consecutive runs sharing an act label. Beats with no act
+ * fall into a group keyed by the empty string (rendered header-less). Pure.
+ */
+export function groupByAct(beats: Beat[]): ActGroup[] {
+  const groups: ActGroup[] = [];
+  for (const b of beats) {
+    const act = b.act?.trim() ?? '';
+    const last = groups[groups.length - 1];
+    if (last && last.act === act) last.beats.push(b);
+    else groups.push({ act, beats: [b] });
+  }
+  return groups;
+}
+
+/** The first non-empty line of a beat body — the run cockpit's glance cue. Pure. */
+export function beatCue(body: string): string {
+  for (const line of body.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed) return trimmed;
+  }
+  return '';
+}
+
+/** The beat immediately after `currentId`, or undefined at the end. Pure. */
+export function nextBeat(beats: Beat[], currentId: string | undefined): Beat | undefined {
+  const i = beats.findIndex((b) => b.id === currentId);
+  if (i < 0 || i + 1 >= beats.length) return undefined;
+  return beats[i + 1];
 }
 
 /**

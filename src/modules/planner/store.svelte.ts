@@ -6,9 +6,12 @@ import {
   newBranch,
   newThread,
   moveBeat,
+  reorderBeats,
+  groupByAct,
   stepCursor,
   threadTally,
   branchTarget,
+  nextBeat,
   type Beat,
   type BeatType,
   type Branch,
@@ -20,39 +23,96 @@ export type { Beat, Branch, Thread, BeatType, BeatStatus } from './logic';
 const SEED_BEATS: Beat[] = [
   {
     id: 'b-open',
-    title: 'Cold open',
+    title: 'Cold Open — The Fog Rolls In',
     type: 'intro',
-    status: 'planned',
+    status: 'done',
+    act: 'Act I · Arrival',
     boxed:
-      'The mail-boat groans against the tide as Innsmouth slides into view — sagging rooftops, a church with no cross, and every window watching.',
-    body: 'Set the dread. Reference [[Innsmouth]] and the [[Marsh Refinery]] on the skyline.',
+      'The mail-boat gutters into a wall of grey. Somewhere ahead a bell tolls, slow and wet, and the shore of [[Hollowmere]] resolves out of the fog.',
+    body: 'Set the dread. The party has been summoned by @Mireille over the [[Hollowmere Pact]].',
+    branches: [],
+  },
+  {
+    id: 'b-chapel',
+    title: 'The Drowned Chapel',
+    type: 'scene',
+    status: 'done',
+    act: 'Act I · Arrival',
+    boxed: '',
+    body: 'Explore the flooded nave. A #clue: the register names the signatories of the [[Hollowmere Pact]].',
+    branches: [],
+  },
+  {
+    id: 'b-parley',
+    title: 'Parley with the Ferryman',
+    type: 'social',
+    status: 'draft',
+    act: 'Act II · The Crossing',
+    boxed:
+      'A skiff waits at the reed-line, and in it a figure of wet grey cloth. It does not look up. “Two to cross,” it says, “and the toll is not coin.”',
+    body: 'The @Ferryman wants a name owed to the mere — press the party on the [[Hollowmere Pact]]. If they mention @Mireille, the toll softens. Watch the #toll clock — dusk raises the water.',
+    cue: 'He wants a name owed to the mere, not coin. Mentioning @Mireille softens the toll.',
+    mins: 15,
     branches: [
-      { id: 'br-1', cond: 'they question the driver', to: 'The nervous driver' },
-      { id: 'br-2', cond: 'ready to explore', to: 'The Innkeeper' },
+      { id: 'br-toll', cond: 'they pay the toll — a true name', to: 'The Sunken Vault' },
+      { id: 'br-fight', cond: 'they refuse, or draw steel', to: "The Ferryman's Wrath" },
     ],
   },
   {
-    id: 'b-inn',
-    title: 'The Innkeeper',
+    id: 'b-vault',
+    title: 'The Sunken Vault',
+    type: 'combat',
+    status: 'planned',
+    act: 'Act II · The Crossing',
+    boxed: '',
+    body: 'Guardians of drowned stone stir. Terrain: rising water each round.',
+    mins: 25,
+    branches: [],
+  },
+  {
+    id: 'b-kept',
+    title: 'What the Water Kept',
+    type: 'reveal',
+    status: 'planned',
+    act: 'Act II · The Crossing',
+    boxed: '',
+    body: 'The vault yields the true name — and a portrait of @Mireille that is a century too old.',
+    branches: [],
+  },
+  {
+    id: 'b-bargain',
+    title: 'The Bargain',
     type: 'social',
     status: 'planned',
-    boxed: 'Zadok Allen is drunk by noon and full of warnings — for the price of whiskey.',
-    body: 'Play @Zadok Allen paranoid but sharp. The @Gilman Clerk listens from the stairwell.',
-    branches: [
-      { id: 'br-3', cond: 'buy Zadok a drink', to: "Zadok's tale (read-aloud)" },
-      { id: 'br-4', cond: 'threaten him', to: 'He panics and flees' },
-    ],
+    act: 'Act III · The Bargain',
+    boxed: '',
+    body: 'The mere itself bargains through @Mireille. What will the party trade to leave?',
+    branches: [],
+  },
+  {
+    id: 'b-ashes',
+    title: 'Ashes on the Tide',
+    type: 'scene',
+    status: 'planned',
+    act: 'Act III · The Bargain',
+    boxed: '',
+    body: 'Fallout and departure. Which threads did they leave open?',
+    branches: [],
   },
 ];
 
 const SEED_THREADS: Thread[] = [
-  { id: 't-1', text: 'Who is bankrolling the refinery?', resolved: false, planted: 'S2' },
-  { id: 't-2', text: 'The missing dockworkers', resolved: false, planted: 'S3' },
+  { id: 't-pact', text: 'Who signed the Hollowmere Pact?', resolved: false, planted: 'S1' },
+  { id: 't-sister', text: "Mireille's missing sister", resolved: false, planted: 'S2' },
+  { id: 't-dusk', text: 'Why does the water rise at dusk?', resolved: false, planted: 'S2' },
+  { id: 't-name', text: "The Ferryman's true name", resolved: true, planted: 'S3' },
 ];
 
 interface PlannerState {
   beats: Beat[];
   threads: Thread[];
+  campaign?: string;
+  session?: string;
   currentId?: string;
   selectedId?: string;
 }
@@ -61,10 +121,13 @@ interface PlannerState {
 class PlannerStore {
   beats = $state<Beat[]>([...SEED_BEATS]);
   threads = $state<Thread[]>([...SEED_THREADS]);
-  /** beat open in the detail pane */
-  selectedId = $state<string>(SEED_BEATS[0].id);
+  /** campaign + session labels shown in the editor titlebar */
+  campaign = $state<string>('Hollowmere');
+  session = $state<string>('Session 3');
+  /** beat expanded in the accordion / open in the detail pane */
+  selectedId = $state<string>('b-parley');
   /** beat the run cursor is parked on (the "now playing" beat) */
-  currentId = $state<string>(SEED_BEATS[0].id);
+  currentId = $state<string>('b-parley');
 
   get selected(): Beat | undefined {
     return this.beats.find((b) => b.id === this.selectedId);
@@ -72,6 +135,16 @@ class PlannerStore {
 
   get current(): Beat | undefined {
     return this.beats.find((b) => b.id === this.currentId);
+  }
+
+  /** Beats bucketed into consecutive act groups, for the rail. */
+  get acts() {
+    return groupByAct($state.snapshot(this.beats));
+  }
+
+  /** The beat after the run cursor — the "Next →" peek. */
+  get next(): Beat | undefined {
+    return nextBeat($state.snapshot(this.beats), this.currentId);
   }
 
   /** 1-based position of the run cursor, for "3 / 7" readouts. */
@@ -121,8 +194,22 @@ class PlannerStore {
     this.persist();
   }
 
+  /** Drag-and-drop: drop the dragged beat onto the row of `toId`. */
+  reorder(fromId: string, toId: string): void {
+    this.beats = reorderBeats($state.snapshot(this.beats), fromId, toId);
+    this.persist();
+  }
+
+  /** Flip a beat between "done" and "planned" (the rail check circle). */
+  toggleDone(id: string): void {
+    const beat = this.beats.find((b) => b.id === id);
+    if (beat) beat.status = beat.status === 'done' ? 'planned' : 'done';
+    this.persist();
+  }
+
   select(id: string): void {
-    if (this.beats.some((b) => b.id === id)) this.selectedId = id;
+    // '' collapses the accordion (nothing expanded); any real id expands it.
+    if (id === '' || this.beats.some((b) => b.id === id)) this.selectedId = id;
   }
 
   // --- Run cursor -----------------------------------------------------------
@@ -197,12 +284,42 @@ class PlannerStore {
     this.persist();
   }
 
+  /** Wipe the saved plan back to the bundled Hollowmere sample (undoable). */
+  reset(): void {
+    const prevBeats = $state.snapshot(this.beats);
+    const prevThreads = $state.snapshot(this.threads);
+    const prev = {
+      campaign: this.campaign,
+      session: this.session,
+      currentId: this.currentId,
+      selectedId: this.selectedId,
+    };
+    this.beats = structuredClone(SEED_BEATS);
+    this.threads = structuredClone(SEED_THREADS);
+    this.campaign = 'Hollowmere';
+    this.session = 'Session 3';
+    this.currentId = 'b-parley';
+    this.selectedId = 'b-parley';
+    this.persist();
+    toast.undoable(t('planner.reset'), () => {
+      this.beats = prevBeats as Beat[];
+      this.threads = prevThreads as Thread[];
+      this.campaign = prev.campaign;
+      this.session = prev.session;
+      this.currentId = prev.currentId;
+      this.selectedId = prev.selectedId;
+      this.persist();
+    });
+  }
+
   // --- Persistence ----------------------------------------------------------
 
   persist(): void {
     const state: PlannerState = {
       beats: $state.snapshot(this.beats),
       threads: $state.snapshot(this.threads),
+      campaign: this.campaign,
+      session: this.session,
       currentId: this.currentId,
       selectedId: this.selectedId,
     };
@@ -223,6 +340,8 @@ class PlannerStore {
     if (saved?.beats?.length) {
       this.beats = saved.beats;
       this.threads = saved.threads ?? [];
+      if (saved.campaign !== undefined) this.campaign = saved.campaign;
+      if (saved.session !== undefined) this.session = saved.session;
       const has = (id: string | undefined) => !!id && saved.beats.some((b) => b.id === id);
       this.selectedId = has(saved.selectedId) ? saved.selectedId! : saved.beats[0].id;
       this.currentId = has(saved.currentId) ? saved.currentId! : saved.beats[0].id;

@@ -1,68 +1,26 @@
 <script lang="ts">
-  import { notebook, type Note } from '../modules/notebook/store.svelte';
-  import NotebookDesktop from '../modules/notebook/Desktop.svelte';
-  import NotebookEditor from '../modules/notebook/Editor.svelte';
+  import { planner } from '../modules/planner/store.svelte';
+  import PlannerDesktop from '../modules/planner/Desktop.svelte';
+  import PlannerEditor from '../modules/planner/Editor.svelte';
 
-  // ---- deterministic mock data mirroring the Session Notes v2 design mock ----
-  const now = Date.now();
-  const min = 60_000;
-  const day = 86_400_000;
-  const mock: Note[] = [
-    {
-      id: 'prep',
-      body:
-        '## Next-session prep\nGoals for the next table\n- [x] Reveal @The Ferryman at the vault\n- [ ] Drop the [[Silver Locket]] clue\n- [ ] Stat the antechamber trap #encounter\nThe party still trusts @Vale — use it. Reveal is set at [[Frostmarch Vault]] the moment they open the ledger.',
-      at: now - 2 * min,
-      tags: ['encounter', 'prep'],
-      pinned: true,
-      ctx: { ivDate: '16 Frostmarch' },
-    },
-    {
-      id: 'enc',
-      body: 'Encounter — [[Vault Antechamber]]\n- Foes: @Vale\n- Terrain:\n- Twist:\n#encounter',
-      at: now - 9 * min,
-      tags: ['encounter'],
-      ctx: { round: 3, onAir: 'The Parlor', ivDate: '16 Frostmarch' },
-    },
-    {
-      id: 'bribe',
-      body: 'Party bribed @Vale for the ledger #lead',
-      at: now - 24 * min,
-      tags: ['lead'],
-      ctx: { round: 3, onAir: 'The Parlor', ivDate: '16 Frostmarch' },
-    },
-    {
-      id: 'bigbad',
-      body: 'Big bad reveal at [[Frostmarch Vault]] #mystery',
-      at: now - 5 * day,
-      tags: ['mystery'],
-      ctx: { round: 7, onAir: 'The Veil', ivDate: '11 Frostmarch' },
-    },
-    {
-      id: 'loot',
-      body: 'Loot: 200gp + a silver locket #loot',
-      at: now - 5 * day - 20 * min,
-      tags: ['loot'],
-      ctx: { round: 9, ivDate: '11 Frostmarch' },
-    },
-  ];
-
-  notebook.notes = mock;
-  notebook.focusedId = 'prep';
+  // Deterministic mock — mirrors the Session Planner redesign mock. The store
+  // already seeds the Hollowmere one-shot; just pin the run cursor + stop the
+  // IndexedDB load from clobbering it.
+  planner.currentId = 'b-parley';
+  planner.selectedId = 'b-parley';
+  planner.load = async () => {};
 
   const params = new URLSearchParams(location.search);
   const which = params.get('c') ?? 'all';
-  if (params.get('q')) notebook.query = params.get('q') as string;
-  if (params.get('tag')) notebook.activeTag = params.get('tag') as string;
 </script>
 
 <div class="ph-root">
   {#if which === 'widget' || which === 'all'}
     <section class="ph-block">
-      <div class="ph-label">widget · Desktop.svelte (344×520)</div>
+      <div class="ph-label">widget · Desktop.svelte (run cockpit · 320×320)</div>
       <div class="ph-window">
-        <div class="ph-winbar"><span class="ph-t">Session Notes</span></div>
-        <div class="ph-wincontent"><NotebookDesktop /></div>
+        <div class="ph-winbar"><span class="ph-t">Session Planner</span></div>
+        <div class="ph-wincontent"><PlannerDesktop /></div>
       </div>
     </section>
   {/if}
@@ -70,7 +28,7 @@
   {#if which === 'editor' || which === 'all'}
     <section class="ph-block ph-grow">
       <div class="ph-label">editor · Editor.svelte</div>
-      <div class="ph-editor"><NotebookEditor /></div>
+      <div class="ph-editor"><PlannerEditor /></div>
     </section>
   {/if}
 </div>
@@ -95,6 +53,7 @@
   .ph-grow {
     flex: 1;
     min-width: 0;
+    max-width: 640px;
   }
   .ph-label {
     font-family: ui-monospace, monospace;
@@ -103,10 +62,9 @@
     text-transform: uppercase;
     color: var(--faint);
   }
-  /* mimic the real desktop window chrome so the widget reads at true size */
   .ph-window {
-    width: 344px;
-    height: 520px;
+    width: 340px;
+    height: 560px;
     display: flex;
     flex-direction: column;
     border-radius: 10px;
@@ -130,11 +88,17 @@
     flex: 1;
     min-height: 0;
     overflow: auto;
-    padding: 9px 10px;
+    padding: 10px 12px;
   }
   .ph-editor {
+    height: 720px;
+    display: flex;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: var(--bg2);
+    background: var(--panel);
+    overflow: hidden;
+  }
+  .ph-editor :global(.pe) {
+    flex: 1;
   }
 </style>
