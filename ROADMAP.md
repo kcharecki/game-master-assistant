@@ -80,11 +80,17 @@ Live-at-the-table essentials. Commit per row.
 
 ### M5 — Prep & notes ✅
 - [x] session notes (timestamped, taggable, searchable) + test
-- [x] quest & plot-thread tracker + test
-- [x] scene/beat planner (movable cards)
+- [x] scene/beat planner + quest/plot-thread tracker → unified `planner` module
+      (beat rail, branching "if players…" forks, run cursor, reference chips,
+      plot-thread rail, read-aloud → broadcast) + test
 - [x] rulings log, custom random tables, loot generator + tests
 - [x] recap generator, improv prompt button
 - *checkpoint:* `m5-prep`
+
+> Post-v1: `planner` supersedes the originally-planned separate `beats` /
+> `quests` modules (never built as standalone). One surface covers #25 + #26,
+> adds branching forks + broadcast push of read-aloud text. See
+> [src/modules/planner/](src/modules/planner/).
 
 ### M6 — Cross-cutting ✅
 - [x] command palette / global search (⌘K over all modules) + test
@@ -141,8 +147,8 @@ All M1–M6 feature rows green + committed, **M7 hardening passed**, e2e suite c
 | 22 | Rulings log | `tables` |
 | 23 | Custom random tables | `tables` |
 | 24 | Session notes | `notebook` |
-| 25 | Scene/beat planner | `beats` |
-| 26 | Quest & plot-thread tracker | `quests` |
+| 25 | Scene/beat planner | `planner` |
+| 26 | Quest & plot-thread tracker | `planner` |
 | 27 | Recap generator | `notebook` |
 | 28 | Improv prompt button | `improv` |
 | 29 | Battle map with fog of war | `map` |
@@ -161,7 +167,8 @@ All M1–M6 feature rows green + committed, **M7 hardening passed**, e2e suite c
 Notes: #16 and #19 are presentational layers of the broadcast surface (display mode / mood) rather than
 standalone modules. #14's clip import/playback ships in `audio`; live mic capture is a future hardening
 item. `scene` (current-scene board) and the `lib/backup` export/import are supporting infrastructure not
-in the original 40.
+in the original 40. #25 + #26 ship as one `planner` module (the planned `beats` / `quests` ids were
+never built separately).
 
 ---
 
