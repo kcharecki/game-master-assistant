@@ -5,35 +5,45 @@
   import { t } from '../../lib/i18n';
   import Icon from '../../lib/components/Icon.svelte';
 
-  let sfxGroup = $state(''); // active soundboard group filter ('' = all)
-  let pickScene = $state(audio.playingScene ?? audio.scenes[0]?.id ?? '');
-  let dropping = $state(false);
+  let mixOpen = $state(false);
   let flashing = $state<Record<string, boolean>>({}); // sfx id -> mid-flash
-  let now = $state(Date.now()); // ticking clock for the output-status pill
+  let now = $state(Date.now()); // ticking clock for the on-air pill
+
+  // Panic "silence" overlay: remembers the scene/position so the bar can resume.
+  let panicked = $state(false);
+  let panicMemo = $state<{ scene: string; label: string; pos: number } | null>(null);
 
   const onAirScene = $derived(audio.scenes.find((p) => p.id === audio.playingScene));
-  const onAirTracks = $derived(onAirScene?.tracks ?? []);
-  const curTrack = $derived(onAirTracks[audio.trackIndex]);
-  const nextTrack = $derived(
-    onAirTracks.length
-      ? onAirTracks[(audio.trackIndex + 1) % onAirTracks.length] &&
-          (audio.trackIndex + 1 < onAirTracks.length || audio.loopList)
-        ? onAirTracks[(audio.trackIndex + 1) % onAirTracks.length]
-        : undefined
-      : undefined
-  );
+  const curTrack = $derived(onAirScene?.tracks[audio.trackIndex]);
   const remaining = $derived(Math.max(0, audio.duration - audio.position));
-  const shownSfx = $derived(
-    sfxGroup ? audio.sfx.filter((s) => (s.group ?? '') === sfxGroup) : audio.sfx
-  );
-  const groups = $derived(audio.sfxGroups);
-  const pickedScene = $derived(audio.scenes.find((p) => p.id === pickScene));
+  const heroLabel = $derived(onAirScene?.name ?? t('audio.nothingPlaying'));
+  const heroInitial = $derived((onAirScene?.name ?? '·').trim().charAt(0).toUpperCase() || '·');
+  const pads = $derived(audio.pinnedSfx);
 
   // Output status: idle (nothing playing) / live (status flowing) / closed
   // (playing but no status heartbeat — the broadcast tab is probably shut).
   const output = $derived(
     !audio.playingScene ? 'idle' : now - audio.lastStatusAt < 3000 ? 'live' : 'closed'
   );
+
+  // Crossfade cycle presets (ms) surfaced as the small ✕ glyph.
+  const FADES = [1500, 3000, 0];
+  const fadeLabel = $derived(
+    audio.crossfadeMs === 0 ? t('audio.repeat.off') : `${(audio.crossfadeMs / 1000).toFixed(1)}s`
+  );
+  const repeatLabel = $derived(
+    audio.repeat === 'track'
+      ? t('audio.repeat.track')
+      : audio.repeat === 'scene'
+        ? t('audio.repeat.scene')
+        : t('audio.repeat.off')
+  );
+
+  // Deterministic pseudo-waveform (same shape every render).
+  const bars = Array.from({ length: 48 }, (_, i) =>
+    0.3 + 0.7 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.6))
+  );
+  const progress = $derived(audio.duration > 0 ? audio.position / audio.duration : 0);
 
   onMount(() => {
     void audio.load();
@@ -48,7 +58,7 @@
         return;
       }
       if (e.key >= '1' && e.key <= '9') {
-        const s = shownSfx[Number(e.key) - 1];
+        const s = pads[Number(e.key) - 1];
         if (s) playPad(s.id);
       }
     };
@@ -60,346 +70,437 @@
     };
   });
 
-  // --- seek drag freeze (hold thumb against incoming audioStatus) ---
-  let seeking = $state(false);
-  let seekPos = $state(0);
-  const seekValue = $derived(seeking ? seekPos : audio.position);
-  const onSeekInput = (e: Event) => (seekPos = (e.currentTarget as HTMLInputElement).valueAsNumber);
-  function onSeekStart() {
-    seekPos = audio.position;
-    seeking = true;
-  }
-  function onSeekCommit() {
-    if (!seeking) return;
-    seeking = false;
-    audio.seek(seekPos);
-  }
-
-  function playScene() {
-    if (pickScene) audio.playScene(pickScene);
-  }
-
   function playPad(id: string) {
     audio.playSfx(id);
     flashing[id] = true;
     setTimeout(() => (flashing[id] = false), 650);
   }
 
-  function onDrop(e: DragEvent) {
-    e.preventDefault();
-    dropping = false;
-    for (const f of e.dataTransfer?.files ?? [])
-      if (f.type.startsWith('audio/')) void audio.addSfx(f, sfxGroup || undefined);
+  function pickScene(id: string) {
+    if (audio.playingScene === id) audio.togglePause();
+    else audio.playScene(id);
   }
 
-  function addInlineTracks(e: Event) {
-    const input = e.currentTarget as HTMLInputElement;
-    for (const f of input.files ?? []) if (f.type.startsWith('audio/')) void audio.addTrack(pickScene, f);
-    input.value = '';
+  function cycleRepeat() {
+    const order: RepeatMode[] = ['off', 'scene', 'track'];
+    audio.setRepeat(order[(order.indexOf(audio.repeat) + 1) % order.length]);
+  }
+  function cycleFade() {
+    audio.setCrossfade(FADES[(FADES.indexOf(audio.crossfadeMs) + 1 + FADES.length) % FADES.length]);
+  }
+
+  function doPanic() {
+    panicMemo = audio.playingScene
+      ? { scene: audio.playingScene, label: heroLabel, pos: audio.position }
+      : null;
+    audio.panic();
+    panicked = true;
+  }
+  function doResume() {
+    panicked = false;
+    const m = panicMemo;
+    panicMemo = null;
+    if (!m) return;
+    audio.playScene(m.scene);
+    if (m.pos > 0) audio.seek(m.pos);
+  }
+
+  // click-to-seek on the waveform (native <audio> only)
+  function onWaveClick(e: MouseEvent) {
+    if (audio.playingYouTube || audio.duration <= 0) return;
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    audio.seek(((e.clientX - r.left) / r.width) * audio.duration);
+  }
+  function onWaveKey(e: KeyboardEvent) {
+    if (audio.playingYouTube || audio.duration <= 0) return;
+    if (e.key === 'ArrowLeft') audio.seek(audio.position - 5);
+    else if (e.key === 'ArrowRight') audio.seek(audio.position + 5);
   }
 
   function openBroadcast() {
     window.open('broadcast.html', 'gm-broadcast', 'width=1280,height=720');
   }
-
-  // Stable-ish colour per group name (verdigris-family hues).
-  function groupColor(name: string): string {
-    if (!name) return 'var(--green-dim)';
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
-    return `hsl(${h} 42% 34%)`;
-  }
 </script>
 
-<div class="audio" data-no-drag>
-  <!-- Output status pill -->
-  <div class="output {output}">
-    <span class="dot"></span>
-    <span class="olabel">
-      {t('audio.output')}:
-      {#if output === 'live'}{t('audio.outputLive')}{:else if output === 'closed'}{t('audio.outputClosed')}{:else}{t('audio.outputIdle')}{/if}
-    </span>
-    {#if output !== 'live'}
-      <button class="btn xs" onclick={openBroadcast}>{t('audio.openBroadcast')}</button>
-    {/if}
-    <button class="btn xs" class:on={audio.monitor} onclick={() => audio.setMonitor(!audio.monitor)} title={t('audio.monitorTitle')}>
-      🎧 {t('audio.monitor')}
-    </button>
-  </div>
-
-  <!-- Now playing -->
-  <section class="nowbox">
-    <div class="nowlabel">{audio.playingScene ? (curTrack?.label ?? t('audio.nowPlaying')) : t('audio.nothingPlaying')}</div>
-    {#if audio.playingScene}
-      <div class="nowmeta">
-        {#if audio.playingYouTube}
-          <span><Icon name="play" size={11} /> YT {audio.trackIndex + 1}/{audio.trackCount}</span>
-        {:else}
-          <span class="tnum">{formatTime(audio.position)}</span>
-          <span class="rem">-{formatTime(remaining)}</span>
-        {/if}
-        {#if nextTrack}<span class="next">{t('audio.nextUp')}: {nextTrack.label}</span>{/if}
-      </div>
-      <input
-        type="range"
-        class="seek"
-        min="0"
-        max={audio.duration || 0}
-        step="0.1"
-        value={seekValue}
-        oninput={onSeekInput}
-        onpointerdown={onSeekStart}
-        onpointerup={onSeekCommit}
-        onkeydown={onSeekStart}
-        onkeyup={onSeekCommit}
-        onchange={onSeekCommit}
-        disabled={audio.playingYouTube || audio.duration <= 0}
-        aria-label={t('audio.seek')}
-      />
-    {/if}
-
-    <!-- Transport + repeat -->
-    <div class="transport">
-      <button class="ic" onclick={() => audio.prev()} disabled={!audio.playingScene} title={t('audio.prev')} aria-label={t('audio.prev')}><Icon name="prev" /></button>
-      <button class="ic big" onclick={() => audio.togglePause()} disabled={!audio.playingScene} title={audio.paused ? t('audio.resume') : t('audio.pause')} aria-label={audio.paused ? t('audio.resume') : t('audio.pause')}><Icon name={audio.paused ? 'play' : 'pause'} /></button>
-      <button class="ic" onclick={() => audio.next()} disabled={!audio.playingScene} title={t('audio.next')} aria-label={t('audio.next')}><Icon name="next" /></button>
-      <button class="ic" onclick={() => audio.stopScene()} disabled={!audio.playingScene} title={t('audio.stop')} aria-label={t('audio.stop')}><Icon name="stop" /></button>
-      <select
-        class="rep"
-        value={audio.repeat}
-        onchange={(e) => audio.setRepeat(e.currentTarget.value as RepeatMode)}
-        title={t('audio.repeat')}
-        aria-label={t('audio.repeat')}
-      >
-        <option value="off">🔁 {t('audio.repeat.off')}</option>
-        <option value="scene">🔁 {t('audio.repeat.scene')}</option>
-        <option value="track">🔂 {t('audio.repeat.track')}</option>
-      </select>
+<div class="aud" data-no-drag>
+  {#if panicked}
+    <!-- ── Silence overlay (post-panic) ───────────────────────── -->
+    <div class="aud-head aud-silenced">
+      <span class="aud-dot"></span>
+      <span class="aud-onair">{t('audio.silenced')}</span>
+      <span class="aud-conn">{t('audio.broadcastConnected')}</span>
     </div>
-  </section>
+    <div class="aud-silbody">
+      <div class="aud-silmark"><Icon name="stop" size={26} /></div>
+      <div class="aud-siltitle">— {t('audio.silence')} —</div>
+      <p class="aud-silline">{t('audio.silenceStopped')}<br />{t('audio.silenceCut')}</p>
+      {#if panicMemo}
+        <p class="aud-silmemo">{panicMemo.label} · {t('audio.pausedAt')} {formatTime(panicMemo.pos)}</p>
+      {/if}
+    </div>
+    <button class="aud-resume" onclick={doResume}>{t('audio.tapToResume')}</button>
+  {:else}
+    <!-- ── Header: on-air status + MON / MIX ──────────────────── -->
+    <div class="aud-head {output}">
+      <span class="aud-dot"></span>
+      <span class="aud-onair">
+        {#if output === 'closed'}{t('audio.outputClosed')}{:else if output === 'live'}{t('audio.outputLive')}{:else}{t('audio.outputIdle')}{/if}
+      </span>
+      <span class="aud-conn">
+        {output === 'idle' ? '' : output === 'closed' ? t('audio.broadcastShut') : t('audio.broadcastConnected')}
+      </span>
+      <button class="aud-tog" class:on={audio.monitor} onclick={() => audio.setMonitor(!audio.monitor)} title={t('audio.monitorTitle')}>{t('audio.mon')}</button>
+      <button class="aud-tog" class:on={mixOpen} onclick={() => (mixOpen = !mixOpen)}>{t('audio.mix')} ▾</button>
+    </div>
 
-  <!-- Scenes: chips + inline track list -->
-  <section class="scenes">
-    <div class="scenechips">
+    <!-- ── Now-playing hero ───────────────────────────────────── -->
+    <div class="aud-hero">
+      <div class="aud-avatar">{heroInitial}</div>
+      <div class="aud-hinfo">
+        <div class="aud-title">{heroLabel}</div>
+        <div class="aud-sub">{audio.playingScene ? (curTrack?.label ?? '—') : t('audio.nothingPlaying')}</div>
+      </div>
+    </div>
+
+    <!-- waveform / seek -->
+    <div
+      class="aud-wave"
+      class:dead={!audio.playingScene}
+      onclick={onWaveClick}
+      onkeydown={onWaveKey}
+      role="slider"
+      tabindex="0"
+      aria-label={t('audio.seek')}
+      aria-valuenow={Math.round(audio.position)}
+      aria-valuemax={Math.round(audio.duration)}
+    >
+      {#each bars as h, i (i)}
+        <span class="aud-bar" class:lit={i / bars.length <= progress} style="height:{Math.round(h * 100)}%"></span>
+      {/each}
+    </div>
+    <div class="aud-times">
+      {#if audio.playingYouTube}
+        <span class="aud-t">YT</span>
+        <span class="aud-tidx">{audio.trackIndex + 1} / {audio.trackCount}</span>
+        <span></span>
+      {:else}
+        <span class="aud-t">{formatTime(audio.position)}</span>
+        <span class="aud-tidx">{audio.playingScene ? `${t('audio.tracks').toUpperCase()} ${audio.trackIndex + 1} / ${audio.trackCount}` : ''}</span>
+        <span class="aud-t rem">{formatTime(remaining || audio.duration)}</span>
+      {/if}
+    </div>
+
+    <!-- ── Transport ──────────────────────────────────────────── -->
+    <div class="aud-transport">
+      <button class="aud-glyph" onclick={cycleRepeat} title={t('audio.repeat')}>
+        <span class="aud-gsym">↺</span><span class="aud-glabel">{repeatLabel}</span>
+      </button>
+      <button class="aud-ic" onclick={() => audio.prev()} disabled={!audio.playingScene} aria-label={t('audio.prev')}><Icon name="prev" /></button>
+      <button class="aud-play" onclick={() => audio.togglePause()} disabled={!audio.playingScene} aria-label={audio.paused ? t('audio.resume') : t('audio.pause')}><Icon name={audio.paused ? 'play' : 'pause'} size={20} /></button>
+      <button class="aud-ic" onclick={() => audio.next()} disabled={!audio.playingScene} aria-label={t('audio.next')}><Icon name="next" /></button>
+      <button class="aud-glyph" onclick={cycleFade} title={t('audio.crossfade')}>
+        <span class="aud-gsym">✕</span><span class="aud-glabel">{fadeLabel}</span>
+      </button>
+    </div>
+
+    <!-- ── Mood chips (one-tap crossfade) ─────────────────────── -->
+    <div class="aud-caplbl">{t('audio.moodLabel')}</div>
+    <div class="aud-moods">
       {#each audio.scenes as p (p.id)}
-        <button
-          class="chip"
-          class:on={pickScene === p.id}
-          class:live={audio.playingScene === p.id}
-          onclick={() => (pickScene = p.id)}
-        >
-          {p.name} <span class="cnt">{p.tracks.length}</span>
+        <button class="aud-chip" class:live={audio.playingScene === p.id} onclick={() => pickScene(p.id)} disabled={!p.tracks.length}>
+          {p.name}
         </button>
       {/each}
     </div>
 
-    {#if pickedScene}
-      <div class="scenebody">
-        {#if pickedScene.tracks.length}
-          <ul class="itracks">
-            {#each pickedScene.tracks as tr, i (tr.id)}
-              <li class:playing={audio.playingScene === pickScene && i === audio.trackIndex}>
-                <button class="pf" onclick={() => audio.playSceneAt(pickScene, i)} title={t('audio.playFrom')} aria-label={t('audio.playFrom')}><Icon name="play" size={12} /></button>
-                <span class="ilbl">{tr.label}</span>
-                {#if tr.youtubeId}<span class="badge">YT</span>{/if}
-                {#if tr.duration}<span class="idur">{formatTime(tr.duration)}</span>{/if}
-                <button class="ic" onclick={() => audio.moveTrack(pickScene, i, -1)} disabled={i === 0} aria-label={t('audio.moveUp')}>▲</button>
-                <button class="ic" onclick={() => audio.moveTrack(pickScene, i, 1)} disabled={i === pickedScene.tracks.length - 1} aria-label={t('audio.moveDown')}>▼</button>
-                <button class="ic del" onclick={() => audio.removeTrack(pickScene, tr.id)} aria-label={t('audio.delete')} title={t('audio.delete')}><Icon name="trash" size={12} /></button>
-              </li>
-            {/each}
-          </ul>
-        {:else}
-          <p class="muted small">{t('audio.noTracks')}</p>
-        {/if}
-        <div class="scenefoot">
-          <button class="btn sm solid" onclick={playScene} disabled={!pickedScene.tracks.length}>{t('audio.playScene')}</button>
-          <label class="btn sm">{t('audio.addTrackHere')}<input type="file" accept="audio/*" multiple hidden onchange={addInlineTracks} /></label>
-        </div>
-      </div>
-    {/if}
-  </section>
-
-  <!-- Mixer: always visible, three channels -->
-  <section class="mixer">
-    <div class="fader">
-      <button class="ic" class:muted={audio.masterMuted} onclick={() => audio.toggleMute('master')} aria-label={t('audio.mute')}>{audio.masterMuted ? '🔇' : '🔊'}</button>
-      <span class="flabel">{t('audio.vol.master')}</span>
-      <input type="range" min="0" max="1" step="0.01" value={audio.masterVol} oninput={(e) => audio.setMasterVol(e.currentTarget.valueAsNumber)} aria-label={t('audio.vol.master')} />
-      <span class="pct">{Math.round(audio.masterVol * 100)}</span>
-    </div>
-    <div class="fader">
-      <button class="ic" class:muted={audio.ambientMuted} onclick={() => audio.toggleMute('ambient')} aria-label={t('audio.mute')}>{audio.ambientMuted ? '🔇' : '🔊'}</button>
-      <span class="flabel">{t('audio.vol.ambient')}</span>
-      <input type="range" min="0" max="1" step="0.01" value={audio.ambientVol} oninput={(e) => audio.setAmbientVol(e.currentTarget.valueAsNumber)} aria-label={t('audio.vol.ambient')} />
-      <span class="pct">{Math.round(audio.ambientVol * 100)}</span>
-    </div>
-    <div class="fader">
-      <button class="ic" class:muted={audio.sfxMuted} onclick={() => audio.toggleMute('sfx')} aria-label={t('audio.mute')}>{audio.sfxMuted ? '🔇' : '🔊'}</button>
-      <span class="flabel">{t('audio.vol.sfx')}</span>
-      <input type="range" min="0" max="1" step="0.01" value={audio.sfxVol} oninput={(e) => audio.setSfxVol(e.currentTarget.valueAsNumber)} aria-label={t('audio.vol.sfx')} />
-      <span class="pct">{Math.round(audio.sfxVol * 100)}</span>
-    </div>
-    <div class="mixfoot">
-      <label class="duck"><input type="checkbox" checked={audio.duckSfx} onchange={() => audio.toggleDuck()} /> {t('audio.duck')}</label>
-      <button class="btn sm panic" onclick={() => audio.panic()} title={t('audio.panicTitle')}>⛔ {t('audio.panic')}</button>
-    </div>
-  </section>
-
-  <!-- Soundboard pads -->
-  <section
-    class="board"
-    class:dropping
-    ondragover={(e) => {
-      e.preventDefault();
-      dropping = true;
-    }}
-    ondragleave={() => (dropping = false)}
-    ondrop={onDrop}
-    role="group"
-    aria-label={t('audio.soundboard')}
-  >
-    {#if groups.length > 1}
-      <div class="grouprow">
-        <button class="chip flt" class:on={sfxGroup === ''} onclick={() => (sfxGroup = '')}>{t('audio.allGroups')}</button>
-        {#each groups as g (g)}
-          {#if g}
-            <button class="chip flt" class:on={sfxGroup === g} onclick={() => (sfxGroup = g)}>{g}</button>
-          {/if}
+    <!-- ── Quick board ────────────────────────────────────────── -->
+    <div class="aud-caplbl">{t('audio.quickBoard')}</div>
+    {#if pads.length}
+      <div class="aud-pads">
+        {#each pads as s, i (s.id)}
+          <button class="aud-pad" class:flash={flashing[s.id]} onclick={() => playPad(s.id)} oncontextmenu={(e) => { e.preventDefault(); audio.audition(s.assetId); }} title={t('audio.audition')}>
+            {#if i < 9}<kbd>{i + 1}</kbd>{/if}
+            <span class="aud-padlbl">{s.label}</span>
+          </button>
         {/each}
       </div>
+    {:else}
+      <p class="aud-hint">{t('audio.quickBoardHint')}</p>
     {/if}
-    <div class="pads">
-      {#each shownSfx as s, i (s.id)}
-        <button
-          class="pad"
-          class:flash={flashing[s.id]}
-          style="--pad:{groupColor(s.group ?? '')}"
-          onclick={() => playPad(s.id)}
-          oncontextmenu={(e) => {
-            e.preventDefault();
-            audio.audition(s.assetId);
-          }}
-          title={t('audio.audition')}
-        >
-          {#if i < 9}<kbd>{i + 1}</kbd>{/if}
-          <span class="padlabel">{s.label}</span>
-        </button>
-      {:else}
-        <span class="muted">{t('audio.soundboardHint')}</span>
-      {/each}
-    </div>
-  </section>
+
+    <!-- ── Mixer (progressive disclosure) ─────────────────────── -->
+    {#if mixOpen}
+      <div class="aud-mixer">
+        {#each [{ k: 'master', v: audio.masterVol, m: audio.masterMuted, l: t('audio.vol.master'), set: (n: number) => audio.setMasterVol(n) }, { k: 'ambient', v: audio.ambientVol, m: audio.ambientMuted, l: t('audio.vol.ambient'), set: (n: number) => audio.setAmbientVol(n) }, { k: 'sfx', v: audio.sfxVol, m: audio.sfxMuted, l: t('audio.vol.sfx'), set: (n: number) => audio.setSfxVol(n) }] as f (f.k)}
+          <div class="aud-fader">
+            <button class="aud-ic sm" class:muted={f.m} onclick={() => audio.toggleMute(f.k as 'master' | 'ambient' | 'sfx')} aria-label={t('audio.mute')}>{f.m ? '🔇' : '🔊'}</button>
+            <span class="aud-flbl">{f.l}</span>
+            <input type="range" min="0" max="1" step="0.01" value={f.v} oninput={(e) => f.set(e.currentTarget.valueAsNumber)} aria-label={f.l} />
+            <span class="aud-pct">{Math.round(f.v * 100)}</span>
+          </div>
+        {/each}
+        <label class="aud-duck"><input type="checkbox" checked={audio.duckSfx} onchange={() => audio.toggleDuck()} /> {t('audio.duck')}</label>
+        {#if output !== 'live'}
+          <button class="aud-tog" onclick={openBroadcast}>{t('audio.openBroadcast')}</button>
+        {/if}
+      </div>
+    {/if}
+
+    <!-- ── Panic bar ──────────────────────────────────────────── -->
+    <button class="aud-panic" onclick={doPanic}>⛔ {t('audio.stopAll')}</button>
+  {/if}
 </div>
 
 <style>
-  .audio {
+  .aud {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     font-size: 13px;
     color: var(--txt);
   }
-  /* --- output pill --- */
-  .output {
+  /* ── header ── */
+  .aud-head {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
-    font-size: 11px;
+    font-family: ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
   }
-  .output .dot {
+  .aud-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background: var(--faint);
     flex: none;
   }
-  .output.live .dot {
-    background: var(--green);
-    box-shadow: 0 0 6px var(--green);
+  .aud-head.live .aud-dot,
+  .aud-head.idle .aud-dot {
+    background: var(--gold);
+    box-shadow: 0 0 7px var(--gold);
   }
-  .output.closed {
-    border-color: rgba(255, 90, 90, 0.5);
-    background: rgba(255, 90, 90, 0.12);
-  }
-  .output.closed .dot {
+  .aud-head.closed .aud-dot {
     background: #ff6b6b;
+    box-shadow: 0 0 7px #ff6b6b;
   }
-  .olabel {
+  .aud-onair {
+    color: var(--gold);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .aud-head.closed .aud-onair {
+    color: #ff8f8f;
+  }
+  .aud-conn {
     flex: 1;
-    color: var(--muted);
+    color: var(--faint);
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: var(--font, inherit);
+    font-size: 11px;
   }
-  .output.closed .olabel {
-    color: #ffb3b3;
-  }
-  .nowbox {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.25);
+  .aud-tog {
+    padding: 3px 9px;
+    border-radius: 999px;
     border: 1px solid var(--line2);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
-  .nowlabel {
-    font-family: Georgia, serif;
-    font-size: 17px;
+  .aud-tog:hover {
+    color: var(--txt);
+    border-color: var(--gold);
+  }
+  .aud-tog.on {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(214, 182, 94, 0.12);
+  }
+  /* ── hero ── */
+  .aud-hero {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .aud-avatar {
+    width: 48px;
+    height: 48px;
+    flex: none;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 24px;
     color: var(--green);
+    background: rgba(47, 138, 102, 0.18);
+    border: 1px solid var(--green-dim);
+  }
+  .aud-hinfo {
+    min-width: 0;
+  }
+  .aud-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1.1;
+    color: var(--txt);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .nowmeta {
+  .aud-sub {
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* ── waveform ── */
+  .aud-wave {
     display: flex;
-    gap: 10px;
+    align-items: flex-end;
+    gap: 2px;
+    height: 40px;
+    cursor: pointer;
+    padding: 0 1px;
+  }
+  .aud-wave.dead {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .aud-bar {
+    flex: 1;
+    min-width: 0;
+    border-radius: 1px;
+    background: var(--line2);
+  }
+  .aud-bar.lit {
+    background: var(--gold);
+  }
+  .aud-times {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: baseline;
+    font-family: ui-monospace, monospace;
     font-size: 11px;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
-    flex-wrap: wrap;
   }
-  .nowmeta .rem {
+  .aud-times .aud-tidx {
+    text-align: center;
+    color: var(--faint);
+    letter-spacing: 0.08em;
+  }
+  .aud-times .rem {
+    text-align: right;
     color: var(--faint);
   }
-  .nowmeta .next {
-    margin-left: auto;
-    font-style: italic;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 55%;
-  }
-  .seek {
-    width: 100%;
-    accent-color: var(--green);
-  }
-  .transport {
+  /* ── transport ── */
+  .aud-transport {
     display: flex;
-    gap: 4px;
     align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 4px 0 2px;
   }
-  .rep {
-    margin-left: auto;
-    padding: 5px 7px;
-    border-radius: 7px;
+  .aud-glyph {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 48px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: ui-monospace, monospace;
+  }
+  .aud-glyph:hover {
+    color: var(--gold);
+  }
+  .aud-gsym {
+    font-size: 15px;
+    line-height: 1;
+  }
+  .aud-glabel {
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .aud-ic {
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
     color: var(--txt);
-    font: inherit;
-    font-size: 11px;
+    cursor: pointer;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  /* --- scenes --- */
-  .scenechips {
+  .aud-ic:hover:not(:disabled) {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .aud-ic:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .aud-ic.muted {
+    color: #ff8f8f;
+  }
+  .aud-ic.sm {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    background: transparent;
+    font-size: 13px;
+  }
+  .aud-play {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--gold);
+    color: #1a1204;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 18px rgba(214, 182, 94, 0.35);
+  }
+  .aud-play:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+  .aud-play:disabled {
+    opacity: 0.4;
+    box-shadow: none;
+    cursor: default;
+  }
+  /* ── captions ── */
+  .aud-caplbl {
+    font-family: ui-monospace, monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 2px;
+  }
+  /* ── mood chips ── */
+  .aud-moods {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
-  .chip {
-    padding: 5px 11px;
+  .aud-chip {
+    padding: 6px 13px;
     border-radius: 999px;
     border: 1px solid var(--line2);
     background: rgba(0, 0, 0, 0.25);
@@ -408,74 +509,80 @@
     font: inherit;
     font-size: 12px;
   }
-  .chip.on {
+  .aud-chip:hover:not(:disabled) {
     color: var(--txt);
-    border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.16);
+    border-color: var(--gold);
   }
-  .chip.live {
-    border-color: var(--green);
-    color: var(--green);
+  .aud-chip:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
-  .cnt {
-    opacity: 0.6;
-    font-variant-numeric: tabular-nums;
+  .aud-chip.live {
+    color: #1a1204;
+    background: var(--gold);
+    border-color: var(--gold);
+    font-weight: 600;
   }
-  .scenebody {
-    margin-top: 8px;
+  /* ── quick board ── */
+  .aud-pads {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .aud-pad {
+    position: relative;
+    min-height: 50px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .itracks {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  .itracks li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 6px;
-    border-radius: 7px;
-    border: 1px solid transparent;
-    background: rgba(0, 0, 0, 0.2);
-  }
-  .itracks li.playing {
-    border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.16);
-  }
-  .pf {
-    border: 0;
-    background: transparent;
-    color: var(--green);
+    align-items: flex-end;
+    text-align: left;
+    padding: 7px 9px;
+    border-radius: 9px;
+    border: 1px solid var(--line2);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--txt);
     cursor: pointer;
-    padding: 2px;
-    line-height: 1;
-  }
-  .ilbl {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     font-size: 12px;
+    overflow: hidden;
   }
-  .idur {
-    color: var(--faint);
-    font-variant-numeric: tabular-nums;
+  .aud-pad:hover {
+    border-color: var(--gold);
+    background: rgba(214, 182, 94, 0.1);
+  }
+  .aud-pad.flash {
+    animation: aud-flash 0.65s ease-out;
+  }
+  @keyframes aud-flash {
+    0% {
+      box-shadow: 0 0 0 0 var(--gold);
+      background: rgba(214, 182, 94, 0.4);
+    }
+    100% {
+      box-shadow: 0 0 0 6px transparent;
+    }
+  }
+  .aud-pad kbd {
+    position: absolute;
+    top: 5px;
+    left: 8px;
+    font-family: ui-monospace, monospace;
     font-size: 10px;
+    color: var(--faint);
   }
-  .scenefoot {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+  .aud-padlbl {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.15;
   }
-  /* --- mixer --- */
-  .mixer {
+  .aud-hint {
+    color: var(--faint);
+    font-size: 11px;
+    margin: 0;
+  }
+  /* ── mixer ── */
+  .aud-mixer {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -484,190 +591,112 @@
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--line2);
   }
-  .fader {
+  .aud-fader {
     display: grid;
-    grid-template-columns: 26px 76px 1fr 26px;
+    grid-template-columns: 26px 68px 1fr 26px;
     align-items: center;
     gap: 8px;
     font-size: 11px;
     color: var(--muted);
   }
-  .fader input[type='range'] {
-    accent-color: var(--green);
+  .aud-fader input[type='range'] {
+    accent-color: var(--gold);
     min-width: 0;
   }
-  .flabel {
+  .aud-flbl {
     font-size: 11px;
   }
-  .mixfoot {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 2px;
+  .aud-pct {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
   }
-  .duck {
+  .aud-duck {
     font-size: 11px;
     color: var(--muted);
     display: flex;
     align-items: center;
     gap: 6px;
-    flex: 1;
   }
-  .pct {
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .ic {
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 15px;
-    padding: 5px 8px;
-    border-radius: 7px;
-    line-height: 1;
-  }
-  .ic.big {
-    font-size: 18px;
-  }
-  .ic:hover:not(:disabled) {
-    color: var(--txt);
-    background: rgba(47, 138, 102, 0.16);
-  }
-  .ic:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-  .ic.muted {
-    color: #ff8f8f;
-  }
-  .ic.del:hover {
-    color: #ff6b6b;
-  }
-  .itracks .ic {
-    font-size: 11px;
-    padding: 2px 4px;
-  }
-  .btn {
-    border: 1px solid var(--line2);
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.25);
-    color: var(--txt);
+  /* ── panic ── */
+  .aud-panic {
+    margin-top: 2px;
+    width: 100%;
+    padding: 11px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 90, 90, 0.55);
+    background: rgba(255, 90, 90, 0.08);
+    color: #ff9d9d;
     cursor: pointer;
     font: inherit;
-  }
-  .btn.sm {
-    padding: 6px 11px;
-    font-size: 12px;
-  }
-  .btn.xs {
-    padding: 3px 8px;
-    font-size: 11px;
-  }
-  .btn:hover {
-    border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.16);
-  }
-  .btn.solid {
-    background: var(--green-dim);
-    color: #06120c;
     font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
-  .btn.on {
-    border-color: var(--green);
-    color: var(--green);
-  }
-  .btn.panic {
-    border-color: rgba(255, 90, 90, 0.6);
-    color: #ff9d9d;
-  }
-  .btn.panic:hover {
+  .aud-panic:hover {
     background: rgba(255, 90, 90, 0.16);
     border-color: #ff6b6b;
+    color: #ffb3b3;
   }
-  .board {
-    border-radius: 10px;
-    border: 1px solid transparent;
-    padding: 4px;
-    transition: border-color 0.12s;
+  /* ── silence overlay ── */
+  .aud-head.aud-silenced .aud-dot {
+    background: #ff6b6b;
+    box-shadow: 0 0 7px #ff6b6b;
   }
-  .board.dropping {
-    border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.08);
+  .aud-head.aud-silenced .aud-onair {
+    color: #ff8f8f;
   }
-  .grouprow {
+  .aud-silbody {
     display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 26px 12px 20px;
+    text-align: center;
   }
-  .chip.flt {
-    padding: 3px 9px;
-    font-size: 11px;
-  }
-  .chip.flt.on {
-    color: var(--txt);
-    border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.16);
-  }
-  .pads {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-    gap: 8px;
-  }
-  .pad {
-    position: relative;
-    min-height: 52px;
+  .aud-silmark {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 8px 6px;
-    border-radius: 10px;
-    border: 1px solid var(--line2);
-    background: color-mix(in srgb, var(--pad) 30%, transparent);
-    color: var(--txt);
-    cursor: pointer;
-    font-size: 12px;
-    overflow: hidden;
+    color: #ff6b6b;
+    border: 2px solid rgba(255, 90, 90, 0.55);
   }
-  .pad:hover {
-    border-color: var(--pad);
-    background: color-mix(in srgb, var(--pad) 45%, transparent);
+  .aud-siltitle {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: #ff8f8f;
+    letter-spacing: 0.04em;
   }
-  .pad.flash {
-    animation: padflash 0.65s ease-out;
-  }
-  @keyframes padflash {
-    0% {
-      box-shadow: 0 0 0 0 var(--pad);
-      background: color-mix(in srgb, var(--pad) 80%, transparent);
-    }
-    100% {
-      box-shadow: 0 0 0 6px transparent;
-    }
-  }
-  .pad kbd {
-    position: absolute;
-    top: 3px;
-    left: 5px;
-    font-size: 9px;
-    color: var(--faint);
-  }
-  .padlabel {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .muted {
+  .aud-silline {
+    margin: 0;
     color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
   }
-  .small {
+  .aud-silmemo {
+    margin: 0;
+    color: var(--faint);
     font-size: 11px;
-    margin: 2px 0;
+    font-family: ui-monospace, monospace;
+  }
+  .aud-resume {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 0;
+    background: #d64a3f;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+  .aud-resume:hover {
+    filter: brightness(1.08);
   }
 </style>

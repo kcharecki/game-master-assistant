@@ -450,6 +450,19 @@ class AudioStore {
     this.persist();
   }
 
+  /** Toggle a clip's pin to the widget Quick Board (hotkeys 1–9). */
+  togglePin(sfxId: string): void {
+    const s = this.sfx.find((x) => x.id === sfxId);
+    if (!s) return;
+    s.pinned = !s.pinned;
+    this.persist();
+  }
+
+  /** Clips pinned to the widget Quick Board, in soundboard order. */
+  get pinnedSfx(): Sfx[] {
+    return this.sfx.filter((s) => s.pinned);
+  }
+
   /** Distinct, ordered soundboard groups (ungrouped clips fall under ''). */
   get sfxGroups(): string[] {
     const seen = new Set<string>();
@@ -471,9 +484,9 @@ class AudioStore {
     });
   }
 
-  /** Play the Nth soundboard clip (1-based) — drives number-key hotkeys. */
+  /** Play the Nth pinned Quick Board clip (1-based) — drives number-key hotkeys. */
   playSfxByHotkey(n: number): void {
-    const s = this.sfx[n - 1];
+    const s = this.pinnedSfx[n - 1];
     if (s) this.playSfx(s.id);
   }
 

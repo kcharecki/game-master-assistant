@@ -103,4 +103,17 @@ describe('audio store persistence', () => {
     audio.removeTrack('tavern', 'x');
     expect(deleted).toContain('blob-x');
   });
+
+  it('togglePin flips pinned and pinnedSfx reflects board order', () => {
+    audio.sfx = [
+      { id: 's1', assetId: 'a', label: 'One' },
+      { id: 's2', assetId: 'b', label: 'Two' },
+      { id: 's3', assetId: 'c', label: 'Three' },
+    ];
+    audio.togglePin('s3');
+    audio.togglePin('s1');
+    expect(audio.pinnedSfx.map((s) => s.id)).toEqual(['s1', 's3']);
+    audio.togglePin('s1');
+    expect(audio.pinnedSfx.map((s) => s.id)).toEqual(['s3']);
+  });
 });

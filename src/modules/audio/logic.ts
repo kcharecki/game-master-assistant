@@ -49,6 +49,8 @@ export interface Sfx {
   group?: string;
   /** per-sfx gain trim 0..1 (defaults to 1) */
   gain?: number;
+  /** pinned to the desktop widget's Quick Board (hotkeys 1–9) */
+  pinned?: boolean;
 }
 
 /** Move the item at `from` to `to` in a copy of `arr` (bounds-clamped). Pure. */
