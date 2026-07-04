@@ -1,6 +1,6 @@
 # Improvements Plan
 
-Backlog of proposed improvements. Source: feature/UX review (2026-07-02). Not scheduled — pick rows into ROADMAP milestones as needed.
+Backlog of proposed improvements. Source: feature/UX review (2026-07-02). Not scheduled — pick rows as needed. Note: partly stale; verify against current code before acting.
 
 ## 1. Audio module (deep dive)
 

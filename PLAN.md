@@ -19,8 +19,8 @@ animated Keeper eye.
 - Single Game Master tool.
 
 ## Windows / modules
-Built as desktop windows / editor tabs; all 18 shipped. Feature → module map in [ROADMAP.md](ROADMAP.md);
-feature spec in [gm-assistant-features.md](gm-assistant-features.md).
+Built as desktop windows / editor tabs. 17 modules ship — see `src/lib/registry.ts` for the live set;
+feature spec in [gm-assistant-features.md](gm-assistant-features.md). Not all 40 features are built.
 
 ## Window system
 - [x] Drag + **resize** handles
@@ -50,8 +50,11 @@ feature spec in [gm-assistant-features.md](gm-assistant-features.md).
 - Backgrounded GM tab may throttle timers; broadcast tab is visible (shared) so unaffected.
 
 ## Status
-All milestones M0–M7 shipped and green (v1.0). See [ROADMAP.md](ROADMAP.md) for the milestone log,
-the 40-feature → module map, and the v1.0 summary.
+Core play loop, broadcast/maps, NPCs/world, investigation, prep, and cross-cutting utilities ship green.
+17 modules live (`src/lib/registry.ts`). Several of the original 40 features remain unbuilt (statblock/
+encounter builder, faction web, clue board, skill-check helper, random tables/loot, player dashboard,
+spotlight, legendary/lair reminders, improv, campaign archive) — some have leftover i18n strings only.
+Backlog: [IMPROVEMENTS.md](IMPROVEMENTS.md).
 
 ## Open questions
 - Tauri wrapper (multi-window placement, local SQLite) — **deferred post-v1**; web app is the v1 target.

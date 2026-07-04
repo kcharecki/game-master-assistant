@@ -13,15 +13,19 @@ List of features is inside @gm-assistant-features.md
 
 # Project status & where things live
 
-**v1.0 shipped** — pure-web Svelte 5 + TS, three surfaces (desktop / editor tabs / broadcast),
-IndexedDB persistence, `BroadcastChannel` single shared window. Green gate: `npm run check` · `lint` ·
-`test` (Vitest, co-located `*.test.ts`) · `build`. Commit per component (see @ROADMAP.md).
+Pure-web Svelte 5 + TS, three surfaces (desktop / editor tabs / broadcast), IndexedDB persistence,
+`BroadcastChannel` single shared window. Green gate + commit per component: `npm run check` · `lint` ·
+`test` (Vitest, co-located `*.test.ts`) · `build`.
 
 - **Architecture, module contract, how to add a module** → @ARCHITECTURE.md (read this first).
-- **Feature → module map, milestone status** → @ROADMAP.md (40-feature table at bottom).
-- **Modules live in `src/modules/<id>/`** — 18 shipped: initiative, timer, roller, npcs, lore,
-  calendar, reveal, map, audio, handouts, notebook, planner, sanity, palette, rules, stage, preview,
-  mood. Registered in `src/lib/registry.ts`; ids in `src/lib/module.ts`.
+- **Feature spec** → @gm-assistant-features.md. Note: not all 40 features are built — `src/lib/registry.ts`
+  is the source of truth for what actually ships. Several feature ids (statblock, factions, clues,
+  skillcheck, tables/loot, dashboard, spotlight, reminders, improv, archive) have i18n strings but no
+  module/UI yet.
+- **Modules live in `src/modules/<id>/`** — 17 shipped: initiative, timer, roller, npcs, lore,
+  calendar, reveal, map, audio, handouts, notebook, planner, sanity, palette, rules, stage, preview.
+  Registered in `src/lib/registry.ts`; ids in `src/lib/module.ts`. (`mood` is a broadcast layer in
+  `src/broadcast/mood.ts`, not a standalone module.)
 - A module = `index.ts` (manifest) + optional `Desktop.svelte` / `Editor.svelte` / `store.svelte.ts` /
   `logic.ts` + `*.test.ts`. Surfaces resolve views by `ModuleId`; never import module internals.
 - **`planner`** = session planning: beat rail, branching "if players…" forks, run cursor, `@npc` /
