@@ -33,6 +33,17 @@ Pure-web Svelte 5 + TS, three surfaces (desktop / editor tabs / broadcast), Inde
   Supersedes the originally-planned separate `beats` / `quests` ids.
 - i18n (en/pl) in `src/lib/i18n/messages/*.ts`; module titles in `shell.ts` must match manifest titles.
 
+# Working style — delegate to keep the main thread light
+
+- **Prefer parallel subagents.** Offload anything self-contained so the main session stays low-context:
+  codebase spelunking / "where is X" (Explore or `cavecrew-investigator`), bounded 1–2 file edits
+  (`cavecrew-builder`), diff review (`cavecrew-reviewer`), and independent chunks of a larger task
+  (spec extraction, i18n parity, a sibling component). Fan out **several workers in parallel** when the
+  pieces don't depend on each other, then integrate their results on the main thread.
+- Keep the main thread for orchestration, integration, and the visual iterate loop (build → static →
+  screenshot). Push discovery/bulk edits to workers; relay only what matters back.
+- A reusable "apply a design to a module" prompt for fresh sessions lives in `prompts/apply-design.md`.
+
 # Gotchas & tooling (learned the hard way)
 
 - **CSS class collisions with global `app.css`.** Svelte scopes a component's *own* rules, but global
