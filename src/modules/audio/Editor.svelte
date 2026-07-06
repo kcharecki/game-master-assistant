@@ -234,6 +234,7 @@
                 <span class="aude-lbl" ondblclick={() => startRename(tr.id, tr.label)} title={t('audio.renameHint')} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && startRename(tr.id, tr.label)}>{tr.label}</span>
               {/if}
               <span class="aude-badge" class:yt={!!tr.youtubeId}>{tr.youtubeId ? 'YT' : 'FILE'}</span>
+              <button class="aude-ic sm star" class:on={tr.pinned} onclick={() => audio.togglePinTrack(pick, tr.id)} aria-label={tr.pinned ? t('audio.unpinTrack') : t('audio.pinTrack')} title={tr.pinned ? t('audio.unpinTrack') : t('audio.pinTrack')}>{tr.pinned ? '★' : '☆'}</button>
               <input class="aude-gain" type="range" min="0" max="1" step="0.05" value={tr.gain ?? 1} oninput={(e) => audio.setTrackGain(pick, tr.id, e.currentTarget.valueAsNumber)} title={t('audio.trackGain')} aria-label={t('audio.trackGain')} />
               {#if tr.duration}<span class="aude-dur">{formatTime(tr.duration)}</span>{:else}<span class="aude-dur">—</span>{/if}
               {#if tr.assetId}<button class="aude-ic sm" onpointerdown={() => audio.audition(tr.assetId)} onpointerup={() => audio.stopAudition()} aria-label={t('audio.audition')} title={t('audio.auditionLabel')}>🎧</button>{/if}
@@ -282,6 +283,7 @@
                 {:else}
                   <span class="aude-tname" ondblclick={() => startRename(s.id, s.label)} title={t('audio.renameHint')} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && startRename(s.id, s.label)}>{s.label}</span>
                 {/if}
+                <input class="aude-alias" placeholder={t('audio.aliasPlaceholder')} value={s.alias ?? ''} onchange={(e) => audio.setSfxAlias(s.id, e.currentTarget.value)} aria-label={t('audio.alias')} title={t('audio.aliasTitle')} />
                 <div class="aude-tilefoot">
                   <input class="aude-grp" placeholder={t('audio.group')} value={s.group ?? ''} onchange={(e) => audio.setSfxGroup(s.id, e.currentTarget.value)} aria-label={t('audio.group')} />
                   <input class="aude-gain" type="range" min="0" max="1" step="0.05" value={s.gain ?? 1} oninput={(e) => audio.setSfxGain(s.id, e.currentTarget.valueAsNumber)} title={t('audio.sfxGain')} aria-label={t('audio.sfxGain')} />
@@ -626,6 +628,12 @@
     color: #ff6b6b;
     background: rgba(255, 90, 90, 0.12);
   }
+  .aude-ic.sm.star {
+    font-size: 14px;
+  }
+  .aude-ic.sm.star.on {
+    color: var(--gold);
+  }
   .aude-play {
     width: 44px;
     height: 44px;
@@ -871,6 +879,19 @@
     color: var(--txt);
     font: inherit;
     font-size: 10px;
+  }
+  .aude-alias {
+    width: 100%;
+    padding: 3px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--line2);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--gold);
+    font: inherit;
+    font-size: 11px;
+  }
+  .aude-alias::placeholder {
+    color: var(--faint);
   }
   /* ── mixer ── */
   .aude-toglbl {

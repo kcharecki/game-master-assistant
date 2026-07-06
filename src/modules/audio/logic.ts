@@ -9,6 +9,8 @@ export interface Track {
   gain?: number;
   /** track length in seconds, read from metadata on import (undefined for YouTube) */
   duration?: number;
+  /** pinned to the desktop widget's Ambient board (one-tap start; YT plays audio-only) */
+  pinned?: boolean;
 }
 
 export interface Scene {
@@ -45,12 +47,19 @@ export interface Sfx {
   id: string;
   assetId: string;
   label: string;
+  /** short display name shown on the widget Quick Board pad (falls back to label) */
+  alias?: string;
   /** optional board group, e.g. 'combat' | 'ambient' | 'voice' */
   group?: string;
   /** per-sfx gain trim 0..1 (defaults to 1) */
   gain?: number;
   /** pinned to the desktop widget's Quick Board (hotkeys 1–9) */
   pinned?: boolean;
+}
+
+/** Widget display name for a clip: alias if set, else its full label. Pure. */
+export function sfxDisplay(s: Sfx): string {
+  return s.alias?.trim() || s.label;
 }
 
 /** Move the item at `from` to `to` in a copy of `arr` (bounds-clamped). Pure. */

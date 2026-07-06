@@ -12,6 +12,8 @@ import {
   threadTally,
   branchTarget,
   nextBeat,
+  layoutGraph,
+  plannedMinutes,
   type Beat,
   type BeatType,
   type Branch,
@@ -30,7 +32,8 @@ const SEED_BEATS: Beat[] = [
     boxed:
       'The mail-boat gutters into a wall of grey. Somewhere ahead a bell tolls, slow and wet, and the shore of [[Hollowmere]] resolves out of the fog.',
     body: 'Set the dread. The party has been summoned by @Mireille over the [[Hollowmere Pact]].',
-    branches: [],
+    mins: 10,
+    branches: [{ id: 'br-open-next', cond: '', to: 'The Drowned Chapel' }],
   },
   {
     id: 'b-chapel',
@@ -40,7 +43,25 @@ const SEED_BEATS: Beat[] = [
     act: 'Act I · Arrival',
     boxed: '',
     body: 'Explore the flooded nave. A #clue: the register names the signatories of the [[Hollowmere Pact]].',
-    branches: [],
+    cue: 'The register in the nave names the Pact’s signatories.',
+    mins: 10,
+    branches: [
+      { id: 'br-register', cond: 'they read the drowned register', to: 'Parley with the Ferryman' },
+      { id: 'br-marshlight', cond: 'they follow the marsh-light', to: "The Hermit's Fire" },
+    ],
+  },
+  {
+    id: 'b-hermit',
+    title: "The Hermit's Fire",
+    type: 'social',
+    status: 'draft',
+    act: 'Act I · Arrival',
+    optional: true,
+    boxed: '',
+    body: 'Optional. Old @Sella trades a warning for a story — she knows the @Ferryman’s price. #rumor',
+    cue: 'Sella knows the Ferryman’s price — and what dusk costs.',
+    mins: 10,
+    branches: [{ id: 'br-hermit-on', cond: 'she points them to the crossing', to: 'Parley with the Ferryman' }],
   },
   {
     id: 'b-parley',
@@ -55,6 +76,7 @@ const SEED_BEATS: Beat[] = [
     mins: 15,
     branches: [
       { id: 'br-toll', cond: 'they pay the toll — a true name', to: 'The Sunken Vault' },
+      { id: 'br-name', cond: 'they offer @Mireille’s name', to: 'What the Water Kept' },
       { id: 'br-fight', cond: 'they refuse, or draw steel', to: "The Ferryman's Wrath" },
     ],
   },
@@ -66,8 +88,12 @@ const SEED_BEATS: Beat[] = [
     act: 'Act II · The Crossing',
     boxed: '',
     body: 'Guardians of drowned stone stir. Terrain: rising water each round.',
+    cue: 'Guardians wake; water rises a foot each round.',
     mins: 25,
-    branches: [],
+    branches: [
+      { id: 'br-seize', cond: 'they seize the true name', to: 'What the Water Kept' },
+      { id: 'br-drown', cond: 'the water closes over them', to: 'Dragged Under' },
+    ],
   },
   {
     id: 'b-kept',
@@ -77,7 +103,8 @@ const SEED_BEATS: Beat[] = [
     act: 'Act II · The Crossing',
     boxed: '',
     body: 'The vault yields the true name — and a portrait of @Mireille that is a century too old.',
-    branches: [],
+    mins: 10,
+    branches: [{ id: 'br-kept-next', cond: '', to: 'The Bargain' }],
   },
   {
     id: 'b-bargain',
@@ -87,7 +114,12 @@ const SEED_BEATS: Beat[] = [
     act: 'Act III · The Bargain',
     boxed: '',
     body: 'The mere itself bargains through @Mireille. What will the party trade to leave?',
-    branches: [],
+    cue: 'The mere names its price through Mireille. What will they trade?',
+    mins: 15,
+    branches: [
+      { id: 'br-trade', cond: 'they trade a memory to the mere', to: 'Ashes on the Tide' },
+      { id: 'br-break', cond: 'they break the pact and run', to: 'Parley with the Ferryman' },
+    ],
   },
   {
     id: 'b-ashes',
@@ -97,6 +129,7 @@ const SEED_BEATS: Beat[] = [
     act: 'Act III · The Bargain',
     boxed: '',
     body: 'Fallout and departure. Which threads did they leave open?',
+    mins: 10,
     branches: [],
   },
 ];
@@ -105,6 +138,7 @@ const SEED_THREADS: Thread[] = [
   { id: 't-pact', text: 'Who signed the Hollowmere Pact?', resolved: false, planted: 'S1' },
   { id: 't-sister', text: "Mireille's missing sister", resolved: false, planted: 'S2' },
   { id: 't-dusk', text: 'Why does the water rise at dusk?', resolved: false, planted: 'S2' },
+  { id: 't-trade', text: 'What will the mere take in trade?', resolved: false, planted: 'S3' },
   { id: 't-name', text: "The Ferryman's true name", resolved: true, planted: 'S3' },
 ];
 
@@ -128,9 +162,26 @@ class PlannerStore {
   selectedId = $state<string>('b-parley');
   /** beat the run cursor is parked on (the "now playing" beat) */
   currentId = $state<string>('b-parley');
+  /** cursor history for the cockpit BACK button — ids visited before `current` */
+  trail = $state<string[]>([]);
 
   get selected(): Beat | undefined {
     return this.beats.find((b) => b.id === this.selectedId);
+  }
+
+  /** Command Deck session-graph layout — nodes + edges in absolute px. */
+  get graph() {
+    return layoutGraph($state.snapshot(this.beats), this.currentId);
+  }
+
+  /** Total planned minutes across all beats — the cockpit "Nm planned" readout. */
+  get plannedMins(): number {
+    return plannedMinutes($state.snapshot(this.beats));
+  }
+
+  /** The beat the cockpit BACK button would rewind to, if any. */
+  get canBack(): boolean {
+    return this.trail.length > 0;
   }
 
   get current(): Beat | undefined {
@@ -159,17 +210,28 @@ class PlannerStore {
 
   // --- Beats ----------------------------------------------------------------
 
-  addBeat(title: string, type: BeatType = 'scene'): Beat {
-    const beat = newBeat(title.trim() || t('planner.newBeat'), type);
+  addBeat(title = '', type: BeatType = 'scene'): Beat {
+    const beat = newBeat(this.#uniqueTitle(title.trim() || t('planner.newBeatTitle')), type);
     this.beats.push(beat);
     this.selectedId = beat.id;
+    this.focusBeatId = beat.id;
     this.persist();
     return beat;
   }
 
   updateBeat(id: string, patch: Partial<Omit<Beat, 'id' | 'branches'>>): void {
     const beat = this.beats.find((b) => b.id === id);
-    if (beat) Object.assign(beat, patch);
+    if (!beat) return;
+    // Branches point at beats by title. When a title changes, follow it across
+    // every branch that referenced the old one, so renaming never breaks an edge.
+    // Only re-point when the new title is non-blank — otherwise a momentary
+    // empty field (select-all + retype) would orphan every edge irrecoverably.
+    if (patch.title !== undefined && patch.title.trim() && patch.title !== beat.title) {
+      const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+      const from = norm(beat.title);
+      if (from) for (const b of this.beats) for (const br of b.branches) if (norm(br.to) === from) br.to = patch.title;
+    }
+    Object.assign(beat, patch);
     this.persist();
   }
 
@@ -180,6 +242,8 @@ class PlannerStore {
     this.beats = this.beats.filter((b) => b.id !== id);
     if (this.selectedId === id) this.selectedId = this.beats[0]?.id ?? '';
     if (this.currentId === id) this.currentId = this.beats[0]?.id ?? '';
+    // drop the deleted beat from the run trail so BACK never rewinds onto a ghost
+    this.trail = this.trail.filter((tid) => tid !== id);
     this.persist();
     toast.undoable(t('planner.beatRemoved'), () => {
       const back = this.beats.slice();
@@ -214,17 +278,42 @@ class PlannerStore {
 
   // --- Run cursor -----------------------------------------------------------
 
+  /** Move the run cursor to `id`, recording the previous stop on the trail. */
+  #moveCursor(id: string): void {
+    if (id === this.currentId) return;
+    if (this.currentId) this.trail = [...this.trail, this.currentId];
+    this.currentId = id;
+  }
+
   step(dir: -1 | 1): void {
     const id = stepCursor($state.snapshot(this.beats), this.currentId, dir);
     if (!id) return;
-    this.currentId = id;
+    this.#moveCursor(id);
     this.selectedId = id;
     this.persist();
   }
 
   setCurrent(id: string): void {
     if (!this.beats.some((b) => b.id === id)) return;
-    this.currentId = id;
+    this.#moveCursor(id);
+    this.persist();
+  }
+
+  /** Rewind the run cursor to the previous stop on the trail (cockpit BACK).
+   *  Skips any trail entries whose beat no longer exists. */
+  back(): void {
+    let prev: string | undefined;
+    while (this.trail.length) {
+      const id = this.trail[this.trail.length - 1];
+      this.trail = this.trail.slice(0, -1);
+      if (this.beats.some((b) => b.id === id)) {
+        prev = id;
+        break;
+      }
+    }
+    if (!prev) return;
+    this.currentId = prev;
+    this.selectedId = prev;
     this.persist();
   }
 
@@ -236,7 +325,7 @@ class PlannerStore {
   /** Move both the run cursor and the detail selection to a beat. */
   jumpTo(id: string): void {
     if (!this.beats.some((b) => b.id === id)) return;
-    this.currentId = id;
+    this.#moveCursor(id);
     this.selectedId = id;
     this.persist();
   }
@@ -247,6 +336,77 @@ class PlannerStore {
     const beat = this.beats.find((b) => b.id === beatId);
     if (!beat) return;
     beat.branches.push(newBranch());
+    this.persist();
+  }
+
+  /**
+   * Drag-to-connect: fork `fromId` to the beat `toId` by adding a branch whose
+   * `to` is that beat's title (so the graph resolves it as an edge). No-ops for
+   * a self-connect or an already-existing edge to the same target.
+   */
+  connect(fromId: string, toId: string): void {
+    if (fromId === toId) return;
+    const from = this.beats.find((b) => b.id === fromId);
+    const to = this.beats.find((b) => b.id === toId);
+    if (!from || !to) return;
+    const norm = (s: string) => s.trim().toLowerCase();
+    if (from.branches.some((br) => norm(br.to) === norm(to.title))) return;
+    from.branches.push(newBranch('', to.title));
+    this.selectedId = fromId;
+    this.persist();
+  }
+
+  /** Flip a beat's optional/side flag (dashed card in the graph). */
+  toggleOptional(id: string): void {
+    const beat = this.beats.find((b) => b.id === id);
+    if (beat) beat.optional = !beat.optional;
+    this.persist();
+  }
+
+  /** id whose inspector title input should grab focus once (fast-create flow). */
+  focusBeatId = $state<string>('');
+
+  /** A title that no existing beat uses, seeded from `base`. */
+  #uniqueTitle(base: string): string {
+    const norm = (s: string) => s.trim().toLowerCase();
+    if (!this.beats.some((b) => norm(b.title) === norm(base))) return base;
+    for (let i = 2; ; i++) {
+      const cand = `${base} ${i}`;
+      if (!this.beats.some((b) => norm(b.title) === norm(cand))) return cand;
+    }
+  }
+
+  /**
+   * Drag-to-empty: spin up a fresh beat and fork `fromId` into it in one gesture.
+   * Returns the new beat id; the inspector opens on it with the title focused.
+   */
+  forkToNew(fromId: string): string | undefined {
+    const from = this.beats.find((b) => b.id === fromId);
+    if (!from) return;
+    const beat = newBeat(this.#uniqueTitle(t('planner.newBeatTitle')));
+    beat.type = from.type;
+    this.beats.push(beat);
+    from.branches.push(newBranch('', beat.title));
+    this.selectedId = beat.id;
+    this.focusBeatId = beat.id;
+    this.persist();
+    return beat.id;
+  }
+
+  /**
+   * Promote a terminal outcome into a real beat: the branch's `to` now resolves
+   * to a card you can flesh out. Opens the inspector on the new beat.
+   */
+  promoteTerminal(srcId: string, branchId: string): void {
+    const from = this.beats.find((b) => b.id === srcId);
+    const branch = from?.branches.find((x) => x.id === branchId);
+    if (!from || !branch) return;
+    const title = this.#uniqueTitle(branch.to.trim() || t('planner.newBeatTitle'));
+    const beat = newBeat(title);
+    branch.to = title; // keep the edge pointing at it
+    this.beats.push(beat);
+    this.selectedId = beat.id;
+    this.focusBeatId = beat.id;
     this.persist();
   }
 
@@ -300,6 +460,7 @@ class PlannerStore {
     this.session = 'Session 3';
     this.currentId = 'b-parley';
     this.selectedId = 'b-parley';
+    this.trail = [];
     this.persist();
     toast.undoable(t('planner.reset'), () => {
       this.beats = prevBeats as Beat[];

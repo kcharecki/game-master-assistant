@@ -224,6 +224,38 @@ class AudioStore {
     this.persist();
   }
 
+  /** Toggle a track's pin to the widget Ambient board (one-tap start). */
+  togglePinTrack(sceneId: string, trackId: string): void {
+    const tr = this.scenes.find((p) => p.id === sceneId)?.tracks.find((t) => t.id === trackId);
+    if (!tr) return;
+    tr.pinned = !tr.pinned;
+    this.persist();
+  }
+
+  /** Tracks pinned to the widget Ambient board, with their scene + queue index. */
+  get pinnedTracks(): { sceneId: string; sceneName: string; track: Track; index: number }[] {
+    const out: { sceneId: string; sceneName: string; track: Track; index: number }[] = [];
+    for (const sc of this.scenes) {
+      sc.tracks.forEach((track, index) => {
+        if (track.pinned) out.push({ sceneId: sc.id, sceneName: sc.name, track, index });
+      });
+    }
+    return out;
+  }
+
+  /**
+   * Start a pinned ambient track from the widget board. YouTube tracks play
+   * audio-only by default (no video on the broadcast) so they double as an
+   * ambient bed. If it's already the on-air track, toggle pause instead.
+   */
+  playPinnedTrack(sceneId: string, index: number): void {
+    if (this.playingScene === sceneId && this.trackIndex === index) {
+      this.togglePause();
+      return;
+    }
+    this.playSceneAt(sceneId, index, true);
+  }
+
   /** Move a track within its playlist by `delta` (e.g. -1 up, +1 down). */
   moveTrack(sceneId: string, index: number, delta: number): void {
     const pl = this.scenes.find((p) => p.id === sceneId);
@@ -254,14 +286,18 @@ class AudioStore {
   // ---- ambient transport ----------------------------------------------------
 
   /** Build the queue cue for a playlist (does not change playhead). */
-  private queueCue(sceneId: string, index = 0): Extract<BroadcastPayload, { kind: 'audio' }> | null {
+  private queueCue(
+    sceneId: string,
+    index = 0,
+    audioOnly = this.ytAudioOnly
+  ): Extract<BroadcastPayload, { kind: 'audio' }> | null {
     const pl = this.scenes.find((p) => p.id === sceneId);
     if (!pl || !pl.tracks.length) return null;
     return {
       kind: 'audio',
       channel: 'ambient',
       action: 'play',
-      queue: pl.tracks.map((t) => toQueueItem(t, this.ytAudioOnly)),
+      queue: pl.tracks.map((t) => toQueueItem(t, audioOnly)),
       index,
       loopTrack: this.loopTrack,
       loopList: this.loopList,
@@ -276,8 +312,8 @@ class AudioStore {
   }
 
   /** Play a scene playlist starting at a specific track index (click-to-play). */
-  playSceneAt(sceneId: string, index: number): void {
-    const cue = this.queueCue(sceneId, index);
+  playSceneAt(sceneId: string, index: number, audioOnly = this.ytAudioOnly): void {
+    const cue = this.queueCue(sceneId, index, audioOnly);
     if (!cue) return;
     sendAudio(cue);
     const pl = this.scenes.find((p) => p.id === sceneId)!;
@@ -433,6 +469,14 @@ class AudioStore {
     const s = this.sfx.find((x) => x.id === sfxId);
     if (!s) return;
     s.label = label.trim() || s.label;
+    this.persist();
+  }
+
+  /** Set a clip's Quick Board alias (short display name; blank clears it). */
+  setSfxAlias(sfxId: string, alias: string): void {
+    const s = this.sfx.find((x) => x.id === sfxId);
+    if (!s) return;
+    s.alias = alias.trim() || undefined;
     this.persist();
   }
 

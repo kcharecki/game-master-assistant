@@ -10,6 +10,8 @@ import {
   beatRefs,
   branchTarget,
   threadTally,
+  plannedMinutes,
+  layoutGraph,
   type Beat,
   type Thread,
 } from './logic';
@@ -147,6 +149,127 @@ describe('branchTarget', () => {
   });
   it('returns undefined for an empty label', () => {
     expect(branchTarget(list, '   ')).toBeUndefined();
+  });
+});
+
+describe('plannedMinutes', () => {
+  it('sums beat time budgets, skipping unset ones', () => {
+    const list: Beat[] = [
+      { ...newBeat('a'), id: 'a', mins: 10 },
+      { ...newBeat('b'), id: 'b' },
+      { ...newBeat('c'), id: 'c', mins: 25 },
+    ];
+    expect(plannedMinutes(list)).toBe(35);
+  });
+  it('is 0 for an empty plan', () => {
+    expect(plannedMinutes([])).toBe(0);
+  });
+});
+
+describe('layoutGraph', () => {
+  /** a→b→c chained by bare (condition-less) branches. */
+  function chain(...t: string[]): Beat[] {
+    const bs = beats(...t);
+    for (let i = 0; i < bs.length - 1; i++) bs[i].branches = [{ id: `n${i}`, cond: '', to: bs[i + 1].id }];
+    return bs;
+  }
+
+  it('places a chained plan on a spine, x ascending by depth', () => {
+    const g = layoutGraph(chain('a', 'b', 'c'), 'b');
+    const spine = g.nodes.filter((n) => n.kind === 'beat');
+    expect(spine.map((n) => n.id)).toEqual(['a', 'b', 'c']);
+    expect(spine[0].x).toBeLessThan(spine[1].x);
+    expect(spine[1].x).toBeLessThan(spine[2].x);
+    expect(new Set(spine.map((n) => n.y)).size).toBe(1); // one row
+  });
+
+  it('drops unwired beats into a floating tray, never auto-connecting them', () => {
+    const g = layoutGraph(beats('a', 'b', 'c'), 'b');
+    expect(g.edges).toHaveLength(0); // no implicit chaining
+    // all three land on the same (tray) row, still no edges between them
+    expect(new Set(g.nodes.map((n) => n.y)).size).toBe(1);
+  });
+
+  it('flags the cursor beat and its outgoing edge', () => {
+    const g = layoutGraph(chain('a', 'b', 'c'), 'b');
+    expect(g.nodes.find((n) => n.id === 'b')?.cursor).toBe(true);
+    const out = g.edges.find((e) => e.from === 'b');
+    expect(out?.cursor).toBe(true);
+  });
+
+  it('renders a condition-less branch as a plain sequential arrow', () => {
+    const g = layoutGraph(chain('a', 'b'), 'a');
+    expect(g.edges).toHaveLength(1);
+    expect(g.edges[0].kind).toBe('seq');
+    expect(g.edges[0].label).toBeUndefined();
+    expect(g.edges[0].to).toBe('b');
+  });
+
+  it('draws a fork edge to a matching beat and a terminal card otherwise', () => {
+    const list = beats('start', 'chapel');
+    list[0].branches = [
+      { id: 'x', cond: 'pay', to: 'chapel' },
+      { id: 'y', cond: 'flee', to: 'They vanish' },
+    ];
+    const g = layoutGraph(list, 'start');
+    const fork = g.edges.find((e) => e.id === 'fork:x');
+    expect(fork?.kind).toBe('fork');
+    expect(fork?.to).toBe('chapel');
+    const termNode = g.nodes.find((n) => n.kind === 'terminal');
+    expect(termNode?.title).toBe('They vanish');
+    expect(g.edges.find((e) => e.kind === 'terminal')?.to).toBe(termNode?.id);
+  });
+
+  it('marks a backward branch as a loop-back', () => {
+    const list = beats('a', 'b', 'c');
+    list[2].branches = [{ id: 'lp', cond: 'lost', to: 'a' }];
+    const g = layoutGraph(list, 'c');
+    expect(g.edges.find((e) => e.id === 'fork:lp')?.kind).toBe('loop');
+  });
+
+  it('fans sibling forks into distinct rows so no two cards overlap', () => {
+    const list = beats('a', 'b');
+    list[0].branches = [
+      { id: '1', cond: 'x', to: 'end one' },
+      { id: '2', cond: 'y', to: 'end two' },
+      { id: '3', cond: 'z', to: 'b' },
+    ];
+    const g = layoutGraph(list, 'a');
+    const pos = g.nodes.map((n) => `${n.x},${n.y}`);
+    expect(new Set(pos).size).toBe(pos.length); // every card at a unique slot
+  });
+
+  it('returns an empty graph for an empty plan without throwing', () => {
+    const g = layoutGraph([], undefined);
+    expect(g.nodes).toEqual([]);
+    expect(g.edges).toEqual([]);
+    expect(g.width).toBeGreaterThan(0);
+    expect(g.height).toBeGreaterThan(0);
+  });
+
+  it('ignores a branch that points at its own beat (no self-edge)', () => {
+    const list = beats('a', 'b');
+    list[0].branches = [{ id: 's', cond: 'loop on self', to: 'a' }];
+    const g = layoutGraph(list, 'a');
+    expect(g.edges.some((e) => e.from === 'a' && e.to === 'a')).toBe(false);
+    expect(g.nodes.every((n) => n.kind === 'beat')).toBe(true); // no stray terminal
+  });
+
+  it('lifts a column-skipping edge off the spine row it passes', () => {
+    // a→c fork skips b, which is chained a→b→c: the fork must not ride b's row.
+    const list = beats('a', 'b', 'c');
+    list[0].branches = [
+      { id: 'seq', cond: '', to: 'b' },
+      { id: 'skip', cond: 'shortcut', to: 'c' },
+    ];
+    list[1].branches = [{ id: 'b2c', cond: '', to: 'c' }];
+    const g = layoutGraph(list, 'a');
+    const b = g.nodes.find((n) => n.id === 'b')!;
+    const skip = g.edges.find((e) => e.id === 'fork:skip')!;
+    // the skip edge spans 2 columns → routed as a lane path (not a single cubic)
+    expect(skip.d).toContain('L ');
+    // its lane must sit clear of b's card band
+    expect(Math.abs(skip.ly - (b.y + b.h / 2))).toBeGreaterThan(b.h / 2);
   });
 });
 

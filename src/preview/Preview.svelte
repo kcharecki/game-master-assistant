@@ -53,7 +53,7 @@
   .ph-grow {
     flex: 1;
     min-width: 0;
-    max-width: 640px;
+    max-width: 1040px;
   }
   .ph-label {
     font-family: ui-monospace, monospace;

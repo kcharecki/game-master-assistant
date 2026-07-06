@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { audio } from './store.svelte';
-  import { formatTime, type RepeatMode } from './logic';
+  import { formatTime, sfxDisplay, type RepeatMode } from './logic';
   import { t } from '../../lib/i18n';
   import Icon from '../../lib/components/Icon.svelte';
 
@@ -19,6 +19,7 @@
   const heroLabel = $derived(onAirScene?.name ?? t('audio.nothingPlaying'));
   const heroInitial = $derived((onAirScene?.name ?? '·').trim().charAt(0).toUpperCase() || '·');
   const pads = $derived(audio.pinnedSfx);
+  const ambientPads = $derived(audio.pinnedTracks);
 
   // Output status: idle (nothing playing) / live (status flowing) / closed
   // (playing but no status heartbeat — the broadcast tab is probably shut).
@@ -220,12 +221,34 @@
         {#each pads as s, i (s.id)}
           <button class="aud-pad" class:flash={flashing[s.id]} onclick={() => playPad(s.id)} oncontextmenu={(e) => { e.preventDefault(); audio.audition(s.assetId); }} title={t('audio.audition')}>
             {#if i < 9}<kbd>{i + 1}</kbd>{/if}
-            <span class="aud-padlbl">{s.label}</span>
+            <span class="aud-padlbl">{sfxDisplay(s)}</span>
           </button>
         {/each}
       </div>
     {:else}
       <p class="aud-hint">{t('audio.quickBoardHint')}</p>
+    {/if}
+
+    <!-- ── Ambient board (pinned tracks · YT audio-only) ──────── -->
+    <div class="aud-caplbl">{t('audio.ambientBoard')}</div>
+    {#if ambientPads.length}
+      <div class="aud-ambpads">
+        {#each ambientPads as p (p.track.id)}
+          <button
+            class="aud-ambpad"
+            class:live={audio.playingScene === p.sceneId && audio.trackIndex === p.index}
+            onclick={() => audio.playPinnedTrack(p.sceneId, p.index)}
+          >
+            <span class="aud-ambico">{p.track.youtubeId ? '▶' : '♪'}</span>
+            <span class="aud-ambinfo">
+              <span class="aud-amblbl">{p.track.label}</span>
+              <span class="aud-ambscn">{p.sceneName}{p.track.youtubeId ? ' · YT' : ''}</span>
+            </span>
+          </button>
+        {/each}
+      </div>
+    {:else}
+      <p class="aud-hint">{t('audio.ambientBoardHint')}</p>
     {/if}
 
     <!-- ── Mixer (progressive disclosure) ─────────────────────── -->
@@ -580,6 +603,72 @@
     color: var(--faint);
     font-size: 11px;
     margin: 0;
+  }
+  /* ── ambient board ── */
+  .aud-ambpads {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .aud-ambpad {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-align: left;
+    padding: 7px 10px;
+    border-radius: 9px;
+    border: 1px solid var(--line2);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--txt);
+    cursor: pointer;
+    font: inherit;
+  }
+  .aud-ambpad:hover {
+    border-color: var(--gold);
+    background: rgba(214, 182, 94, 0.1);
+  }
+  .aud-ambpad.live {
+    border-color: var(--gold);
+    background: rgba(214, 182, 94, 0.16);
+  }
+  .aud-ambico {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(47, 138, 102, 0.18);
+    border: 1px solid var(--green-dim);
+  }
+  .aud-ambpad.live .aud-ambico {
+    color: #1a1204;
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+  .aud-ambinfo {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .aud-amblbl {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .aud-ambscn {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-family: ui-monospace, monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   /* ── mixer ── */
   .aud-mixer {
