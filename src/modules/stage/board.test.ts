@@ -1,27 +1,28 @@
 import { describe, it, expect } from 'vitest';
 import {
-  newScene,
+  newBeat,
   clampTile,
   firstFree,
   makeTile,
   tileToCell,
-  sceneToPayload,
-  presetFromScene,
-  sceneFromPreset,
+  beatToPayload,
+  resolveTiles,
+  templateFromBeat,
+  beatFromTemplate,
   distributeAreas,
   formatCountdown,
   STAGE_COLS,
   STAGE_ROWS,
-  type Scene,
+  type Beat,
   type Tile,
 } from './board';
 import type { PublicNpc } from '../npcs/public';
 
 const noNpc = (): PublicNpc | undefined => undefined;
 
-function sceneWith(tiles: Partial<Tile>[]): Scene {
-  const s = newScene('S');
-  s.tiles = tiles.map((t, i) => ({
+function beatWith(tiles: Partial<Tile>[]): Beat {
+  const b = newBeat('S');
+  b.tiles = tiles.map((t, i) => ({
     id: `t${i}`,
     kind: 'text',
     col: 1,
@@ -30,7 +31,7 @@ function sceneWith(tiles: Partial<Tile>[]): Scene {
     rh: 2,
     ...t,
   }));
-  return s;
+  return b;
 }
 
 describe('clampTile', () => {
@@ -54,17 +55,17 @@ describe('clampTile', () => {
 
 describe('firstFree / makeTile', () => {
   it('returns 1,1 on an empty scene', () => {
-    expect(firstFree(newScene('e'), 6, 4)).toEqual({ col: 1, row: 1 });
+    expect(firstFree(newBeat('e'), 6, 4)).toEqual({ col: 1, row: 1 });
   });
 
   it('skips an occupied region', () => {
-    const s = sceneWith([{ col: 1, row: 1, cw: 6, rh: 8 }]);
+    const s = beatWith([{ col: 1, row: 1, cw: 6, rh: 8 }]);
     const spot = firstFree(s, 6, 4);
     expect(spot.col).toBe(7); // right half is the first free fit
   });
 
   it('makeTile places a non-overlapping tile', () => {
-    const s = sceneWith([{ col: 1, row: 1, cw: 6, rh: 4 }]);
+    const s = beatWith([{ col: 1, row: 1, cw: 6, rh: 4 }]);
     const t = makeTile('image', s);
     expect(t.col === 7 || t.row > 1).toBe(true);
   });
@@ -184,14 +185,14 @@ describe('formatCountdown', () => {
   });
 });
 
-describe('sceneToPayload', () => {
+describe('beatToPayload', () => {
   it('is null when nothing visible resolves', () => {
-    expect(sceneToPayload(newScene('e'), noNpc)).toBeNull();
+    expect(beatToPayload(newBeat('e'), noNpc)).toBeNull();
   });
 
   it('emits a placed grid payload', () => {
-    const s = sceneWith([{ col: 1, row: 1, cw: 6, rh: 4, kind: 'text', title: 'A' }]);
-    const p = sceneToPayload(s, noNpc)!;
+    const s = beatWith([{ col: 1, row: 1, cw: 6, rh: 4, kind: 'text', title: 'A' }]);
+    const p = beatToPayload(s, noNpc)!;
     expect(p.kind).toBe('grid');
     expect(p.cols).toBe(STAGE_COLS);
     expect(p.rows).toBe(STAGE_ROWS);
@@ -199,15 +200,42 @@ describe('sceneToPayload', () => {
   });
 });
 
-describe('presets', () => {
+describe('templates', () => {
   it('round-trips layout without content', () => {
-    const s = sceneWith([{ col: 2, row: 3, cw: 4, rh: 2, kind: 'image', src: 'x' }]);
-    const preset = presetFromScene(s, 'P');
-    expect(preset.slots[0]).toEqual({ kind: 'image', col: 2, row: 3, cw: 4, rh: 2 });
-    const scene2 = sceneFromPreset(preset, 'New');
-    expect(scene2.tiles[0]).toMatchObject({ kind: 'image', col: 2, row: 3, cw: 4, rh: 2 });
-    expect(scene2.tiles[0].src).toBeUndefined(); // content stripped
-    expect(scene2.id).not.toBe(s.id);
+    const s = beatWith([{ col: 2, row: 3, cw: 4, rh: 2, kind: 'image', src: 'x' }]);
+    const tpl = templateFromBeat(s, 'P');
+    expect(tpl.slots[0]).toEqual({ kind: 'image', col: 2, row: 3, cw: 4, rh: 2 });
+    const beat2 = beatFromTemplate(tpl, 'New');
+    expect(beat2.tiles[0]).toMatchObject({ kind: 'image', col: 2, row: 3, cw: 4, rh: 2 });
+    expect(beat2.tiles[0].src).toBeUndefined(); // content stripped
+    expect(beat2.id).not.toBe(s.id);
+    expect(beat2.templateId).toBe(tpl.id); // beat remembers its origin template
+  });
+});
+
+describe('resolveTiles (variant deltas)', () => {
+  it('returns base tiles with no variant', () => {
+    const b = beatWith([{ id: 'x', title: 'Base' }]);
+    expect(resolveTiles(b)).toBe(b.tiles);
+    expect(resolveTiles(b, 'nope')).toBe(b.tiles); // unknown id → base
+  });
+
+  it('applies patches, removals, and additions', () => {
+    const b = beatWith([
+      { id: 'keep', title: 'Keep' },
+      { id: 'gone', title: 'Gone' },
+    ]);
+    b.variants = [
+      {
+        id: 'v1',
+        name: 'Night',
+        patches: { keep: { title: 'Patched' } },
+        removed: ['gone'],
+        added: [{ id: 'new', kind: 'text', col: 1, row: 1, cw: 2, rh: 2, title: 'Added' }],
+      },
+    ];
+    const tiles = resolveTiles(b, 'v1');
+    expect(tiles.map((t) => t.title)).toEqual(['Patched', 'Added']);
   });
 });
 

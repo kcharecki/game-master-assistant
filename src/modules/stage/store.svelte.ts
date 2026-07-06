@@ -2,18 +2,21 @@ import { kvGet, kvSet } from '../../lib/db';
 import { npcs } from '../npcs/store.svelte';
 import { publicView, type PublicNpc } from '../npcs/public';
 import {
-  newScene,
+  newBeat,
   clampTile,
   makeTile,
   tileToCell,
-  sceneToPayload,
-  presetFromScene,
-  sceneFromPreset,
+  tilesToPayload,
+  resolveTiles,
+  templateFromBeat,
+  beatFromTemplate,
   distributeAreas,
-  type Scene,
+  type Beat,
   type Tile,
   type TileKind,
-  type Preset,
+  type Template,
+  type Variant,
+  type Fork,
 } from './board';
 import type { BroadcastPayload } from '../../lib/types';
 import { putOnAir } from '../reveal/bus-actions';
@@ -21,24 +24,48 @@ import { lang } from '../../lib/stores/lang.svelte';
 import { toast } from '../../lib/stores/toast.svelte';
 import { t } from '../../lib/i18n';
 
-const KV_SCENES = 'stageScenes';
-// Presets live under their own key so they persist across campaigns/sessions.
-const KV_PRESETS = 'stagePresets';
+// Fresh key for the v2 rundown model — the old `stageScenes` data is dropped.
+const KV_RUNDOWN = 'stageRundown';
+// Templates live under their own key so they persist across campaigns/sessions.
+const KV_TEMPLATES = 'stageTemplates';
+
+export type StageMode = 'plan' | 'run';
 
 interface StageState {
-  scenes: Scene[];
-  activeId: string;
+  beats: Beat[];
+  cursorId: string; // the beat being edited (PLAN) / the playhead / AIR (RUN)
 }
 
-/** Reactive store for the Broadcast Stage: scenes (tabs), tiles, undo, presets. */
+/** What's staged/aired: a beat plus the variant chosen for it (null = base). */
+export interface AirRef {
+  beatId: string;
+  variantId: string | null;
+}
+
+function uid(): string {
+  return crypto.randomUUID();
+}
+
+/** Reactive store for the Broadcast Stage: a rundown of beats, tiles, undo, templates. */
 class StageStore {
-  state = $state<StageState>({ scenes: [newScene('Scene 1')], activeId: '' });
-  presets = $state<Preset[]>([]);
+  state = $state<StageState>({ beats: [newBeat('Cold Open')], cursorId: '' });
+  templates = $state<Template[]>([]);
+  /** PLAN = build the rundown · RUN = live cockpit. */
+  mode = $state<StageMode>('plan');
   /** Live-link: when on, every edit re-broadcasts immediately. */
   live = $state(false);
   selected = $state<string | null>(null);
+  /** The variant currently being edited on the cursor beat (null = base). */
+  activeVariantId = $state<string | null>(null);
 
-  // Per-scene undo/redo stacks of serialized tile arrays.
+  // --- RUN cockpit state ----------------------------------------------------
+  /** Beat + variant staged in Preview (the "armed next"). */
+  armedId = $state<string>('');
+  armedVariantId = $state<string | null>(null);
+  /** What's currently on air (mirrors the last TAKE), or null when clear. */
+  air = $state<AirRef | null>(null);
+
+  // Per-beat undo/redo stacks of serialized { tiles, variants } snapshots.
   private undoStack: string[] = [];
   private redoStack: string[] = [];
 
@@ -46,97 +73,267 @@ class StageStore {
   onAir: ((payload: BroadcastPayload) => void) | null = null;
 
   constructor() {
-    this.state.activeId = this.state.scenes[0].id;
+    this.state.cursorId = this.state.beats[0].id;
+    this.armedId = this.state.beats[0].id;
   }
 
-  // --- scenes (tabs) --------------------------------------------------------
-  get scenes(): Scene[] {
-    return this.state.scenes;
+  setMode(m: StageMode): void {
+    this.mode = m;
+    if (m === 'run' && !this.state.beats.some((b) => b.id === this.armedId)) {
+      this.armedId = this.state.cursorId;
+      this.armedVariantId = null;
+    }
   }
-  get activeId(): string {
-    return this.state.activeId;
+
+  // --- rundown (beats) ------------------------------------------------------
+  get beats(): Beat[] {
+    return this.state.beats;
   }
-  get active(): Scene {
-    return this.state.scenes.find((s) => s.id === this.state.activeId) ?? this.state.scenes[0];
+  get cursorId(): string {
+    return this.state.cursorId;
   }
+  get active(): Beat {
+    return this.state.beats.find((b) => b.id === this.state.cursorId) ?? this.state.beats[0];
+  }
+  /** Effective tiles for the cursor beat, composited through the active variant. */
   get tiles(): Tile[] {
-    return this.active.tiles;
+    return resolveTiles(this.active, this.activeVariantId);
+  }
+  get cursorIndex(): number {
+    return Math.max(0, this.state.beats.findIndex((b) => b.id === this.state.cursorId));
+  }
+  beatById(id: string): Beat | undefined {
+    return this.state.beats.find((b) => b.id === id);
   }
 
-  setActive(id: string): void {
-    if (this.state.scenes.some((s) => s.id === id)) {
-      this.state.activeId = id;
+  setCursor(id: string): void {
+    if (this.state.beats.some((b) => b.id === id)) {
+      this.state.cursorId = id;
+      this.activeVariantId = null;
       this.selected = null;
       this.clearHistory();
       this.persistLive();
     }
   }
 
-  addScene(name?: string): Scene {
-    const s = newScene(name ?? `Scene ${this.state.scenes.length + 1}`);
-    this.state.scenes = [...this.state.scenes, s];
-    this.state.activeId = s.id;
+  addBeat(name?: string): Beat {
+    const b = newBeat(name ?? `Beat ${this.state.beats.length + 1}`);
+    this.state.beats = [...this.state.beats, b];
+    this.state.cursorId = b.id;
+    this.activeVariantId = null;
     this.clearHistory();
     this.persistLive();
-    return s;
+    return b;
   }
 
-  duplicateScene(id?: string): Scene {
-    const src = this.state.scenes.find((s) => s.id === (id ?? this.state.activeId)) ?? this.active;
-    const copy: Scene = {
+  /** Add a beat from a template's slot layout (empty, positioned tiles). */
+  addBeatFromTemplate(templateId: string): Beat | null {
+    const tpl = this.templates.find((x) => x.id === templateId);
+    return tpl ? this.addBeatFrom(tpl) : null;
+  }
+
+  /** Add a beat from any template object (built-in or saved). */
+  addBeatFrom(tpl: Template): Beat {
+    const b = beatFromTemplate(tpl, tpl.name);
+    this.state.beats = [...this.state.beats, b];
+    this.state.cursorId = b.id;
+    this.activeVariantId = null;
+    this.clearHistory();
+    this.persistLive();
+    return b;
+  }
+
+  duplicateBeat(id?: string): Beat {
+    const src = this.state.beats.find((b) => b.id === (id ?? this.state.cursorId)) ?? this.active;
+    const copy: Beat = {
       ...structuredClone($state.snapshot(src)),
-      id: crypto.randomUUID(),
+      id: uid(),
       name: `${src.name} copy`,
-      tiles: src.tiles.map((t) => ({ ...$state.snapshot(t), id: crypto.randomUUID() })),
+      tiles: src.tiles.map((t) => ({ ...$state.snapshot(t), id: uid() })),
     };
-    const i = this.state.scenes.findIndex((s) => s.id === src.id);
-    const next = this.state.scenes.slice();
+    const i = this.state.beats.findIndex((b) => b.id === src.id);
+    const next = this.state.beats.slice();
     next.splice(i + 1, 0, copy);
-    this.state.scenes = next;
-    this.state.activeId = copy.id;
+    this.state.beats = next;
+    this.state.cursorId = copy.id;
+    this.activeVariantId = null;
     this.clearHistory();
     this.persistLive();
     return copy;
   }
 
-  renameScene(id: string, name: string): void {
-    const s = this.state.scenes.find((x) => x.id === id);
-    if (s) {
-      s.name = name;
+  renameBeat(id: string, name: string): void {
+    const b = this.state.beats.find((x) => x.id === id);
+    if (b) {
+      b.name = name;
       this.persist();
     }
   }
 
-  removeScene(id: string): void {
-    if (this.state.scenes.length <= 1) return;
-    const i = this.state.scenes.findIndex((s) => s.id === id);
+  /** Move a beat to a new index on the spine (drag-to-reorder). */
+  moveBeat(id: string, toIndex: number): void {
+    const from = this.state.beats.findIndex((b) => b.id === id);
+    if (from < 0) return;
+    const next = this.state.beats.slice();
+    const [b] = next.splice(from, 1);
+    next.splice(Math.max(0, Math.min(toIndex, next.length)), 0, b);
+    this.state.beats = next;
+    this.persistLive();
+  }
+
+  removeBeat(id: string): void {
+    if (this.state.beats.length <= 1) return;
+    const i = this.state.beats.findIndex((b) => b.id === id);
     if (i < 0) return;
-    const removed = $state.snapshot(this.state.scenes[i]) as Scene;
-    const prevActive = this.state.activeId;
-    const next = this.state.scenes.filter((s) => s.id !== id);
-    this.state.scenes = next;
-    if (this.state.activeId === id) this.state.activeId = next[Math.min(i, next.length - 1)].id;
+    const removed = $state.snapshot(this.state.beats[i]) as Beat;
+    const prevCursor = this.state.cursorId;
+    const next = this.state.beats.filter((b) => b.id !== id);
+    // Clear any fork refs that pointed at the removed beat (keep the labeled fork).
+    for (const b of next) {
+      for (const f of b.forks) {
+        if (f.targetBeatId === id) f.targetBeatId = undefined;
+        if (f.rejoinBeatId === id) f.rejoinBeatId = undefined;
+      }
+    }
+    this.state.beats = next;
+    if (this.state.cursorId === id) this.state.cursorId = next[Math.min(i, next.length - 1)].id;
+    if (this.armedId === id) this.armedId = this.state.cursorId;
     this.clearHistory();
     this.persistLive();
-    toast.undoable(t('toast.sceneDeleted'), () => {
-      const back = this.state.scenes.slice();
+    toast.undoable(t('stage.beatDeleted'), () => {
+      const back = this.state.beats.slice();
       back.splice(i, 0, removed);
-      this.state.scenes = back;
-      this.state.activeId = prevActive;
+      this.state.beats = back;
+      this.state.cursorId = prevCursor;
       this.persistLive();
     });
   }
 
-  // --- tiles ----------------------------------------------------------------
+  /** Set a beat's default mood (aired with the beat in RUN). */
+  setBeatMood(id: string, mood: string | undefined): void {
+    const b = this.state.beats.find((x) => x.id === id);
+    if (b) {
+      b.mood = mood;
+      this.persist();
+    }
+  }
+
+  // --- variants (deltas over the base) -------------------------------------
+  private get vActive(): Variant | null {
+    if (!this.activeVariantId) return null;
+    return this.active.variants.find((v) => v.id === this.activeVariantId) ?? null;
+  }
+
+  setActiveVariant(id: string | null): void {
+    this.activeVariantId = id && this.active.variants.some((v) => v.id === id) ? id : null;
+    this.selected = null;
+    this.clearHistory();
+    this.persistLive();
+  }
+
+  addVariant(name: string): Variant {
+    const v: Variant = { id: uid(), name, patches: {}, removed: [], added: [] };
+    this.active.variants = [...this.active.variants, v];
+    this.activeVariantId = v.id;
+    this.selected = null;
+    this.clearHistory();
+    this.persist();
+    return v;
+  }
+
+  renameVariant(id: string, name: string): void {
+    const v = this.active.variants.find((x) => x.id === id);
+    if (v) {
+      v.name = name;
+      this.persist();
+    }
+  }
+
+  removeVariant(id: string): void {
+    this.active.variants = this.active.variants.filter((v) => v.id !== id);
+    if (this.activeVariantId === id) this.activeVariantId = null;
+    if (this.armedVariantId === id) this.armedVariantId = null;
+    this.selected = null;
+    this.clearHistory();
+    this.persistLive();
+  }
+
+  // --- forks (labeled side-rails) ------------------------------------------
+  addFork(beatId: string, label: string): Fork | null {
+    const b = this.state.beats.find((x) => x.id === beatId);
+    if (!b) return null;
+    const f: Fork = { id: uid(), label };
+    b.forks = [...b.forks, f];
+    this.persist();
+    return f;
+  }
+
+  updateFork(beatId: string, forkId: string, patch: Partial<Fork>): void {
+    const b = this.state.beats.find((x) => x.id === beatId);
+    const f = b?.forks.find((x) => x.id === forkId);
+    if (f) {
+      Object.assign(f, patch);
+      this.persist();
+    }
+  }
+
+  removeFork(beatId: string, forkId: string): void {
+    const b = this.state.beats.find((x) => x.id === beatId);
+    if (b) {
+      b.forks = b.forks.filter((f) => f.id !== forkId);
+      this.persist();
+    }
+  }
+
+  // --- tiles (variant-aware) ------------------------------------------------
   npcLookup = (id: string): PublicNpc | undefined => {
     const npc = npcs.list.find((n) => n.id === id);
     return npc ? publicView(npc, lang.current) : undefined;
   };
 
+  private isAdded(id: string): boolean {
+    return !!this.vActive?.added.some((t) => t.id === id);
+  }
+
+  /** Route a tile patch into the base tiles or the active variant delta. */
+  private applyPatch(id: string, patch: Partial<Tile>): void {
+    const beat = this.active;
+    const v = this.vActive;
+    if (!v) {
+      beat.tiles = beat.tiles.map((t) =>
+        t.id === id ? clampTile({ ...t, ...patch }, beat.cols, beat.rows) : t,
+      );
+      return;
+    }
+    if (this.isAdded(id)) {
+      v.added = v.added.map((t) =>
+        t.id === id ? clampTile({ ...t, ...patch }, beat.cols, beat.rows) : t,
+      );
+      return;
+    }
+    // Base tile edited within a variant: record only the changed keys, but clamp
+    // placement against the grid so it stays valid.
+    const base = beat.tiles.find((t) => t.id === id);
+    if (!base) return;
+    const prev = v.patches[id] ?? {};
+    const nextPatch: Partial<Tile> = { ...prev, ...patch };
+    const resolved = clampTile({ ...base, ...nextPatch }, beat.cols, beat.rows);
+    if ('col' in patch || 'row' in patch || 'cw' in patch || 'rh' in patch) {
+      nextPatch.col = resolved.col;
+      nextPatch.row = resolved.row;
+      nextPatch.cw = resolved.cw;
+      nextPatch.rh = resolved.rh;
+    }
+    v.patches = { ...v.patches, [id]: nextPatch };
+  }
+
   addTile(kind: TileKind, patch: Partial<Tile> = {}): Tile {
     this.snapshot();
-    const tile = makeTile(kind, this.active, patch);
-    this.active.tiles = [...this.active.tiles, tile];
+    const beat = this.active;
+    const tile = makeTile(kind, { cols: beat.cols, rows: beat.rows, tiles: this.tiles }, patch);
+    const v = this.vActive;
+    if (v) v.added = [...v.added, tile];
+    else beat.tiles = [...beat.tiles, tile];
     this.selected = tile.id;
     this.commit();
     return tile;
@@ -144,19 +341,17 @@ class StageStore {
 
   /** Bring a tile to the front / send to back by bumping its explicit z. */
   bringToFront(id: string): void {
-    const maxZ = Math.max(0, ...this.active.tiles.map((t) => t.z ?? 0));
+    const maxZ = Math.max(0, ...this.tiles.map((t) => t.z ?? 0));
     this.patchTile(id, { z: maxZ + 1 });
   }
   sendToBack(id: string): void {
-    const minZ = Math.min(0, ...this.active.tiles.map((t) => t.z ?? 0));
+    const minZ = Math.min(0, ...this.tiles.map((t) => t.z ?? 0));
     this.patchTile(id, { z: minZ - 1 });
   }
 
   patchTile(id: string, patch: Partial<Tile>): void {
     this.snapshot();
-    this.active.tiles = this.active.tiles.map((t) =>
-      t.id === id ? clampTile({ ...t, ...patch }, this.active.cols, this.active.rows) : t,
-    );
+    this.applyPatch(id, patch);
     this.commit();
   }
 
@@ -165,56 +360,67 @@ class StageStore {
     this.snapshot();
   }
 
-  /** Move/resize without clamping intermediate steps onto history every frame. */
+  /** Move/resize without pushing history every frame (gesture already snapshot). */
   placeTile(id: string, place: { col: number; row: number; cw: number; rh: number }): void {
-    this.active.tiles = this.active.tiles.map((t) =>
-      t.id === id ? clampTile({ ...t, ...place }, this.active.cols, this.active.rows) : t,
-    );
+    this.applyPatch(id, place);
     this.persistLive();
   }
 
   /** Tile all elements into an equal grid partition that fills the board. */
   distribute(): void {
-    const tiles = this.active.tiles;
+    const tiles = this.tiles;
     if (tiles.length === 0) return;
     this.snapshot();
     const areas = distributeAreas(tiles.length, this.active.cols, this.active.rows);
-    this.active.tiles = tiles.map((t, i) =>
-      clampTile({ ...t, ...areas[i] }, this.active.cols, this.active.rows),
-    );
+    tiles.forEach((t, i) => this.applyPatch(t.id, areas[i]));
     this.commit();
   }
 
   removeTile(id: string): void {
     this.snapshot();
-    this.active.tiles = this.active.tiles.filter((t) => t.id !== id);
+    const beat = this.active;
+    const v = this.vActive;
+    if (!v) {
+      beat.tiles = beat.tiles.filter((t) => t.id !== id);
+    } else if (this.isAdded(id)) {
+      v.added = v.added.filter((t) => t.id !== id);
+    } else {
+      const rest = { ...v.patches };
+      delete rest[id];
+      v.patches = rest;
+      if (!v.removed.includes(id)) v.removed = [...v.removed, id];
+    }
     if (this.selected === id) this.selected = null;
     this.commit();
   }
 
   /** Clone a tile in place (nudged one cell down-right), selecting the copy. */
   duplicateTile(id: string): Tile | null {
-    const src = this.active.tiles.find((t) => t.id === id);
+    const src = this.tiles.find((t) => t.id === id);
     if (!src) return null;
     this.snapshot();
+    const beat = this.active;
     const copy = clampTile(
-      { ...$state.snapshot(src), id: crypto.randomUUID(), col: src.col + 1, row: src.row + 1 },
-      this.active.cols,
-      this.active.rows,
+      { ...$state.snapshot(src), id: uid(), col: src.col + 1, row: src.row + 1 },
+      beat.cols,
+      beat.rows,
     );
-    this.active.tiles = [...this.active.tiles, copy];
+    const v = this.vActive;
+    if (v) v.added = [...v.added, copy];
+    else beat.tiles = [...beat.tiles, copy];
     this.selected = copy.id;
     this.commit();
     return copy;
   }
 
   toggleHidden(id: string): void {
-    const t = this.active.tiles.find((x) => x.id === id);
+    const t = this.tiles.find((x) => x.id === id);
     if (t) this.patchTile(id, { hidden: !t.hidden });
   }
 
-  /** Raise a tile to render last (on top) — used on select for z-order. */
+  /** Raise a tile to render last (on top). Base-order only (skips variants). */
   raise(id: string): void {
+    if (this.vActive) return;
     const i = this.active.tiles.findIndex((t) => t.id === id);
     if (i < 0 || i === this.active.tiles.length - 1) return;
     const next = this.active.tiles.slice();
@@ -224,70 +430,125 @@ class StageStore {
     this.persist();
   }
 
-  // --- presets (cross-campaign) --------------------------------------------
-  savePreset(name: string): Preset {
-    const p = presetFromScene(this.active, name);
-    this.presets = [...this.presets, p];
-    void kvSet(KV_PRESETS, $state.snapshot(this.presets));
-    return p;
+  // --- templates (cross-campaign) ------------------------------------------
+  saveTemplate(name: string): Template {
+    const tpl = templateFromBeat(this.active, name);
+    this.templates = [...this.templates, tpl];
+    void kvSet(KV_TEMPLATES, $state.snapshot(this.templates));
+    return tpl;
   }
 
-  applyPreset(presetId: string): void {
-    const p = this.presets.find((x) => x.id === presetId);
-    if (!p) return;
-    const scene = sceneFromPreset(p, p.name);
-    this.state.scenes = [...this.state.scenes, scene];
-    this.state.activeId = scene.id;
-    this.clearHistory();
-    this.persistLive();
-  }
-
-  removePreset(presetId: string): void {
-    this.presets = this.presets.filter((p) => p.id !== presetId);
-    void kvSet(KV_PRESETS, $state.snapshot(this.presets));
+  removeTemplate(templateId: string): void {
+    this.templates = this.templates.filter((tpl) => tpl.id !== templateId);
+    void kvSet(KV_TEMPLATES, $state.snapshot(this.templates));
   }
 
   // --- broadcast ------------------------------------------------------------
+  /** Player-safe payload for a beat + variant (base when variant is null). */
+  payloadFor(beatId: string, variantId: string | null): Extract<BroadcastPayload, { kind: 'grid' }> | null {
+    const b = this.beatById(beatId);
+    if (!b) return null;
+    return tilesToPayload(b.cols, b.rows, resolveTiles(b, variantId), this.npcLookup);
+  }
+
+  /** The cursor beat's effective board (base or active variant) as a payload. */
   get preview(): Extract<BroadcastPayload, { kind: 'grid' }> | null {
-    return sceneToPayload(this.active, this.npcLookup);
+    return this.payloadFor(this.active.id, this.activeVariantId);
   }
 
   broadcast(): void {
     const payload = this.preview;
-    if (payload && this.onAir) this.onAir(payload);
+    if (payload && this.onAir) {
+      this.onAir(payload);
+      this.air = { beatId: this.active.id, variantId: this.activeVariantId };
+    }
+  }
+
+  // --- RUN cockpit ----------------------------------------------------------
+  /** The armed beat (staged in Preview), falling back to the cursor beat. */
+  get armed(): Beat {
+    return this.beatById(this.armedId) ?? this.active;
+  }
+  get previewArmed(): Extract<BroadcastPayload, { kind: 'grid' }> | null {
+    return this.payloadFor(this.armedId, this.armedVariantId);
+  }
+
+  /** Stage a beat (+ optional variant) into Preview without airing it. */
+  arm(beatId: string, variantId: string | null = null): void {
+    if (!this.beatById(beatId)) return;
+    this.armedId = beatId;
+    this.armedVariantId = variantId;
+  }
+
+  /** Stage the beat n positions from the armed one (clamped to the rundown). */
+  armRelative(delta: number): void {
+    const i = this.state.beats.findIndex((b) => b.id === this.armedId);
+    const next = this.state.beats[Math.max(0, Math.min(i + delta, this.state.beats.length - 1))];
+    if (next) this.arm(next.id, null);
+  }
+
+  /** Cycle the armed variant: base → v1 → v2 → … → base. */
+  cycleArmedVariant(): void {
+    const vars = this.armed.variants;
+    if (vars.length === 0) return;
+    const order = [null, ...vars.map((v) => v.id)];
+    const at = order.indexOf(this.armedVariantId);
+    this.armedVariantId = order[(at + 1) % order.length];
+  }
+
+  /** TAKE: crossfade the staged Preview to Air, then advance the playhead. */
+  take(): void {
+    const payload = this.previewArmed;
+    if (!payload || !this.onAir) return;
+    this.onAir(payload);
+    this.air = { beatId: this.armedId, variantId: this.armedVariantId };
+    this.state.cursorId = this.armedId;
+    // Auto-arm the next beat on the spine (if any) for the next TAKE.
+    const i = this.state.beats.findIndex((b) => b.id === this.armedId);
+    const nxt = this.state.beats[i + 1];
+    if (nxt) {
+      this.armedId = nxt.id;
+      this.armedVariantId = null;
+    }
+    this.persist();
   }
 
   /**
-   * Air a scene selected by 0-based index or name (case-insensitive, exact then
+   * Air a beat selected by 0-based index or name (case-insensitive, exact then
    * substring). Used by the command palette so it works even when the Stage
    * window isn't mounted (routes through `onAir` if set, else `putOnAir`).
-   * Returns the aired scene, or null when no scene matched.
    */
-  airSceneByRef(ref: { index?: number; name?: string }): Scene | null {
-    let scene: Scene | undefined;
+  airBeatByRef(ref: { index?: number; name?: string }): Beat | null {
+    let beat: Beat | undefined;
     if (typeof ref.index === 'number') {
-      scene = this.state.scenes[ref.index];
+      beat = this.state.beats[ref.index];
     } else if (ref.name) {
       const q = ref.name.trim().toLowerCase();
-      scene =
-        this.state.scenes.find((s) => s.name.toLowerCase() === q) ??
-        this.state.scenes.find((s) => s.name.toLowerCase().includes(q));
+      beat =
+        this.state.beats.find((b) => b.name.toLowerCase() === q) ??
+        this.state.beats.find((b) => b.name.toLowerCase().includes(q));
     }
-    if (!scene) return null;
-    this.setActive(scene.id);
-    const payload = sceneToPayload(scene, this.npcLookup);
+    if (!beat) return null;
+    this.setCursor(beat.id);
+    const payload = this.payloadFor(beat.id, null);
     if (!payload) return null;
     if (this.onAir) this.onAir(payload);
     else putOnAir(payload);
-    return scene;
+    this.air = { beatId: beat.id, variantId: null };
+    return beat;
+  }
+
+  /** Back-compat alias for the command palette (`air scene N`). */
+  airSceneByRef(ref: { index?: number; name?: string }): Beat | null {
+    return this.airBeatByRef(ref);
   }
 
   /**
    * Push a single tile fullscreen (focus), using the cinematic single-image /
-   * single-text broadcast layouts. To-Air returns to the full scene layout.
+   * single-text broadcast layouts. To-Air returns to the full beat layout.
    */
   spotlight(id: string): void {
-    const tile = this.active.tiles.find((t) => t.id === id);
+    const tile = this.tiles.find((t) => t.id === id);
     if (!tile || !this.onAir) return;
     const cell = tileToCell({ ...tile, hidden: false }, this.npcLookup);
     if (!cell) return;
@@ -307,8 +568,6 @@ class StageStore {
         ...(cell.theme ? { theme: cell.theme } : {}),
       });
     } else {
-      // clock/date have no fullscreen payload — air them as a single
-      // full-frame grid cell so they keep their tile rendering.
       const full = { ...cell, area: { col: 1, row: 1, cw: this.active.cols, rh: this.active.rows } };
       this.onAir({ kind: 'grid', cols: this.active.cols, rows: this.active.rows, cells: [full] });
     }
@@ -319,7 +578,7 @@ class StageStore {
     this.syncLive();
   }
 
-  /** When live, push the active scene — clearing the broadcast if it's empty. */
+  /** When live, push the cursor beat — clearing the broadcast if it's empty. */
   private syncLive(): void {
     if (!this.live || !this.onAir) return;
     this.onAir(this.preview ?? { kind: 'clear' });
@@ -331,8 +590,19 @@ class StageStore {
   }
 
   // --- undo / redo ----------------------------------------------------------
+  private snapshotStr(): string {
+    return JSON.stringify({
+      tiles: $state.snapshot(this.active.tiles),
+      variants: $state.snapshot(this.active.variants),
+    });
+  }
+  private restore(str: string): void {
+    const s = JSON.parse(str) as { tiles: Tile[]; variants: Variant[] };
+    this.active.tiles = s.tiles;
+    this.active.variants = s.variants;
+  }
   private snapshot(): void {
-    this.undoStack.push(JSON.stringify($state.snapshot(this.active.tiles)));
+    this.undoStack.push(this.snapshotStr());
     if (this.undoStack.length > 50) this.undoStack.shift();
     this.redoStack = [];
   }
@@ -352,35 +622,36 @@ class StageStore {
   undo(): void {
     const prev = this.undoStack.pop();
     if (prev === undefined) return;
-    this.redoStack.push(JSON.stringify($state.snapshot(this.active.tiles)));
-    this.active.tiles = JSON.parse(prev) as Tile[];
+    this.redoStack.push(this.snapshotStr());
+    this.restore(prev);
     this.persistLive();
   }
   redo(): void {
     const next = this.redoStack.pop();
     if (next === undefined) return;
-    this.undoStack.push(JSON.stringify($state.snapshot(this.active.tiles)));
-    this.active.tiles = JSON.parse(next) as Tile[];
+    this.undoStack.push(this.snapshotStr());
+    this.restore(next);
     this.persistLive();
   }
 
   // --- persistence ----------------------------------------------------------
   persist(): void {
-    void kvSet(KV_SCENES, $state.snapshot(this.state));
+    void kvSet(KV_RUNDOWN, $state.snapshot(this.state));
   }
 
   async load(): Promise<void> {
-    const saved = await kvGet<StageState>(KV_SCENES);
-    if (saved && Array.isArray(saved.scenes) && saved.scenes.length) {
-      const activeId = saved.scenes.some((s) => s.id === saved.activeId)
-        ? saved.activeId
-        : saved.scenes[0].id;
-      this.state = { scenes: saved.scenes, activeId };
+    const saved = await kvGet<StageState>(KV_RUNDOWN);
+    if (saved && Array.isArray(saved.beats) && saved.beats.length) {
+      const cursorId = saved.beats.some((b) => b.id === saved.cursorId)
+        ? saved.cursorId
+        : saved.beats[0].id;
+      this.state = { beats: saved.beats, cursorId };
+      this.armedId = cursorId;
     }
-    const presets = await kvGet<Preset[]>(KV_PRESETS);
-    if (Array.isArray(presets)) this.presets = presets;
+    const templates = await kvGet<Template[]>(KV_TEMPLATES);
+    if (Array.isArray(templates)) this.templates = templates;
   }
 }
 
 export const stage = new StageStore();
-export type { Tile, TileKind, Scene, Preset };
+export type { Tile, TileKind, Beat, Template, Variant, Fork };

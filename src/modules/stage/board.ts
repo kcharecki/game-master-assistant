@@ -59,32 +59,135 @@ export function formatCountdown(seconds: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
 
-export interface Scene {
+/**
+ * A Variant is a lightweight alternate of a beat, stored as a *delta* over the
+ * base: tiles patched by id, tiles removed, tiles added. Editing the base once
+ * means every variant inherits the unchanged tiles (Phase 2 authoring).
+ */
+export interface Variant {
   id: string;
   name: string;
-  cols: number;
-  rows: number;
-  tiles: Tile[];
+  patches: Record<string, Partial<Tile>>; // by base tile id
+  removed: string[]; // base tile ids dropped in this variant
+  added: Tile[]; // tiles that only exist in this variant
 }
 
-/** A reusable layout: tile slots (kind + placement) with no content. */
-export interface Preset {
+/**
+ * A Fork is a labeled side-rail hung off a beat ("if they open the cabinet →").
+ * `targetBeatId` is the rail's first beat; `rejoinBeatId` is where the spine
+ * resumes after the rail plays out. Un-taken forks never render on air.
+ */
+export interface Fork {
+  id: string;
+  label: string;
+  targetBeatId?: string;
+  rejoinBeatId?: string;
+}
+
+/**
+ * A Beat is one planned board state — a full stage of tiles — sitting at a
+ * position on the rundown. It carries its own variants (deltas) and forks
+ * (side-rails), plus an optional default mood aired with the beat.
+ */
+export interface Beat {
   id: string;
   name: string;
   cols: number;
   rows: number;
-  slots: { kind: TileKind; col: number; row: number; cw: number; rh: number }[];
+  tiles: Tile[]; // the base variant
+  variants: Variant[];
+  forks: Fork[];
+  mood?: string; // default mood id, aired with the beat
+  templateId?: string; // template this beat was created from
 }
+
+/** Anything with a grid + tiles: beats and, structurally, resolved variants. */
+export type Board = Pick<Beat, 'cols' | 'rows' | 'tiles'>;
+
+/** One typed, positioned slot in a template (kind + placement, no content). */
+export interface Slot {
+  kind: TileKind;
+  col: number;
+  row: number;
+  cw: number;
+  rh: number;
+}
+
+/** A reusable, content-free beat layout: typed slots with placement, no assets. */
+export interface Template {
+  id: string;
+  name: string;
+  cols: number;
+  rows: number;
+  slots: Slot[];
+}
+
+/**
+ * Built-in beat layouts offered in the library. `nameKey` is an i18n key so the
+ * UI localizes the label; the component materializes one into a `Template`
+ * (with a resolved name) before creating a beat.
+ */
+export interface BuiltinTemplate {
+  id: string;
+  nameKey: string;
+  slots: Slot[];
+}
+
+export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
+  { id: 'bt-handout', nameKey: 'stage.tplHandout', slots: [{ kind: 'text', col: 3, row: 2, cw: 8, rh: 5 }] },
+  {
+    id: 'bt-portrait-letter',
+    nameKey: 'stage.tplPortraitLetter',
+    slots: [
+      { kind: 'npc', col: 1, row: 1, cw: 5, rh: 8 },
+      { kind: 'text', col: 6, row: 2, cw: 6, rh: 5 },
+    ],
+  },
+  { id: 'bt-location', nameKey: 'stage.tplLocation', slots: [{ kind: 'image', col: 1, row: 1, cw: 12, rh: 8 }] },
+  { id: 'bt-countdown', nameKey: 'stage.tplCountdown', slots: [{ kind: 'clock', col: 4, row: 3, cw: 5, rh: 3 }] },
+  {
+    id: 'bt-maptable',
+    nameKey: 'stage.tplMapTable',
+    slots: [
+      { kind: 'image', col: 1, row: 1, cw: 9, rh: 8 },
+      { kind: 'date', col: 10, row: 1, cw: 3, rh: 2 },
+    ],
+  },
+  { id: 'bt-date', nameKey: 'stage.tplDate', slots: [{ kind: 'date', col: 4, row: 3, cw: 5, rh: 2 }] },
+];
 
 function uid(): string {
   return crypto.randomUUID();
 }
 
-export function newScene(name: string): Scene {
-  return { id: uid(), name, cols: STAGE_COLS, rows: STAGE_ROWS, tiles: [] };
+export function newBeat(name: string): Beat {
+  return {
+    id: uid(),
+    name,
+    cols: STAGE_COLS,
+    rows: STAGE_ROWS,
+    tiles: [],
+    variants: [],
+    forks: [],
+  };
 }
 
-/** Clamp a tile's placement so it stays fully inside the scene grid. */
+/**
+ * Resolve a beat's effective tiles for a given variant id. With no variant (or
+ * an unknown id) the base tiles are returned unchanged. A variant applies, in
+ * order: patches over matching base tiles, removals, then its own added tiles.
+ */
+export function resolveTiles(beat: Beat, variantId?: string | null): Tile[] {
+  if (!variantId) return beat.tiles;
+  const v = beat.variants.find((x) => x.id === variantId);
+  if (!v) return beat.tiles;
+  const kept = beat.tiles
+    .filter((t) => !v.removed.includes(t.id))
+    .map((t) => (v.patches[t.id] ? { ...t, ...v.patches[t.id] } : t));
+  return [...kept, ...v.added];
+}
+
+/** Clamp a tile's placement so it stays fully inside the board grid. */
 export function clampTile(tile: Tile, cols: number, rows: number): Tile {
   const cw = Math.max(1, Math.min(tile.cw, cols));
   const rh = Math.max(1, Math.min(tile.rh, rows));
@@ -104,11 +207,11 @@ function overlaps(a: { col: number; row: number; cw: number; rh: number }, b: Ti
  * First free top-left cell that fits a `cw`×`rh` rectangle without overlapping
  * existing tiles, scanning row-major. Falls back to (1,1) when the grid is full.
  */
-export function firstFree(scene: Scene, cw: number, rh: number): { col: number; row: number } {
-  for (let row = 1; row <= scene.rows - rh + 1; row++) {
-    for (let col = 1; col <= scene.cols - cw + 1; col++) {
+export function firstFree(board: Board, cw: number, rh: number): { col: number; row: number } {
+  for (let row = 1; row <= board.rows - rh + 1; row++) {
+    for (let col = 1; col <= board.cols - cw + 1; col++) {
       const rect = { col, row, cw, rh };
-      if (!scene.tiles.some((t) => overlaps(rect, t))) return { col, row };
+      if (!board.tiles.some((t) => overlaps(rect, t))) return { col, row };
     }
   }
   return { col: 1, row: 1 };
@@ -121,13 +224,13 @@ function defaultSpan(kind: TileKind): { cw: number; rh: number } {
   return { cw: 6, rh: 4 };
 }
 
-export function makeTile(kind: TileKind, scene: Scene, patch: Partial<Tile> = {}): Tile {
+export function makeTile(kind: TileKind, board: Board, patch: Partial<Tile> = {}): Tile {
   const { cw, rh } = defaultSpan(kind);
-  const spot = firstFree(scene, cw, rh);
+  const spot = firstFree(board, cw, rh);
   return clampTile(
     { id: uid(), kind, col: spot.col, row: spot.row, cw, rh, ...patch },
-    scene.cols,
-    scene.rows,
+    board.cols,
+    board.rows,
   );
 }
 
@@ -191,41 +294,55 @@ export function tileToCell(
 }
 
 /**
- * Compose a scene into a broadcast grid payload, or null when nothing visible
- * resolves. Cells carry explicit placement so the broadcast mirrors the board.
+ * Compose a set of tiles into a broadcast grid payload, or null when nothing
+ * visible resolves. Cells carry explicit placement so the broadcast mirrors the
+ * board. Pass a beat's resolved tiles (base or variant) plus its grid size.
  */
-export function sceneToPayload(
-  scene: Scene,
+export function tilesToPayload(
+  cols: number,
+  rows: number,
+  tiles: Tile[],
   npcLookup: (id: string) => PublicNpc | undefined,
 ): Extract<BroadcastPayload, { kind: 'grid' }> | null {
   const cells: GridCell[] = [];
-  for (const tile of scene.tiles) {
+  for (const tile of tiles) {
     const cell = tileToCell(tile, npcLookup);
     if (cell) cells.push(cell);
   }
   if (cells.length === 0) return null;
-  return { kind: 'grid', cols: scene.cols, rows: scene.rows, cells };
+  return { kind: 'grid', cols, rows, cells };
 }
 
-/** Derive a content-free preset from a scene's current layout. */
-export function presetFromScene(scene: Scene, name: string): Preset {
+/** Compose a beat's base layout into a broadcast grid payload (or null). */
+export function beatToPayload(
+  beat: Beat,
+  npcLookup: (id: string) => PublicNpc | undefined,
+): Extract<BroadcastPayload, { kind: 'grid' }> | null {
+  return tilesToPayload(beat.cols, beat.rows, beat.tiles, npcLookup);
+}
+
+/** Derive a content-free template from a beat's current layout. */
+export function templateFromBeat(beat: Beat, name: string): Template {
   return {
     id: uid(),
     name,
-    cols: scene.cols,
-    rows: scene.rows,
-    slots: scene.tiles.map((t) => ({ kind: t.kind, col: t.col, row: t.row, cw: t.cw, rh: t.rh })),
+    cols: beat.cols,
+    rows: beat.rows,
+    slots: beat.tiles.map((t) => ({ kind: t.kind, col: t.col, row: t.row, cw: t.cw, rh: t.rh })),
   };
 }
 
-/** Instantiate a preset as a fresh scene of empty, positioned tiles. */
-export function sceneFromPreset(preset: Preset, name: string): Scene {
+/** Instantiate a template as a fresh beat of empty, positioned tiles. */
+export function beatFromTemplate(template: Template, name: string): Beat {
   return {
     id: uid(),
     name,
-    cols: preset.cols,
-    rows: preset.rows,
-    tiles: preset.slots.map((s) => ({ id: uid(), ...s })),
+    cols: template.cols,
+    rows: template.rows,
+    tiles: template.slots.map((s) => ({ id: uid(), ...s })),
+    variants: [],
+    forks: [],
+    templateId: template.id,
   };
 }
 
