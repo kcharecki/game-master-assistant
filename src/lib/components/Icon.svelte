@@ -19,7 +19,17 @@
     | 'tile'
     | 'chevron'
     | 'open'
-    | 'density';
+    | 'density'
+    | 'undo'
+    | 'redo'
+    | 'grid'
+    | 'laser'
+    | 'moon'
+    | 'fork'
+    | 'duplicate'
+    | 'eye-off'
+    | 'spotlight'
+    | 'message';
 
   const PATHS: Record<IconName, string> = {
     edit: 'M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z M14 6l3 3',
@@ -39,6 +49,16 @@
     chevron: 'M6 9l6 6 6-6',
     open: 'M14 4h6v6 M20 4l-9 9 M19 14v5H5V5h5',
     density: 'M4 6h16 M4 12h16 M4 18h16',
+    undo: 'M3 12h12a4 4 0 0 1 0 8h-3 M7 8l-4 4 4 4',
+    redo: 'M21 12H9a4 4 0 0 0 0 8h3 M17 8l4 4-4 4',
+    grid: 'M3 3h18v18H3z M9 3v18 M15 3v18 M3 9h18 M3 15h18',
+    laser: 'M12 3v4 M12 17v4 M3 12h4 M17 12h4 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+    moon: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
+    fork: 'M7 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z M7 8v8 M7 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4z M17 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M17 8a5 5 0 0 1-5 5H7',
+    duplicate: 'M8 8h12v12H8z M16 8V4H4v12h4',
+    'eye-off': 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z M4 4l16 16',
+    spotlight: 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M5 21a7 7 0 0 1 14 0',
+    message: 'M4 5h16v11H9l-4 4V5z',
   };
 </script>
 

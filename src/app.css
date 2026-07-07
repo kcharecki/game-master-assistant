@@ -329,10 +329,11 @@ button {
 }
 .bar {
   flex: 0 0 auto;
+  height: 32px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 9px;
+  padding: 0 10px;
   cursor: grab;
   user-select: none;
   background: linear-gradient(180deg, rgba(34, 62, 50, 0.55), rgba(15, 24, 21, 0.25));
@@ -392,29 +393,108 @@ button {
 }
 
 /* ---- buttons ---- */
+/* Six-member button family, all sharing height/radius/padding tokens.
+   .btn = secondary (the workhorse). Variants: .solid/.primary, .ghost,
+   .danger, .gold (on-air). Icon-only buttons use .ic. */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  height: var(--ctrl);
   padding: var(--ctrl-pad);
-  border-radius: 7px;
+  border-radius: var(--r2);
   font-size: 12.5px;
   font-weight: 600;
   border: 1px solid var(--line2);
   color: var(--txt);
-  background: rgba(79, 163, 123, 0.1);
+  background: var(--fill-g08);
   cursor: pointer;
   width: fit-content;
 }
 .btn:hover {
-  background: rgba(79, 163, 123, 0.2);
+  background: var(--fill-g14);
   border-color: var(--green-dim);
 }
-.btn.solid {
+.btn:active {
+  background: var(--fill-g22);
+}
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+/* primary — solid green, at most one per view */
+.btn.solid,
+.btn.primary {
   background: linear-gradient(180deg, #36996f, #256f52);
   border-color: #36996f;
   color: #eafff3;
   box-shadow: 0 0 12px rgba(79, 163, 123, 0.3);
+}
+.btn.solid:hover,
+.btn.primary:hover {
+  background: linear-gradient(180deg, #3da87b, #2b7c5c);
+  border-color: #36996f;
+}
+/* ghost — toolbars, dense rows */
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.btn.ghost:hover {
+  color: var(--txt);
+  background: var(--fill-g08);
+  border-color: var(--line2);
+}
+/* danger — quiet until hovered */
+.btn.danger {
+  background: transparent;
+  border-color: var(--red-dim);
+  color: var(--red);
+}
+.btn.danger:hover {
+  background: var(--fill-red);
+  border-color: var(--fill-red);
+  color: #fff;
+}
+/* gold — ON AIR only (TAKE / LIVE); never decorative */
+.btn.gold {
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold));
+  border-color: var(--gold);
+  color: var(--gold-ink);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px var(--fill-gold);
+}
+.btn.gold:hover {
+  box-shadow: 0 0 20px var(--edge-gold);
+}
+
+/* ---- one floating surface: menus, popovers, action bars, toasts ---- */
+.floatsurf {
+  border-radius: var(--r3);
+  border: 1px solid var(--line2);
+  background: var(--menu-bg);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  padding: 4px;
+}
+
+/* ---- one tracked-caps label style (10.5 / .14em / 600 / muted) ---- */
+.dslabel {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+}
+.dslabel.on-air {
+  color: var(--gold);
+}
+.dslabel.hint {
+  color: var(--faint);
 }
 
 /* ---- window content bits ---- */

@@ -86,7 +86,9 @@
           aria-label="Leave feedback for programmer"
           title="Leave feedback for programmer"
         >
-          💬{#if fbItems.length}<sup class="fbcount">{fbItems.length}</sup>{/if}
+          <Icon name="message" size={13} />{#if fbItems.length}<sup class="fbcount"
+              >{fbItems.length}</sup
+            >{/if}
         </button>
         <button
           class="b"
@@ -94,7 +96,11 @@
           onclick={() => wm.toggleCollapse(win.id)}
           aria-label={win.collapsed ? t('win.expand') : t('win.collapse')}
         >
-          {win.collapsed ? '▸' : '▾'}
+          <Icon
+            name="chevron"
+            size={13}
+            class={win.collapsed ? 'chev-collapsed' : ''}
+          />
         </button>
         <button class="b x" data-no-drag onclick={() => wm.close(win.id)} aria-label={t('win.close')} title={t('win.close')}><Icon name="close" size={13} /></button
         >
@@ -169,6 +175,10 @@
     font-size: 8px;
     color: var(--green);
     font-weight: 700;
+  }
+  /* collapsed windows point the chevron right (▸) */
+  :global(.chev-collapsed) {
+    transform: rotate(-90deg);
   }
   .fbpanel {
     position: absolute;
