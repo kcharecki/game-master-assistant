@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=Cormorant:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#070C0A; color:#DCEAE2; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#6FD0A0; text-decoration:none; }
+  a:hover { color:#7DFFC0; }
+  ::selection { background:rgba(79,163,123,.42); color:#EAFFF3; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(95,150,120,.22); border:2px solid transparent; background-clip:padding-box; border-radius:8px; }
+  @keyframes onairPulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  @keyframes flicker { 0%,100% { transform:scaleY(1) scaleX(1); opacity:1; } 25% { transform:scaleY(1.14) scaleX(.9); opacity:.85; } 50% { transform:scaleY(.88) scaleX(1.08); opacity:1; } 75% { transform:scaleY(1.06) scaleX(.95); opacity:.9; } }
+  @keyframes shimmer { 0% { background-position:-200px 0; } 100% { background-position:200px 0; } }
+  @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+</helmet>
+
+<div data-screen-label="Design system sheet" style="min-height:100vh;background:radial-gradient(900px 620px at 72% 0%, rgba(31,122,79,.10), transparent 60%), #070C0A">
+<div style="max-width:1240px;margin:0 auto;padding:56px 40px 120px">
+
+  <!-- ============================== HEADER ============================== -->
+  <header style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;color:#4FA37B">Command Deck</span>
+      <span style="height:1px;flex:1;background:rgba(134,178,153,.18)"></span>
+      <span style="display:inline-flex;align-items:center;gap:7px;padding:4px 12px;border-radius:999px;border:1px solid rgba(214,182,94,.45);background:rgba(214,182,94,.10)">
+        <span style="width:8px;height:8px;border-radius:50%;background:#D6B65E;box-shadow:0 0 9px rgba(214,182,94,.8);animation:{{ lampAnim }}"></span>
+        <span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#D6B65E">On Air</span>
+      </span>
+    </div>
+    <h1 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:52px;line-height:1.05;margin:0;color:#DCEAE2">GM Assistant<br><span style="color:#6FD0A0">Unified Design System</span></h1>
+    <p style="max-width:620px;font-size:14px;line-height:1.6;color:#A9BEB2;margin:0">The base layer every window, editor and broadcast surface inherits. Dark séance greens, one gold reserved strictly for <em>on&nbsp;air</em>, a display serif for names and titles, sans for everything operational. Calm, fast, serious — never busy.</p>
+    <nav style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+      <a href="#sec1" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">01 Foundations</a>
+      <a href="#sec2" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">02 Typography</a>
+      <a href="#sec3" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">03 Buttons</a>
+      <a href="#sec4" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">04 Inputs</a>
+      <a href="#sec5" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">05 Menus</a>
+      <a href="#sec6" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">06 Containers</a>
+      <a href="#sec7" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">07 Status</a>
+      <a href="#sec8" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(134,178,153,.28);border-radius:999px;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)">08 Icons</a>
+      <a href="#sec9" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(214,182,94,.45);border-radius:999px;color:#D6B65E" style-hover="background:rgba(214,182,94,.10)">09 What changed &amp; why</a>
+    </nav>
+  </header>
+
+  <!-- ============================== 01 FOUNDATIONS ============================== -->
+  <div id="sec1" data-screen-label="Foundations" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">01</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Foundations</h2>
+    <span style="font-size:12px;color:#879A90">tokens map 1:1 onto <span style="font-family:ui-monospace,Menlo,monospace">app.css :root</span> custom properties</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <h3 style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin:0 0 14px">Color roles</h3>
+  <sc-for list="{{ colorGroups }}" as="grp" hint-placeholder-count="7">
+    <div style="margin:0 0 24px">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">
+        <span style="font-size:12px;font-weight:600;color:#DCEAE2">{{ grp.name }}</span>
+        <span style="font-size:11px;color:#879A90">{{ grp.note }}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <sc-for list="{{ grp.items }}" as="c" hint-placeholder-count="4">
+          <div style="width:176px;background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;overflow:hidden">
+            <div style="height:52px;background:{{ c.hex }};border-bottom:1px solid rgba(134,178,153,.14)"></div>
+            <div style="padding:9px 11px;display:flex;flex-direction:column;gap:2px">
+              <div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;font-weight:600;color:#DCEAE2">{{ c.n }}</div>
+              <div style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#879A90">{{ c.hex }}</div>
+              <div style="font-size:11px;line-height:1.45;color:#A9BEB2">{{ c.use }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:36px">
+    <div>
+      <h3 style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin:0 0 14px">Spacing — 8-step scale</h3>
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:44px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#879A90">{{ s.n }}</span>
+            <span style="width:32px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#DCEAE2;text-align:right">{{ s.v }}</span>
+            <span style="height:14px;width:{{ s.bar }};background:rgba(111,208,160,.30);border-right:2px solid #4FA37B"></span>
+            <span style="font-size:11px;color:#A9BEB2">{{ s.use }}</span>
+          </div>
+        </sc-for>
+        <div style="font-size:11px;line-height:1.5;color:#879A90;border-top:1px solid rgba(134,178,153,.14);padding-top:10px;margin-top:2px">Rhythm rule: <b style="color:#A9BEB2">6</b> between siblings inside a control group, <b style="color:#A9BEB2">8</b> between controls, <b style="color:#A9BEB2">12</b> panel padding, <b style="color:#A9BEB2">16</b> between panel sections. Nothing off-scale.</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin:0 0 14px">Radii — 4 steps + pill</h3>
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;gap:14px;flex-wrap:wrap">
+        <sc-for list="{{ radii }}" as="r" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:96px">
+            <div style="width:56px;height:56px;background:rgba(111,208,160,.10);border:1px solid #4FA37B;border-radius:{{ r.css }}"></div>
+            <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#DCEAE2">{{ r.n }} · {{ r.v }}</div>
+            <div style="font-size:10.5px;line-height:1.4;color:#A9BEB2;text-align:center">{{ r.use }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <h3 style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin:22px 0 14px">Motion</h3>
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:12px;font-size:12px"><span style="width:110px;font-family:ui-monospace,Menlo,monospace;color:#6FD0A0">fast · 120ms</span><span style="color:#A9BEB2">ink-bleed hover: color, fill, border, shadow — every interactive element</span></div>
+        <div style="display:flex;gap:12px;font-size:12px"><span style="width:110px;font-family:ui-monospace,Menlo,monospace;color:#6FD0A0">med · 200ms</span><span style="color:#A9BEB2">menus &amp; popovers in, toggle knobs, tab underline</span></div>
+        <div style="display:flex;gap:12px;font-size:12px"><span style="width:110px;font-family:ui-monospace,Menlo,monospace;color:#6FD0A0">slow · 500ms</span><span style="color:#A9BEB2">broadcast scene crossfade, mood wash (800ms), fog reveal</span></div>
+        <div style="font-size:11px;line-height:1.5;color:#879A90;border-top:1px solid rgba(134,178,153,.14);padding-top:10px">Easing is always plain <span style="font-family:ui-monospace,Menlo,monospace">ease</span>; the take/roll cards use <span style="font-family:ui-monospace,Menlo,monospace">cubic-bezier(.2,.9,.25,1)</span>. Under <span style="font-family:ui-monospace,Menlo,monospace">prefers-reduced-motion</span> all loops stop; 120ms hover bleeds may stay.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px">
+    <div>
+      <h3 style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin:0 0 14px">Elevation</h3>
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:20px;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+          <div style="width:104px;height:64px;border-radius:10px;background:#141E19;border:1px solid rgba(134,178,153,.14);box-shadow:0 4px 14px rgba(0,0,0,.35)"></div>
+          <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#DCEAE2">e/1 card</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+          <div style="width:104px;height:64px;border-radius:10px;background:rgba(11,18,15,.97);border:1px solid rgba(134,178,153,.28);box-shadow:0 12px 32px -8px rgba(0,0,0,.65)"></div>
+          <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#DCEAE2">e/2 menu</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+          <div style="width:104px;height:64px;border-radius:10px;background:linear-gradient(180deg,#141E19,#0F1714);border:1px solid rgba(134,178,153,.14);box-shadow:0 18px 40px -22px rgba(0,0,0,.85)"></div>
+          <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#DCEAE2">e/3 window</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+          <div style="width:104px;height:64px;border-radius:10px;background:linear-gradient(180deg,#141E19,#0F1714);border:1px solid #4FA37B;box-shadow:0 28px 60px -18px rgba(0,0,0,.92), 0 0 0 1px rgba(79,163,123,.35), 0 0 26px rgba(79,163,123,.22)"></div>
+          <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#DCEAE2">e/4 focused window</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin:0 0 14px">Focus ring &amp; density</h3>
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <button style="display:inline-flex;align-items:center;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2;outline:2px solid #7DFFC0;outline-offset:2px">Focus-visible</button>
+          <span style="font-size:11px;line-height:1.5;color:#A9BEB2">Every focusable surface: <span style="font-family:ui-monospace,Menlo,monospace;color:#7DFFC0">2px solid focus, offset 2</span>. Never removed, never restyled per-component.</span>
+        </div>
+        <div style="display:flex;gap:20px;align-items:flex-end;border-top:1px solid rgba(134,178,153,.14);padding-top:16px">
+          <div style="display:flex;flex-direction:column;gap:7px;align-items:center">
+            <button style="display:inline-flex;align-items:center;height:34px;padding:0 14px;border-radius:7px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2" style-hover="background:rgba(111,208,160,.14);border-color:#4FA37B">Comfortable</button>
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#879A90">ctrl 34</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px;align-items:center">
+            <button style="display:inline-flex;align-items:center;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2" style-hover="background:rgba(111,208,160,.14);border-color:#4FA37B">Default</button>
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#879A90">ctrl 30</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px;align-items:center">
+            <button style="display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2" style-hover="background:rgba(111,208,160,.14);border-color:#4FA37B">Compact</button>
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#879A90">ctrl 26</span>
+          </div>
+          <span style="font-size:11px;line-height:1.5;color:#A9BEB2;flex:1">Density scales <span style="font-family:ui-monospace,Menlo,monospace">--ctrl / --ic / --ctrl-pad</span> and now also field height, menu-item height and list-row padding. Hit target stays ≥ 26px on screen, ≥ 44px on touch.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== 02 TYPOGRAPHY ============================== -->
+  <div id="sec2" data-screen-label="Typography" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">02</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Typography</h2>
+    <span style="font-size:12px;color:#879A90">serif names things; sans operates things; Cormorant counts things</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:8px 20px">
+      <div style="display:flex;align-items:baseline;gap:20px;padding:16px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">display/1 · IM Fell 400<br>40–52px · lh 1.1</span>
+        <span style="font-family:'IM Fell English',Georgia,serif;font-size:44px;line-height:1.1;color:#DCEAE2">The Haunting of Blackwater Creek</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">display/2 · IM Fell 400<br>26px · lh 1.2</span>
+        <span style="font-family:'IM Fell English',Georgia,serif;font-size:26px;color:#DCEAE2">Section headers &amp; broadcast titles</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">title · IM Fell 400<br>17px · lh 1.3</span>
+        <span style="font-family:'IM Fell English',Georgia,serif;font-size:17px;color:#DCEAE2">Panel headers, beat names, NPC names</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">window-title · IM Fell 600<br>13px · track .06em</span>
+        <span style="font-family:'IM Fell English',Georgia,serif;font-weight:600;font-size:13px;letter-spacing:.06em;color:#6FD0A0;text-shadow:0 0 10px rgba(70,232,154,.28)">Initiative Tracker</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">body · sans 400<br>13px · lh 1.5</span>
+        <span style="font-size:13px;line-height:1.5;color:#DCEAE2;max-width:520px">The investigators find the cellar door unlocked. Body copy, notes, descriptions — always sans, never below 12px.</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">body-sm · sans 400<br>12px · lh 1.45</span>
+        <span style="font-size:12px;line-height:1.45;color:#A9BEB2">Secondary rows, help text, chip labels, menu meta.</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">label · sans 600 caps<br>10.5px · track .14em</span>
+        <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Rundown · Templates · This Beat</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(134,178,153,.14)">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">caption · sans 400 italic<br>11px · lh 1.4</span>
+        <span style="font-size:11px;font-style:italic;color:#879A90">Drag an investigator onto the board — captions, hints, empty-state subtext.</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;padding:14px 0">
+        <span style="width:210px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6;color:#879A90">num · Cormorant 600<br>tabular · 17 / 27 / 46 / 92</span>
+        <span style="display:flex;align-items:baseline;gap:22px">
+          <span style="font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:17px;color:#6FD0A0">18</span>
+          <span style="font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:27px;color:#D6B65E">04:32</span>
+          <span style="font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:46px;color:#EAFFF3;text-shadow:0 0 20px rgba(70,232,154,.35)">17</span>
+          <span style="font-size:11px;color:#879A90;font-style:italic">initiative · countdown · dice</span>
+        </span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px">
+        <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin-bottom:10px">Casing rules</div>
+        <ul style="margin:0;padding:0 0 0 16px;display:flex;flex-direction:column;gap:8px;font-size:12px;line-height:1.5;color:#A9BEB2">
+          <li><b style="color:#DCEAE2">One label style.</b> All tracked caps labels are exactly 10.5px / .14em / 600. The 8–11px, .06–.3em scatter is retired.</li>
+          <li><b style="color:#DCEAE2">Serif is never uppercase</b> — it names things (titles, beats, NPCs) in sentence case.</li>
+          <li><b style="color:#DCEAE2">Buttons are sentence case</b>, 12.5px / 600. Only the on-air family (TAKE, LIVE, ON AIR) shouts.</li>
+          <li><b style="color:#DCEAE2">Gold text only means on air.</b> Labels default muted; faint for hints; green for active.</li>
+        </ul>
+      </div>
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px">
+        <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2;margin-bottom:10px">Serif vs sans</div>
+        <div style="font-size:12px;line-height:1.55;color:#A9BEB2">Serif (<span style="font-family:'IM Fell English',Georgia,serif;color:#DCEAE2">IM Fell English</span>) is the séance voice: window titles, section headers, in-fiction content, broadcast display. Sans is the operator voice: controls, labels, data. Numerals never use IM Fell (its figures wobble) — tabular <span style="font-family:'Cormorant',Georgia,serif;font-weight:600;color:#DCEAE2">Cormorant SemiBold</span> replaces ad-hoc Georgia everywhere digits align: initiative, clocks, dice, session timer.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== 03 BUTTONS ============================== -->
+  <div id="sec3" data-screen-label="Buttons" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">03</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Buttons</h2>
+    <span style="font-size:12px;color:#879A90">rest samples are live — hover &amp; press them</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:20px;overflow-x:auto">
+    <div style="display:grid;grid-template-columns:150px repeat(5,1fr);gap:12px 16px;align-items:center;min-width:860px">
+      <span></span>
+      <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">Rest</span>
+      <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">Hover</span>
+      <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">Pressed</span>
+      <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">Focus</span>
+      <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">Disabled</span>
+
+      <div><div style="font-size:12.5px;font-weight:600;color:#DCEAE2">Primary</div><div style="font-size:10.5px;color:#879A90">one per view, max</div></div>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:linear-gradient(180deg,#36996F,#256F52);border:1px solid #36996F;color:#EAFFF3;box-shadow:0 0 12px rgba(79,163,123,.30)" style-hover="background:linear-gradient(180deg,#3DA87B,#2B7C5C)" style-active="background:linear-gradient(180deg,#2E8A63,#215F47)">Save note</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:linear-gradient(180deg,#3DA87B,#2B7C5C);border:1px solid #36996F;color:#EAFFF3;box-shadow:0 0 16px rgba(79,163,123,.42)">Save note</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:linear-gradient(180deg,#2E8A63,#215F47);border:1px solid #2E8A63;color:#EAFFF3;box-shadow:inset 0 1px 3px rgba(0,0,0,.3)">Save note</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:linear-gradient(180deg,#36996F,#256F52);border:1px solid #36996F;color:#EAFFF3;outline:2px solid #7DFFC0;outline-offset:2px">Save note</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:linear-gradient(180deg,#36996F,#256F52);border:1px solid #36996F;color:#EAFFF3;opacity:.4;cursor:default">Save note</button></span>
+
+      <div><div style="font-size:12.5px;font-weight:600;color:#DCEAE2">Secondary</div><div style="font-size:10.5px;color:#879A90">the workhorse</div></div>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2" style-hover="background:rgba(111,208,160,.14);border-color:#4FA37B" style-active="background:rgba(111,208,160,.22)">To air</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:rgba(111,208,160,.14);border:1px solid #4FA37B;color:#DCEAE2">To air</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:rgba(111,208,160,.22);border:1px solid #4FA37B;color:#DCEAE2">To air</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2;outline:2px solid #7DFFC0;outline-offset:2px">To air</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2;opacity:.4;cursor:default">To air</button></span>
+
+      <div><div style="font-size:12.5px;font-weight:600;color:#DCEAE2">Ghost</div><div style="font-size:10.5px;color:#879A90">toolbars, dense rows</div></div>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;border:1px solid transparent;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10);border-color:rgba(134,178,153,.28)" style-active="background:rgba(111,208,160,.16)">Duplicate</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:rgba(111,208,160,.10);border:1px solid rgba(134,178,153,.28);color:#DCEAE2">Duplicate</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:rgba(111,208,160,.16);border:1px solid rgba(134,178,153,.28);color:#DCEAE2">Duplicate</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:transparent;border:1px solid transparent;color:#A9BEB2;outline:2px solid #7DFFC0;outline-offset:2px">Duplicate</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:transparent;border:1px solid transparent;color:#A9BEB2;opacity:.4;cursor:default">Duplicate</button></span>
+
+      <div><div style="font-size:12.5px;font-weight:600;color:#DCEAE2">Icon</div><div style="font-size:10.5px;color:#879A90">ghost recipe, 30×30</div></div>
+      <span><button aria-label="Add" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;cursor:pointer;background:transparent;border:1px solid transparent;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10);border-color:rgba(134,178,153,.28)" style-active="background:rgba(111,208,160,.16)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14 M5 12h14"></path></svg></button></span>
+      <span><button aria-label="Add" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;background:rgba(111,208,160,.10);border:1px solid rgba(134,178,153,.28);color:#DCEAE2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14 M5 12h14"></path></svg></button></span>
+      <span><button aria-label="Add" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;background:rgba(111,208,160,.16);border:1px solid rgba(134,178,153,.28);color:#DCEAE2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14 M5 12h14"></path></svg></button></span>
+      <span><button aria-label="Add" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;background:transparent;border:1px solid transparent;color:#A9BEB2;outline:2px solid #7DFFC0;outline-offset:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14 M5 12h14"></path></svg></button></span>
+      <span><button aria-label="Add" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;background:transparent;border:1px solid transparent;color:#A9BEB2;opacity:.4;cursor:default"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14 M5 12h14"></path></svg></button></span>
+
+      <div><div style="font-size:12.5px;font-weight:600;color:#DCEAE2">Danger</div><div style="font-size:10.5px;color:#879A90">quiet until hovered</div></div>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;border:1px solid #8A4A4A;color:#E08D8D" style-hover="background:#7A2A2A;border-color:#7A2A2A;color:#FFFFFF" style-active="background:#651F1F">Delete beat</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:#7A2A2A;border:1px solid #7A2A2A;color:#FFFFFF">Delete beat</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:#651F1F;border:1px solid #651F1F;color:#FFFFFF">Delete beat</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:transparent;border:1px solid #8A4A4A;color:#E08D8D;outline:2px solid #7DFFC0;outline-offset:2px">Delete beat</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;background:transparent;border:1px solid #8A4A4A;color:#E08D8D;opacity:.4;cursor:default">Delete beat</button></span>
+
+      <div><div style="font-size:12.5px;font-weight:600;color:#D6B65E">On air · gold</div><div style="font-size:10.5px;color:#879A90">TAKE / LIVE only</div></div>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 15px;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.1em;font-family:inherit;cursor:pointer;background:linear-gradient(180deg,#E3C36F,#C7A44E);border:1px solid #C7A44E;color:#171106;box-shadow:0 0 14px rgba(214,182,94,.28)" style-hover="background:linear-gradient(180deg,#EED084,#D2B05C);box-shadow:0 0 20px rgba(214,182,94,.42)" style-active="background:linear-gradient(180deg,#D2B05C,#B8954A)">TAKE</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 15px;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.1em;font-family:inherit;background:linear-gradient(180deg,#EED084,#D2B05C);border:1px solid #C7A44E;color:#171106;box-shadow:0 0 20px rgba(214,182,94,.42)">TAKE</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 15px;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.1em;font-family:inherit;background:linear-gradient(180deg,#D2B05C,#B8954A);border:1px solid #B8954A;color:#171106;box-shadow:inset 0 1px 3px rgba(0,0,0,.25)">TAKE</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 15px;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.1em;font-family:inherit;background:linear-gradient(180deg,#E3C36F,#C7A44E);border:1px solid #C7A44E;color:#171106;outline:2px solid #7DFFC0;outline-offset:2px">TAKE</button></span>
+      <span><button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 15px;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.1em;font-family:inherit;background:linear-gradient(180deg,#E3C36F,#C7A44E);border:1px solid #C7A44E;color:#171106;opacity:.4;cursor:default">TAKE</button></span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Segmented · live</div>
+      <div style="display:inline-flex;gap:2px;padding:2px;border:1px solid rgba(134,178,153,.28);border-radius:8px;background:rgba(0,0,0,.25);width:fit-content">
+        <sc-for list="{{ segItems }}" as="sg" hint-placeholder-count="4">
+          <button onClick="{{ sg.pick }}" style="{{ sg.style }}" style-hover="color:#DCEAE2">{{ sg.label }}</button>
+        </sc-for>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Container r/2+1, 2px inset; item 24px, r 5. Selected = green fill .16, never gold. Replaces the stage <span style="font-family:ui-monospace,Menlo,monospace">.seg</span> shared-border strip and topbar <span style="font-family:ui-monospace,Menlo,monospace">.sysswitch</span> — one recipe.</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Switch · live</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onClick="{{ toggleSw1 }}" role="switch" aria-checked="{{ sw1 }}" style="{{ sw1Track }}"><span style="{{ sw1Knob }}"></span></button>
+          <span style="font-size:12.5px;color:#DCEAE2">Auto-recap on session end</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onClick="{{ toggleSwLive }}" role="switch" aria-checked="{{ swLive }}" style="{{ swLiveTrack }}"><span style="{{ swLiveKnob }}"></span></button>
+          <span style="font-size:12.5px;color:#DCEAE2">Live edit <span style="font-size:10.5px;color:#D6B65E;letter-spacing:.1em;text-transform:uppercase;font-weight:700">· pushes to air</span></span>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Track 38×20, knob 14. On = green. The gold variant exists for exactly one switch in the product: <b style="color:#A9BEB2">Live edit</b>, because flipping it puts content on air.</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Icon toggle · selected state</div>
+      <div style="display:flex;gap:8px">
+        <button aria-pressed="false" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;cursor:pointer;background:transparent;border:1px solid transparent;color:#A9BEB2" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10);border-color:rgba(134,178,153,.28)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v7 M8 9h8l-1.5 6h-5L8 9z M12 15v7"></path></svg></button>
+        <button aria-pressed="true" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;cursor:pointer;background:rgba(111,208,160,.16);border:1px solid #4FA37B;color:#6FD0A0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v7 M8 9h8l-1.5 6h-5L8 9z M12 15v7"></path></svg></button>
+        <button aria-pressed="true" title="Laser — a broadcast-visible state" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;cursor:pointer;background:rgba(255,90,90,.16);border:1px solid #B4514B;color:#FF8A8A"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a8 8 0 0 0 0 16 M12 20a8 8 0 0 0 0-16 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path></svg></button>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Selected = green fill .16 + green/2 border + green/1 glyph. The laser toggle is red because it is a player-visible transmission, not a danger.</div>
+    </div>
+  </div>
+
+  <!-- ============================== 04 INPUTS ============================== -->
+  <div id="sec4" data-screen-label="Inputs and forms" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">04</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Inputs &amp; forms</h2>
+    <span style="font-size:12px;color:#879A90">wells are darker than panels — one background, everywhere</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Text · states</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Rest</label>
+        <input placeholder="Name this beat…" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:#0B1310;color:#DCEAE2;font:inherit;font-size:13px;outline:none">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Focus</label>
+        <input value="The cellar door" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid #4FA37B;background:#0B1310;color:#DCEAE2;font:inherit;font-size:13px;outline:none;box-shadow:0 0 0 3px rgba(125,255,192,.13)">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Error</label>
+        <input value="d21 + fate" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid #B96A6A;background:#0B1310;color:#DCEAE2;font:inherit;font-size:13px;outline:none;box-shadow:0 0 0 3px rgba(224,141,141,.12)">
+        <span style="font-size:11px;color:#E08D8D">Not a valid dice expression.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">Disabled</label>
+        <input value="Locked while on air" disabled style="height:30px;padding:0 10px;border-radius:7px;border:1px solid rgba(134,178,153,.14);background:#0F1714;color:#879A90;font:inherit;font-size:13px;outline:none;opacity:.6">
+      </div>
+    </div>
+
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Field anatomy</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="display:flex;align-items:baseline;gap:8px"><span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Caption</span><span style="font-size:10.5px;color:#879A90;text-transform:none;letter-spacing:0">optional</span></label>
+        <input placeholder="What players read under the image…" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:#0B1310;color:#DCEAE2;font:inherit;font-size:13px;outline:none">
+        <span style="font-size:11px;color:#879A90">Shown on the broadcast — keep it player-safe.</span>
+      </div>
+      <div style="font-size:11px;line-height:1.55;color:#879A90;border-top:1px solid rgba(134,178,153,.14);padding-top:12px">Label above (label style, 5px gap) → field → help/error below (11px, 4px gap). Labels never sit left of fields; errors replace help, never stack with it.</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Textarea</label>
+        <textarea rows="3" placeholder="Session notes…" style="padding:8px 10px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:#0B1310;color:#DCEAE2;font:inherit;font-size:13px;line-height:1.5;outline:none;resize:vertical"></textarea>
+      </div>
+    </div>
+
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Number · select · search</div>
+      <div style="display:flex;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:5px;width:92px">
+          <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Seconds</label>
+          <input value="90" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:#0B1310;color:#DCEAE2;font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:15px;text-align:right;outline:none">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1">
+          <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Fork target</label>
+          <div style="position:relative;display:flex">
+            <select style="appearance:none;width:100%;height:30px;padding:0 28px 0 10px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:#0B1310;color:#DCEAE2;font:inherit;font-size:13px;outline:none;cursor:pointer">
+              <option>→ 04 The séance</option>
+              <option>→ 05 The attic</option>
+            </select>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#879A90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:9px;top:8px;pointer-events:none"><path d="M6 9l6 6 6-6"></path></svg>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Search</label>
+        <div style="position:relative;display:flex">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#879A90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:9px;top:8px"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M20 20l-4-4"></path></svg>
+          <input placeholder="Search lore… ⌘K" style="width:100%;height:30px;padding:0 10px 0 30px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:#0B1310;color:#DCEAE2;font:inherit;font-size:13px;outline:none">
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <label style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">File picker</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2" style-hover="background:rgba(111,208,160,.14);border-color:#4FA37B"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12 M8 11l4 4 4-4 M4 19h16"></path></svg>Choose image…</button>
+          <span style="font-size:11.5px;color:#879A90;font-family:ui-monospace,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">old_mill_02.jpg</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Checkbox &amp; radio · live</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <button onClick="{{ toggleCb1 }}" role="checkbox" aria-checked="{{ cb1 }}" style="display:flex;align-items:center;gap:9px;background:none;border:0;padding:0;cursor:pointer;font:inherit;color:#DCEAE2;font-size:12.5px;text-align:left">
+          <span style="{{ cb1Box }}">
+            <sc-if value="{{ cb1 }}" hint-placeholder-val="{{ true }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0A130E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></sc-if>
+          </span>Include handouts in export
+        </button>
+        <button onClick="{{ toggleCb2 }}" role="checkbox" aria-checked="{{ cb2 }}" style="display:flex;align-items:center;gap:9px;background:none;border:0;padding:0;cursor:pointer;font:inherit;color:#DCEAE2;font-size:12.5px;text-align:left">
+          <span style="{{ cb2Box }}">
+            <sc-if value="{{ cb2 }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0A130E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg></sc-if>
+          </span>Loop track
+        </button>
+        <div style="display:flex;gap:16px;border-top:1px solid rgba(134,178,153,.14);padding-top:10px">
+          <sc-for list="{{ radioItems }}" as="rd" hint-placeholder-count="2">
+            <button onClick="{{ rd.pick }}" role="radio" aria-checked="{{ rd.on }}" style="display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;font:inherit;color:#DCEAE2;font-size:12.5px">
+              <span style="{{ rd.ring }}"><span style="{{ rd.dot }}"></span></span>{{ rd.label }}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">16px boxes, r/1 for checks, circle for radios. Checked = solid green/1 fill, ink glyph — the only solid-fill small control.</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Slider / range</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Ambient volume</span><span style="font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:15px;color:#6FD0A0">64</span></div>
+        <div style="position:relative;height:14px;display:flex;align-items:center;cursor:pointer">
+          <div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:rgba(134,178,153,.18)"></div>
+          <div style="position:absolute;left:0;width:64%;height:4px;border-radius:2px;background:linear-gradient(90deg,#1F7A4F,#4FA37B)"></div>
+          <div style="position:absolute;left:64%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#6FD0A0;border:2px solid #0A130E;box-shadow:0 0 0 1px #4FA37B, 0 2px 6px rgba(0,0,0,.5)"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;opacity:.45">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Disabled</span><span style="font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:15px;color:#879A90">30</span></div>
+        <div style="position:relative;height:14px;display:flex;align-items:center">
+          <div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:rgba(134,178,153,.18)"></div>
+          <div style="position:absolute;left:0;width:30%;height:4px;border-radius:2px;background:rgba(134,178,153,.35)"></div>
+          <div style="position:absolute;left:30%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#879A90;border:2px solid #0A130E"></div>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Track 4px r/1-half; fill is the deep→mid green ramp; thumb 14px, ink inner ring. Value readout is always tabular Cormorant, green when live.</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Inline edit</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-family:'IM Fell English',Georgia,serif;font-size:17px;color:#DCEAE2;padding:3px 6px;border-radius:4px;cursor:text" style-hover="background:rgba(111,208,160,.08);box-shadow:inset 0 -1px 0 rgba(134,178,153,.45)">03 · The séance</span>
+          <span style="font-size:10.5px;color:#879A90;font-style:italic">← hover, then double-click</span>
+        </div>
+        <input value="03 · The séance" style="width:200px;height:28px;padding:0 8px;border-radius:7px;border:1px solid #4FA37B;background:#0B1310;color:#DCEAE2;font-family:'IM Fell English',Georgia,serif;font-size:14px;outline:none;box-shadow:0 0 0 3px rgba(125,255,192,.13)">
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Rest looks like content. Hover reveals a faint fill + baseline rule. Editing swaps to the standard input recipe — <b style="color:#A9BEB2">green border, not gold</b>: gold borders on the current inline editors implied on-air meaning they don't have. Enter commits, Esc cancels.</div>
+    </div>
+  </div>
+
+  <!-- ============================== 05 MENUS ============================== -->
+  <div id="sec5" data-screen-label="Menus and popovers" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">05</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Menus, popovers &amp; toasts</h2>
+    <span style="font-size:12px;color:#879A90">one floating surface: e/2 shadow, r/3, edge/2 border, 4px padding</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <div style="display:grid;grid-template-columns:auto auto 1fr;gap:24px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Dropdown · anatomy</div>
+      <div style="position:relative;width:fit-content">
+        <button onClick="{{ toggleMenu }}" aria-expanded="{{ menuOpen }}" style="{{ menuBtnStyle }}" style-hover="background:rgba(111,208,160,.14);border-color:#4FA37B">Layouts<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+        <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:calc(100% + 6px);left:0;z-index:50;min-width:236px;display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:10px;border:1px solid rgba(134,178,153,.28);background:rgba(11,18,15,.97);backdrop-filter:blur(10px);box-shadow:0 12px 32px -8px rgba(0,0,0,.65)">
+            <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90;padding:7px 10px 4px">Call of Cthulhu layouts</div>
+            <button style="display:flex;align-items:center;gap:9px;height:30px;padding:0 10px;border-radius:5px;border:0;background:transparent;color:#DCEAE2;font:inherit;font-size:12.5px;cursor:pointer;text-align:left" style-hover="background:rgba(111,208,160,.12)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A9BEB2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"></path></svg><span style="flex:1">Combat spread</span><span style="font-size:10.5px;color:#879A90;font-family:ui-monospace,Menlo,monospace">⌘1</span></button>
+            <button style="display:flex;align-items:center;gap:9px;height:30px;padding:0 10px;border-radius:5px;border:0;background:rgba(111,208,160,.14);color:#DCEAE2;font:inherit;font-size:12.5px;cursor:pointer;text-align:left"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6FD0A0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg><span style="flex:1">Investigation desk</span><span style="font-size:10.5px;color:#879A90;font-family:ui-monospace,Menlo,monospace">⌘2</span></button>
+            <button disabled style="display:flex;align-items:center;gap:9px;height:30px;padding:0 10px;border-radius:5px;border:0;background:transparent;color:#DCEAE2;font:inherit;font-size:12.5px;text-align:left;opacity:.4;cursor:default"><span style="width:14px"></span><span style="flex:1">Séance stage — needs 2 windows</span></button>
+            <div style="height:1px;background:rgba(134,178,153,.14);margin:4px 6px"></div>
+            <button style="display:flex;align-items:center;gap:9px;height:30px;padding:0 10px;border-radius:5px;border:0;background:transparent;color:#E08D8D;font:inherit;font-size:12.5px;cursor:pointer;text-align:left" style-hover="background:#7A2A2A;color:#FFFFFF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13"></path></svg>Delete preset…</button>
+          </div>
+        </sc-if>
+      </div>
+      <div style="font-size:11px;line-height:1.55;color:#879A90;max-width:250px">Header = label style. Items 30px, r 5, 12.5px, icon slot 14px. Selected = green fill + check, <b style="color:#A9BEB2">never gold</b>. Danger items go red only on hover. Shortcut hints mono faint, right-aligned.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Action bar &amp; edit popover</div>
+      <div style="display:flex;gap:2px;padding:3px;border-radius:8px;border:1px solid rgba(134,178,153,.28);background:rgba(11,18,15,.97);box-shadow:0 12px 32px -8px rgba(0,0,0,.65);width:fit-content">
+        <button style="height:26px;padding:0 9px;border:0;border-radius:5px;background:rgba(111,208,160,.14);color:#6FD0A0;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer">Edit</button>
+        <button style="height:26px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#DCEAE2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(111,208,160,.12)">Kind</button>
+        <button style="height:26px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#DCEAE2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(111,208,160,.12)">Spotlight</button>
+        <button style="height:26px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#DCEAE2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(111,208,160,.12)">Hide</button>
+        <button style="height:26px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#DCEAE2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(111,208,160,.12)">Layer</button>
+        <span style="width:1px;background:rgba(134,178,153,.14);margin:3px 2px"></span>
+        <button style="height:26px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#E08D8D;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="background:#7A2A2A;color:#FFFFFF">Delete</button>
+      </div>
+      <div style="width:264px;display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:10px;border:1px solid rgba(134,178,153,.28);background:rgba(11,18,15,.97);box-shadow:0 12px 32px -8px rgba(0,0,0,.65)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Edit · Image</span>
+          <button aria-label="Close" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;border:1px solid transparent;background:transparent;color:#879A90;cursor:pointer" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12 M18 6L6 18"></path></svg></button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Caption</span>
+          <input value="The mill at dusk" style="height:28px;padding:0 9px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:#0B1310;color:#DCEAE2;font:inherit;font-size:12.5px;outline:none">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Reveal</span>
+          <div style="display:inline-flex;gap:2px;padding:2px;border:1px solid rgba(134,178,153,.28);border-radius:8px;background:rgba(0,0,0,.25);width:fit-content">
+            <button style="height:22px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#A9BEB2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="color:#DCEAE2">None</button>
+            <button style="height:22px;padding:0 9px;border:0;border-radius:5px;background:rgba(111,208,160,.16);color:#DCEAE2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer">Blur</button>
+            <button style="height:22px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#A9BEB2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="color:#DCEAE2">Pan H</button>
+            <button style="height:22px;padding:0 9px;border:0;border-radius:5px;background:transparent;color:#A9BEB2;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="color:#DCEAE2">Pan V</button>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.55;color:#879A90;max-width:280px">Both float on the same e/2 surface. The action bar anchors 8px above the selected tile; the popover opens beside it. Compact 26px controls inside floating chrome.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Tooltip &amp; toasts</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="padding:5px 9px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:rgba(11,18,15,.97);box-shadow:0 6px 18px -6px rgba(0,0,0,.6);font-size:11.5px;color:#DCEAE2">Arm next beat <span style="font-family:ui-monospace,Menlo,monospace;color:#879A90">→</span></span>
+        <span style="font-size:11px;color:#879A90;font-style:italic">tooltip — 400ms delay, no arrow</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;width:340px;padding:10px 12px;border-radius:10px;border:1px solid rgba(134,178,153,.28);background:rgba(11,18,15,.97);box-shadow:0 12px 32px -8px rgba(0,0,0,.65)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6FD0A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>
+        <span style="flex:1;font-size:12.5px;color:#DCEAE2">Layout “Investigation desk” saved.</span>
+        <button aria-label="Dismiss" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;border:0;background:transparent;color:#879A90;cursor:pointer" style-hover="color:#DCEAE2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12 M18 6L6 18"></path></svg></button>
+      </div>
+      <div style="width:340px;padding:12px 16px;background:#EFE7D2;color:#211D15;border-radius:2px;font-family:'Courier New',ui-monospace,monospace;letter-spacing:.02em;box-shadow:0 8px 22px -8px rgba(0,0,0,.7), inset 0 0 0 1px rgba(120,100,60,.35);display:flex;align-items:center;gap:12px">
+        <span style="flex:1;font-size:12px;line-height:1.45">HANDOUT WITHDRAWN FROM AIR <span style="color:#7A6A3A">— STOP —</span></span>
+        <button style="border:0;background:none;color:#7A2F12;font-family:inherit;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;cursor:pointer" style-hover="color:#A83C12;text-decoration:underline">Undo</button>
+      </div>
+      <div style="font-size:11px;line-height:1.55;color:#879A90;max-width:340px">Standard toast = menu surface + status icon, bottom-center, 4s. The <b style="color:#A9BEB2">telegram toast</b> is reserved for undoable, fiction-adjacent events (a withdrawn handout) — the one sanctioned break from the dark surface family. Torn-edge mask kept from the current build.</div>
+    </div>
+  </div>
+
+  <!-- ============================== 06 CONTAINERS ============================== -->
+  <div id="sec6" data-screen-label="Containers" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">06</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Containers</h2>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Window chrome — focused / unfocused</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="width:280px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#141E19,#0F1714);border:1px solid #4FA37B;box-shadow:0 18px 40px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(79,163,123,.35), 0 0 26px rgba(79,163,123,.22)">
+          <div style="display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;background:linear-gradient(180deg,rgba(34,62,50,.55),rgba(15,24,21,.25));border-bottom:1px solid rgba(134,178,153,.14);cursor:grab">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6FD0A0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14 M16 12L8 5v14z"></path></svg>
+            <span style="font-family:'IM Fell English',Georgia,serif;font-weight:600;font-size:13px;letter-spacing:.06em;color:#6FD0A0;text-shadow:0 0 10px rgba(70,232,154,.28)">Initiative</span>
+            <span style="margin-left:auto;display:flex;gap:2px">
+              <button aria-label="Pin" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;border:1px solid transparent;background:transparent;color:#879A90;cursor:pointer" style-hover="color:#DCEAE2;background:rgba(111,208,160,.12)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v7 M8 9h8l-1.5 6h-5L8 9z M12 15v7"></path></svg></button>
+              <button aria-label="Collapse" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;border:1px solid transparent;background:transparent;color:#879A90;cursor:pointer" style-hover="color:#DCEAE2;background:rgba(111,208,160,.12)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+              <button aria-label="Close" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;border:1px solid transparent;background:transparent;color:#879A90;cursor:pointer" style-hover="color:#FFFFFF;background:#7A2A2A"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12 M18 6L6 18"></path></svg></button>
+            </span>
+          </div>
+          <div style="padding:10px;display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border-radius:7px;background:linear-gradient(90deg,rgba(79,163,123,.24),rgba(79,163,123,.06));border:1px solid #4FA37B;box-shadow:0 0 10px rgba(79,163,123,.15)">
+              <span style="width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#0A130E;background:radial-gradient(circle at 40% 30%,#74B294,#355C4A)">HW</span>
+              <span style="flex:1;min-width:0"><span style="display:block;font-size:12.5px;font-weight:600;color:#DCEAE2">Harvey Walters</span><span style="display:block;font-size:10.5px;color:#A9BEB2">Journalist</span></span>
+              <span style="font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:17px;color:#6FD0A0">18</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;height:36px;padding:0 8px;border-radius:7px;background:linear-gradient(90deg,rgba(150,60,60,.20),rgba(120,50,50,.05));border:1px solid #8A4A4A">
+              <span style="width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#F3E3E3;background:radial-gradient(circle at 40% 30%,#C07A7A,#5A2F2F)">GH</span>
+              <span style="flex:1;min-width:0"><span style="display:block;font-size:12.5px;font-weight:600;color:#DCEAE2">The ghoul</span><span style="display:block;font-size:10.5px;color:#A9BEB2">Hostile</span></span>
+              <span style="font-family:'Cormorant',Georgia,serif;font-weight:600;font-variant-numeric:tabular-nums;font-size:17px;color:#E08D8D">11</span>
+            </div>
+          </div>
+        </div>
+        <div style="width:220px;align-self:flex-start;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#141E19,#0F1714);border:1px solid rgba(134,178,153,.14);box-shadow:0 18px 40px -22px rgba(0,0,0,.85);filter:brightness(.93) saturate(.92)">
+          <div style="display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;background:linear-gradient(180deg,rgba(34,62,50,.35),rgba(15,24,21,.2));border-bottom:1px solid rgba(134,178,153,.14)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#879A90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M20 20l-4-4"></path></svg>
+            <span style="font-family:'IM Fell English',Georgia,serif;font-weight:600;font-size:13px;letter-spacing:.06em;color:#DCEAE2">Rules</span>
+          </div>
+          <div style="padding:10px;font-size:11.5px;line-height:1.5;color:#879A90">Unfocused: brightness .93, hairline border, no glow. One window reads as foreground at a time.</div>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.55;color:#879A90">Title strip 32px: module glyph (14px, green when focused) + serif title + 20px ghost controls. Close hovers red — the only red in chrome. Windows r/4, grip bottom-right in <span style="font-family:ui-monospace,Menlo,monospace">edge/2</span>.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Editor tabs · live</div>
+        <div style="display:flex;align-items:flex-end;gap:2px;border-bottom:1px solid rgba(134,178,153,.14);padding:0 6px">
+          <sc-for list="{{ tabItems }}" as="tb" hint-placeholder-count="3">
+            <button onClick="{{ tb.pick }}" style="{{ tb.style }}" style-hover="color:#DCEAE2">{{ tb.label }}<sc-if value="{{ tb.dirty }}" hint-placeholder-val="{{ false }}"><span style="width:5px;height:5px;border-radius:50%;background:#6FD0A0;margin-left:7px;display:inline-block"></span></sc-if></button>
+          </sc-for>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:#A9BEB2;padding:2px 6px">{{ tabBody }}</div>
+        <div style="font-size:11px;line-height:1.5;color:#879A90">Tab 34px, sans 12.5/600. Active = text/1 on surface/1 with a 2px green top rule; unsaved = green dot. Same recipe for editor tabs and scene tabs.</div>
+      </div>
+      <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Beat cards — rundown states</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="width:132px;min-height:78px;display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid rgba(134,178,153,.28);border-radius:7px;background:#141E19;cursor:grab" style-hover="border-color:#4FA37B">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#A9BEB2">02</span><span style="margin-left:auto;font-size:9.5px;color:#A9BEB2">⑂ 1</span></div>
+            <div style="font-family:'IM Fell English',Georgia,serif;font-size:13.5px;color:#DCEAE2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">The old mill</div>
+            <div style="display:flex;gap:3px;margin-top:auto"><span style="width:16px;height:10px;border-radius:2px;background:#22301F"></span><span style="width:16px;height:10px;border-radius:2px;background:#3A3226"></span></div>
+          </div>
+          <div style="width:132px;min-height:78px;display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid #7DFFC0;border-radius:7px;background:rgba(111,208,160,.10);box-shadow:0 4px 14px rgba(0,0,0,.4)">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#A9BEB2">03</span><span style="margin-left:auto;font-size:9px;letter-spacing:.1em;color:#6FD0A0;font-weight:700">EDITING</span></div>
+            <div style="font-family:'IM Fell English',Georgia,serif;font-size:13.5px;color:#DCEAE2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">The séance</div>
+            <div style="display:flex;gap:3px;margin-top:auto"><span style="width:16px;height:10px;border-radius:2px;background:#22301F"></span><span style="width:16px;height:10px;border-radius:2px;background:#1A251D"></span><span style="width:16px;height:10px;border-radius:2px;background:#3A3226"></span></div>
+          </div>
+          <div style="width:132px;min-height:78px;display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px dashed #6FD0A0;border-radius:7px;background:rgba(111,208,160,.06)">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#A9BEB2">04</span><span style="margin-left:auto;font-size:9px;letter-spacing:.1em;color:#6FD0A0;font-weight:700">ARMED</span></div>
+            <div style="font-family:'IM Fell English',Georgia,serif;font-size:13.5px;color:#DCEAE2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">The attic</div>
+            <div style="display:flex;gap:3px;margin-top:auto"><span style="width:16px;height:10px;border-radius:2px;background:#22301F"></span></div>
+          </div>
+          <div style="width:132px;min-height:78px;display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid #D6B65E;border-radius:7px;background:rgba(214,182,94,.10);box-shadow:0 0 18px rgba(214,182,94,.14)">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#D6B65E">01 ●</span><span style="margin-left:auto;font-size:9px;letter-spacing:.1em;color:#D6B65E;font-weight:700">ON AIR</span></div>
+            <div style="font-family:'IM Fell English',Georgia,serif;font-size:13.5px;color:#DCEAE2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Arrival at dusk</div>
+            <div style="display:flex;gap:3px;margin-top:auto"><span style="width:16px;height:10px;border-radius:2px;background:#22301F"></span><span style="width:16px;height:10px;border-radius:2px;background:#22301F"></span></div>
+          </div>
+        </div>
+        <div style="font-size:11px;line-height:1.55;color:#879A90">The state language of the whole product: <b style="color:#7DFFC0">focus-green solid = editing selection</b>, <b style="color:#6FD0A0">green dashed = armed (next)</b>, <b style="color:#D6B65E">gold = on air now</b>. Cursor-gold from the current build is retired; selection never wears gold.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Chips</div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+        <button style="display:flex;align-items:center;gap:7px;height:30px;padding:0 8px 0 4px;border:1px solid rgba(134,178,153,.28);border-radius:7px;background:#141E19;color:#DCEAE2;cursor:grab;font:inherit;font-size:12px" style-hover="border-color:#4FA37B">
+          <span style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,#74B294,#355C4A);font-size:9px;font-weight:700;color:#0A130E">VM</span>Velma Marsh<span style="font-size:10.5px;color:#879A90">· Medium</span>
+        </button>
+        <span style="font-size:12.5px;color:#A9BEB2">The clue points to <a href="#sec6" style="color:#6FD0A0;border-bottom:1px dotted rgba(111,208,160,.5)">[[The Old Mill]]</a> — reference chip / wikilink.</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 4px 0 9px;border:1px solid rgba(134,178,153,.28);border-radius:999px;background:rgba(111,208,160,.08);font-size:11.5px;color:#DCEAE2">occult<button aria-label="Remove" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:0;background:transparent;color:#879A90;cursor:pointer" style-hover="color:#FFFFFF;background:#7A2A2A"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12 M18 6L6 18"></path></svg></button></span>
+        <button style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border:1px solid rgba(134,178,153,.28);border-radius:7px;background:#141E19;color:#A9BEB2;cursor:pointer;font:inherit;font-size:11px" style-hover="border-color:#6FD0A0;color:#6FD0A0">⑂ If they burn the mill</button>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Source chip r/2 draggable; tag chip pill; fork chip quiet → mint on hover. All share edge/2 + surface/2.</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">List rows &amp; section header</div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Cast</span><span style="height:1px;flex:1;background:rgba(134,178,153,.14)"></span><button style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;border:1px solid transparent;background:transparent;color:#879A90;cursor:pointer" style-hover="color:#DCEAE2;background:rgba(111,208,160,.10)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14 M5 12h14"></path></svg></button></div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <button style="display:flex;align-items:center;gap:9px;height:32px;padding:0 9px;border-radius:7px;border:1px solid transparent;background:transparent;color:#DCEAE2;font:inherit;font-size:12.5px;cursor:pointer;text-align:left" style-hover="background:rgba(111,208,160,.08);border-color:rgba(134,178,153,.14)"><span style="width:6px;height:6px;border-radius:50%;background:#879A90"></span><span style="flex:1">Dr. Edith Corey</span><span style="font-size:10.5px;color:#879A90">Physician</span></button>
+        <button style="display:flex;align-items:center;gap:9px;height:32px;padding:0 9px;border-radius:7px;border:1px solid rgba(134,178,153,.28);background:rgba(111,208,160,.12);color:#DCEAE2;font:inherit;font-size:12.5px;cursor:pointer;text-align:left;box-shadow:inset 2px 0 0 #6FD0A0"><span style="width:6px;height:6px;border-radius:50%;background:#6FD0A0"></span><span style="flex:1;font-weight:600">Silas Marsh</span><span style="font-size:10.5px;color:#A9BEB2">Innkeeper</span></button>
+        <button style="display:flex;align-items:center;gap:9px;height:32px;padding:0 9px;border-radius:7px;border:1px solid transparent;background:transparent;color:#DCEAE2;font:inherit;font-size:12.5px;cursor:pointer;text-align:left" style-hover="background:rgba(111,208,160,.08);border-color:rgba(134,178,153,.14)"><span style="width:6px;height:6px;border-radius:50%;background:#879A90"></span><span style="flex:1">“The Whistler”</span><span style="font-size:10.5px;color:#879A90">Unknown</span></button>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Row 32px r/2; selected = green fill .12 + inset 2px green bar (the sidebar recipe, now universal). Section header = label + hairline + trailing icon action.</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Empty state</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 18px;border:1px dashed rgba(134,178,153,.28);border-radius:10px;text-align:center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4FA37B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14 M5 12h14"></path><circle cx="12" cy="12" r="10"></circle></svg>
+        <div style="font-family:'IM Fell English',Georgia,serif;font-size:17px;color:#DCEAE2">An empty stage</div>
+        <div style="font-size:11px;font-style:italic;color:#879A90;max-width:220px">Drop an image, paste text, or summon a tile to begin the scene.</div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button style="height:26px;padding:0 12px;border-radius:999px;border:1px solid rgba(134,178,153,.28);background:#141E19;color:#DCEAE2;font:inherit;font-size:11.5px;cursor:pointer" style-hover="border-color:#4FA37B;background:rgba(111,208,160,.12)">Image</button>
+          <button style="height:26px;padding:0 12px;border-radius:999px;border:1px solid rgba(134,178,153,.28);background:#141E19;color:#DCEAE2;font:inherit;font-size:11.5px;cursor:pointer" style-hover="border-color:#4FA37B;background:rgba(111,208,160,.12)">Text</button>
+          <button style="height:26px;padding:0 12px;border-radius:999px;border:1px solid rgba(134,178,153,.28);background:#141E19;color:#DCEAE2;font:inherit;font-size:11.5px;cursor:pointer" style-hover="border-color:#4FA37B;background:rgba(111,208,160,.12)">NPC</button>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Dashed edge/2, serif title, italic caption, pill actions. Never a wall of onboarding text.</div>
+    </div>
+  </div>
+
+  <!-- ============================== 07 STATUS ============================== -->
+  <div id="sec7" data-screen-label="Feedback and status" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">07</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Feedback &amp; status</h2>
+    <span style="font-size:12px;color:#879A90">gold means transmitted — nothing else does</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">On-air lamp — off / live</div>
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+        <span style="display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 10px;border-radius:999px;border:1px solid rgba(134,178,153,.28);background:rgba(0,0,0,.25)">
+          <span style="width:8px;height:8px;border-radius:50%;background:#879A90"></span>
+          <span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#879A90">Off air</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:8px;padding:4px 6px 4px 10px;border-radius:999px;border:1px solid rgba(214,182,94,.45);background:rgba(214,182,94,.10)">
+          <span style="width:8px;height:8px;border-radius:50%;background:#D6B65E;box-shadow:0 0 9px rgba(214,182,94,.85);animation:{{ lampAnim }}"></span>
+          <span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#D6B65E">On air</span>
+          <span style="font-size:11px;color:#DCEAE2;max-width:16ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The mill at dusk</span>
+          <button style="height:20px;padding:0 8px;border-radius:5px;border:1px solid #8A4A4A;background:transparent;color:#E08D8D;font:inherit;font-size:10.5px;font-weight:700;cursor:pointer" style-hover="background:#7A2A2A;border-color:#7A2A2A;color:#FFFFFF">PANIC</button>
+        </span>
+      </div>
+      <div style="font-size:11px;line-height:1.55;color:#879A90">The topbar lamp goes <b style="color:#D6B65E">gold</b> when live (it was red — red now belongs to danger alone). Panic sits inside the lamp: quiet danger button, one click to black.</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Badges &amp; hidden treatment</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:999px;background:rgba(111,208,160,.14);border:1px solid rgba(134,178,153,.28);font-size:10.5px;font-weight:700;color:#6FD0A0">3</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:999px;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);font-size:10.5px;font-weight:600;color:#A9BEB2">Δ 2 changes</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:999px;background:rgba(214,182,94,.12);border:1px solid rgba(214,182,94,.45);font-size:10px;letter-spacing:.12em;font-weight:700;color:#D6B65E">LIVE</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:999px;background:rgba(255,90,90,.12);border:1px solid #8A4A4A;font-size:10px;letter-spacing:.12em;font-weight:700;color:#FF8A8A"><span style="width:6px;height:6px;border-radius:50%;background:#FF5A5A;animation:{{ lampAnim }}"></span>REC</span>
+      </div>
+      <div style="position:relative;height:64px;border-radius:7px;overflow:hidden;border:1px solid rgba(134,178,153,.14);background:linear-gradient(160deg,#16241F,#0A120F);opacity:.85">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(0,0,0,.3) 6px,rgba(0,0,0,.3) 12px)"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:7px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#879A90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"></path><path d="M4 4l16 16"></path></svg>
+          <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">Withheld from players</span>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">Hidden = 45° hatch at .3 black over the content, 40% dim, struck-eye glyph. Reads instantly as “I can see this, they can’t.”</div>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Loading &amp; skeleton</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="display:inline-flex;align-items:flex-end;justify-content:center;width:18px;height:28px">
+          <span style="position:relative;width:8px;height:12px;background:#2A2119;border-radius:2px 2px 1px 1px">
+            <span style="position:absolute;left:50%;top:-9px;width:7px;height:10px;margin-left:-3.5px;border-radius:50% 50% 50% 50% / 62% 62% 38% 38%;background:radial-gradient(circle at 50% 78%,#EEC87E,#D6B65E 55%,rgba(214,182,94,0) 78%);transform-origin:50% 100%;animation:{{ flameAnim }}"></span>
+          </span>
+        </span>
+        <span style="font-size:12px;font-style:italic;color:#A9BEB2">Summoning the archive…</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <span style="height:12px;width:82%;border-radius:4px;background:linear-gradient(90deg,rgba(111,208,160,.06) 25%,rgba(111,208,160,.14) 50%,rgba(111,208,160,.06) 75%);background-size:400px 100%;animation:{{ shimmerAnim }}"></span>
+        <span style="height:12px;width:64%;border-radius:4px;background:linear-gradient(90deg,rgba(111,208,160,.06) 25%,rgba(111,208,160,.14) 50%,rgba(111,208,160,.06) 75%);background-size:400px 100%;animation:{{ shimmerAnim }}"></span>
+        <span style="height:12px;width:74%;border-radius:4px;background:linear-gradient(90deg,rgba(111,208,160,.06) 25%,rgba(111,208,160,.14) 50%,rgba(111,208,160,.06) 75%);background-size:400px 100%;animation:{{ shimmerAnim }}"></span>
+      </div>
+      <div style="font-size:11px;line-height:1.5;color:#879A90">The candle flame is the busy indicator (kept — it's the product's soul). Skeletons shimmer in green .06→.14; both freeze under reduced motion.</div>
+    </div>
+  </div>
+
+  <!-- ============================== 08 ICONS ============================== -->
+  <div id="sec8" data-screen-label="Iconography" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4FA37B">08</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">Iconography</h2>
+    <span style="font-size:12px;color:#879A90">24-box · stroke 1.8 · round caps · currentColor — no emoji, no dingbats</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(134,178,153,.35),rgba(134,178,153,.05));margin:12px 0 28px"></div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:20px;display:flex;flex-wrap:wrap;gap:8px">
+      <sc-for list="{{ icons }}" as="ic" hint-placeholder-count="17">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:7px;width:78px;padding:12px 4px;border-radius:7px;color:#A9BEB2" style-hover="background:rgba(111,208,160,.08);color:#DCEAE2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.d }}"></path></svg>
+          <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#879A90">{{ ic.n }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#A9BEB2">Sizing &amp; rules</div>
+      <div style="display:flex;align-items:flex-end;gap:18px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DCEAE2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z M14 6l3 3"></path></svg><span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#879A90">13 chrome</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DCEAE2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z M14 6l3 3"></path></svg><span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#879A90">16 controls</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DCEAE2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z M14 6l3 3"></path></svg><span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#879A90">20 features</span></div>
+      </div>
+      <ul style="margin:0;padding:0 0 0 16px;display:flex;flex-direction:column;gap:7px;font-size:12px;line-height:1.5;color:#A9BEB2">
+        <li>Icons inherit <span style="font-family:ui-monospace,Menlo,monospace">currentColor</span>; state color comes from the parent control.</li>
+        <li>New glyphs needed by the unification: <span style="font-family:ui-monospace,Menlo,monospace;color:#DCEAE2">undo, redo, grid, laser, moon, fork, duplicate, eye-off, spotlight</span> — replacing ↺ ↷ ▦ ✦ ☾ ⑂ ⧉ 💬 in the stage module.</li>
+        <li>Optical alignment: glyphs center in their box; chevrons baseline-shift −1px next to 12.5px text.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============================== 09 CHANGES ============================== -->
+  <div id="sec9" data-screen-label="Change log" style="display:flex;align-items:baseline;gap:12px;margin:72px 0 0">
+    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#D6B65E">09</span>
+    <h2 style="font-family:'IM Fell English',Georgia,serif;font-weight:400;font-size:30px;color:#DCEAE2;margin:0">What changed &amp; why</h2>
+    <span style="font-size:12px;color:#879A90">the refactor map — apply to every existing component</span>
+  </div>
+  <div style="height:1px;background:linear-gradient(90deg,rgba(214,182,94,.4),rgba(214,182,94,.05));margin:12px 0 28px"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <sc-for list="{{ changes }}" as="ch" hint-placeholder-count="14">
+      <div style="display:flex;gap:12px;padding:14px 16px;background:#0F1714;border:1px solid rgba(134,178,153,.14);border-radius:10px">
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#4FA37B;padding-top:2px">{{ ch.num }}</span>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:13px;font-weight:600;color:#DCEAE2">{{ ch.title }}</span>
+          <span style="font-size:12px;line-height:1.55;color:#A9BEB2">{{ ch.body }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <footer style="margin-top:64px;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(134,178,153,.14);padding-top:20px">
+    <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#879A90">GM Assistant · Command Deck</span>
+    <span style="height:1px;flex:1;background:rgba(134,178,153,.10)"></span>
+    <a href="Stage Showcase.dc.html" style="font-size:12px;font-weight:600">Wireframe &amp; stage showcase →</a>
+  </footer>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;motion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sheet&quot;}}">
+class Component extends DCLogic {
+  state = {
+    seg: 'blur',
+    sw1: true,
+    swLive: true,
+    cb1: true,
+    cb2: false,
+    radio: 'square',
+    menuOpen: false,
+    tab: 'clues',
+  };
+
+  renderVals() {
+    const motion = this.props.motion ?? true;
+
+    // --- foundations data ---
+    const colorGroups = [
+      { name: 'Surfaces', note: 'four levels, each one step lighter — never mix steps', items: [
+        { n: 'bg/0', hex: '#070C0A', use: 'App canvas & broadcast base' },
+        { n: 'bg/1', hex: '#0B1310', use: 'Rails, topbar, input wells' },
+        { n: 'surface/1', hex: '#0F1714', use: 'Window body, panels' },
+        { n: 'surface/2', hex: '#141E19', use: 'Cards, tiles, raised rows' },
+        { n: 'surface/3', hex: '#19261F', use: 'Hover fill on cards' },
+        { n: 'surface/menu', hex: 'rgba(11,18,15,.97)', use: 'Menus & popovers, over blur(10px)' },
+      ]},
+      { name: 'Lines', note: 'one hue, three strengths — replaces per-module border colors', items: [
+        { n: 'edge/1', hex: 'rgba(134,178,153,.14)', use: 'Hairlines, dividers, quiet card borders' },
+        { n: 'edge/2', hex: 'rgba(134,178,153,.28)', use: 'Control & menu borders' },
+        { n: 'edge/3', hex: 'rgba(134,178,153,.45)', use: 'Active / selected borders' },
+      ]},
+      { name: 'Text', note: 'all pass AA on surface/1', items: [
+        { n: 'text/1', hex: '#DCEAE2', use: 'Primary — 13.9:1' },
+        { n: 'text/2', hex: '#A9BEB2', use: 'Muted, labels — 8.1:1' },
+        { n: 'text/3', hex: '#879A90', use: 'Faint, hints, meta — 5.2:1' },
+        { n: 'text/ink', hex: '#0A130E', use: 'On solid green & gold fills' },
+      ]},
+      { name: 'Green — the operator accent', note: 'active, selected, healthy, ours', items: [
+        { n: 'green/1', hex: '#6FD0A0', use: 'Active text, icons, live values' },
+        { n: 'green/2', hex: '#4FA37B', use: 'Active borders, solid-button top' },
+        { n: 'green/3', hex: '#1F7A4F', use: 'Glows, washes, deep fills' },
+        { n: 'fill/g-08', hex: 'rgba(111,208,160,.08)', use: 'Rest fill on tinted controls' },
+        { n: 'fill/g-14', hex: 'rgba(111,208,160,.14)', use: 'Hover fill / selected menu item' },
+        { n: 'fill/g-22', hex: 'rgba(111,208,160,.22)', use: 'Pressed fill' },
+      ]},
+      { name: 'Gold — on air only', note: 'if it is gold, players can see it (or are about to)', items: [
+        { n: 'gold/1', hex: '#D6B65E', use: 'On-air text, lamps, aired borders' },
+        { n: 'gold/2', hex: '#EEC87E', use: 'Highlights on gold solids' },
+        { n: 'gold/ink', hex: '#171106', use: 'Text on gold solids' },
+        { n: 'fill/gold-12', hex: 'rgba(214,182,94,.12)', use: 'Aired card / lamp fill' },
+        { n: 'edge/gold', hex: 'rgba(214,182,94,.45)', use: 'On-air borders' },
+      ]},
+      { name: 'Danger', note: 'destruction & foes — never status', items: [
+        { n: 'red/1', hex: '#E08D8D', use: 'Danger text — bumped from #D97A7A for AA' },
+        { n: 'red/2', hex: '#8A4A4A', use: 'Quiet danger borders, foe rows' },
+        { n: 'fill/red', hex: '#7A2A2A', use: 'Danger hover fill' },
+      ]},
+      { name: 'Focus', note: 'keyboard only, via :focus-visible', items: [
+        { n: 'focus', hex: '#7DFFC0', use: '2px ring, offset 2 — also the editing-selection border' },
+      ]},
+    ];
+
+    const spacing = [
+      { n: 'sp/1', v: '2', bar: '6px', use: 'icon nudges, segmented inset' },
+      { n: 'sp/2', v: '4', bar: '12px', use: 'gaps inside chips & menus' },
+      { n: 'sp/3', v: '6', bar: '18px', use: 'sibling controls in a group' },
+      { n: 'sp/4', v: '8', bar: '24px', use: 'between control groups' },
+      { n: 'sp/5', v: '12', bar: '36px', use: 'panel padding' },
+      { n: 'sp/6', v: '16', bar: '48px', use: 'between panel sections' },
+      { n: 'sp/7', v: '24', bar: '72px', use: 'window content margins' },
+      { n: 'sp/8', v: '32', bar: '96px', use: 'broadcast stage gutters' },
+    ];
+
+    const radii = [
+      { n: 'r/1', v: '4px', css: '4px', use: 'menu items, badges, swatches' },
+      { n: 'r/2', v: '7px', css: '7px', use: 'buttons, inputs, chips, rows' },
+      { n: 'r/3', v: '10px', css: '10px', use: 'panels, cards, menus, popovers' },
+      { n: 'r/4', v: '14px', css: '14px', use: 'windows, dock' },
+      { n: 'r/pill', v: '999', css: '999px', use: 'lamps, tags, kind pills' },
+    ];
+
+    const icons = [
+      { n: 'edit', d: 'M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z M14 6l3 3' },
+      { n: 'trash', d: 'M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13' },
+      { n: 'prev', d: 'M18 5v14 M8 12l8-7v14z' },
+      { n: 'next', d: 'M6 5v14 M16 12L8 5v14z' },
+      { n: 'plus', d: 'M12 5v14 M5 12h14' },
+      { n: 'close', d: 'M6 6l12 12 M18 6L6 18' },
+      { n: 'pin', d: 'M12 2v7 M8 9h8l-1.5 6h-5L8 9z M12 15v7' },
+      { n: 'play', d: 'M8 5v14l11-7z' },
+      { n: 'pause', d: 'M9 5v14 M15 5v14' },
+      { n: 'stop', d: 'M6 6h12v12H6z' },
+      { n: 'search', d: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M20 20l-4-4' },
+      { n: 'air', d: 'M12 4a8 8 0 0 0 0 16 M12 20a8 8 0 0 0 0-16 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z' },
+      { n: 'export', d: 'M12 3v12 M8 11l4 4 4-4 M4 19h16' },
+      { n: 'tile', d: 'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z' },
+      { n: 'chevron', d: 'M6 9l6 6 6-6' },
+      { n: 'open', d: 'M14 4h6v6 M20 4l-9 9 M19 14v5H5V5h5' },
+      { n: 'density', d: 'M4 6h16 M4 12h16 M4 18h16' },
+    ];
+
+    const changes = [
+      { num: '01', title: 'Gold now means exactly one thing', body: 'The topbar on-air lamp was red while the stage module used gold — players-can-see-it now reads gold everywhere (lamp, aired beat, TAKE, LIVE). Red is reserved for danger: panic, delete, foes.' },
+      { num: '02', title: 'Selection is green, not gold', body: 'Selected stage tiles, cursor beats, inline-edit borders and segmented selections all wore gold, diluting the on-air signal. Editing selection → focus green; armed → green dashed; only aired content keeps gold.' },
+      { num: '03', title: 'One input well', body: 'Inputs used #11160f (an off-hue drift toward brown), rgba(0,0,0,.25) and rgba(0,0,0,.3) in different modules. All fields now sit on bg/1 #0B1310 — visibly a “well” one step below the panel.' },
+      { num: '04', title: 'Radii collapsed from 9 values to 4 + pill', body: '3, 4, 5, 6, 7, 8, 9, 10, 12, 14px all appear today. Now: 4 (inner), 7 (controls), 10 (panels/menus), 14 (windows), pill. --r retires in favor of --r1..--r4.' },
+      { num: '05', title: 'One hover recipe', body: 'Every quiet control bleeds the same way in 120ms: text/2→text/1, fill/g-08→14, border→edge/2 or green/2. The five different hover fills (rgba .07/.12/.14/.16/.18) become two tokens.' },
+      { num: '06', title: 'One floating surface', body: 'Topbar menu (r12/p8), stage menu (r8/p4, flat #0c130f) and feedback panel (r10/p8) merge: surface/menu at r/3, 4px padding, edge/2 border, e/2 shadow, blur(10px), 30px items at r 5.' },
+      { num: '07', title: 'Button family reduced to six', body: 'Stage’s ad-hoc .btn/.ico (dark rgba(9,16,13,.8) fills) fold into Secondary and Icon. Primary solid, Secondary tinted, Ghost, Icon, Danger-quiet, Gold on-air. All share height/radius/padding tokens.' },
+      { num: '08', title: 'One label style', body: 'Tracked caps labels ranged 8–11px with .06–.3em tracking. Now exactly 10.5px / .14em / 600 / muted, with color variants only (gold = on air, faint = hint). Sub-9px type is banned.' },
+      { num: '09', title: 'Tabular Cormorant for all numerals', body: 'Georgia was hardcoded for initiative, dice, clocks and dates. Cormorant SemiBold with tabular-nums is the single numeric voice at 17/27/46/92 — matches the serif’s temperament, digits align.' },
+      { num: '10', title: 'Icons replace dingbats', body: '↺ ↷ ▦ ✦ ☾ ⑂ ⧉ ✕ ＋ 💬 (stage, window chrome) are replaced by nine new glyphs in the existing 24-box/1.8-stroke set: undo, redo, grid, laser, moon, fork, duplicate, eye-off, spotlight.' },
+      { num: '11', title: 'Danger text passes AA', body: '#D97A7A measured ~4.2:1 on panels. red/1 is now #E08D8D (5.1:1). Foe borders and fills keep the deeper reds, which never carry text.' },
+      { num: '12', title: 'Density reaches everything', body: '--ctrl/--ic/--ctrl-pad now drive fields, menu items and list rows too (new --field, --row, --menu-item vars derived from the same three densities), so compact mode compresses uniformly.' },
+      { num: '13', title: 'Window chrome regularized', body: 'Title strip fixed at 32px; controls are 20px ghost icon buttons (close hovers red); module glyph goes green with focus. The feedback 💬 button becomes a proper icon with a count badge.' },
+      { num: '14', title: 'State language: solid / dashed / gold', body: 'A single vocabulary for the run cockpit: focus-green solid border = editing, green dashed = armed next, gold solid + glow = on air. Mint #9FD8B7 (a fourth green) is retired into green/1.' },
+    ];
+
+    // --- interactive controls ---
+    const segOpts = ['None', 'Blur', 'Pan H', 'Pan V'];
+    const segItems = segOpts.map((label) => {
+      const on = this.state.seg === label.toLowerCase().replace(' ', '') || (label === 'Blur' && this.state.seg === 'blur');
+      const key = label.toLowerCase().replace(' ', '');
+      const isOn = this.state.seg === key;
+      return {
+        label,
+        style: isOn
+          ? 'height:24px;padding:0 11px;border:0;border-radius:5px;background:rgba(111,208,160,.16);color:#DCEAE2;font:inherit;font-size:12px;font-weight:600;cursor:pointer'
+          : 'height:24px;padding:0 11px;border:0;border-radius:5px;background:transparent;color:#A9BEB2;font:inherit;font-size:12px;font-weight:600;cursor:pointer',
+        pick: () => this.setState({ seg: key }),
+      };
+    });
+
+    const track = (on, gold) => {
+      const border = on ? (gold ? '#C7A44E' : '#4FA37B') : 'rgba(134,178,153,.28)';
+      const bg = on ? (gold ? 'rgba(214,182,94,.22)' : 'rgba(111,208,160,.20)') : 'rgba(0,0,0,.35)';
+      return 'position:relative;width:38px;height:20px;border-radius:10px;border:1px solid ' + border + ';background:' + bg + ';cursor:pointer;padding:0;flex:none;transition:background .2s ease,border-color .2s ease';
+    };
+    const knob = (on, gold) => {
+      const bg = on ? (gold ? '#D6B65E' : '#6FD0A0') : '#879A90';
+      const x = on ? '17px' : '0';
+      return 'position:absolute;left:3px;top:2.5px;width:13px;height:13px;border-radius:50%;background:' + bg + ';transform:translateX(' + x + ');transition:transform .2s ease,background .2s ease;display:block';
+    };
+
+    const box = (on) => on
+      ? 'width:16px;height:16px;border-radius:4px;background:#6FD0A0;border:1px solid #6FD0A0;display:inline-flex;align-items:center;justify-content:center;flex:none'
+      : 'width:16px;height:16px;border-radius:4px;background:#0B1310;border:1px solid rgba(134,178,153,.28);display:inline-flex;align-items:center;justify-content:center;flex:none';
+
+    const radioItems = [
+      { label: 'Square grid', key: 'square' },
+      { label: 'Hex grid', key: 'hex' },
+    ].map((r) => {
+      const on = this.state.radio === r.key;
+      return {
+        label: r.label,
+        on,
+        ring: on
+          ? 'width:16px;height:16px;border-radius:50%;border:1px solid #4FA37B;background:#0B1310;display:inline-flex;align-items:center;justify-content:center;flex:none'
+          : 'width:16px;height:16px;border-radius:50%;border:1px solid rgba(134,178,153,.28);background:#0B1310;display:inline-flex;align-items:center;justify-content:center;flex:none',
+        dot: on
+          ? 'width:8px;height:8px;border-radius:50%;background:#6FD0A0;display:block'
+          : 'width:8px;height:8px;border-radius:50%;background:transparent;display:block',
+        pick: () => this.setState({ radio: r.key }),
+      };
+    });
+
+    const tabDefs = [
+      { key: 'clues', label: 'Clues', dirty: false, body: 'Active tab content. Switching is instant; the 2px top rule slides in 200ms.' },
+      { key: 'handout', label: 'The letter', dirty: true, body: 'A dirty tab shows the green dot — unsaved changes, never an asterisk.' },
+      { key: 'recap', label: 'Recap', dirty: false, body: 'Tabs truncate at 18ch with ellipsis; a close affordance appears on hover only.' },
+    ];
+    const tabItems = tabDefs.map((tb) => {
+      const on = this.state.tab === tb.key;
+      return {
+        label: tb.label,
+        dirty: tb.dirty,
+        style: on
+          ? 'display:inline-flex;align-items:center;height:34px;padding:0 14px;border:1px solid rgba(134,178,153,.14);border-bottom:0;border-radius:7px 7px 0 0;background:#0F1714;color:#DCEAE2;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:inset 0 2px 0 #4FA37B'
+          : 'display:inline-flex;align-items:center;height:34px;padding:0 14px;border:1px solid transparent;border-bottom:0;border-radius:7px 7px 0 0;background:transparent;color:#A9BEB2;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer',
+        pick: () => this.setState({ tab: tb.key }),
+      };
+    });
+    const tabBody = (tabDefs.find((t) => t.key === this.state.tab) || tabDefs[0]).body;
+
+    return {
+      lampAnim: motion ? 'onairPulse 1.6s ease-in-out infinite' : 'none',
+      flameAnim: motion ? 'flicker 1.7s ease-in-out infinite' : 'none',
+      shimmerAnim: motion ? 'shimmer 1.8s linear infinite' : 'none',
+      colorGroups, spacing, radii, icons, changes,
+      segItems,
+      sw1: this.state.sw1,
+      sw1Track: track(this.state.sw1, false),
+      sw1Knob: knob(this.state.sw1, false),
+      toggleSw1: () => this.setState((s) => ({ sw1: !s.sw1 })),
+      swLive: this.state.swLive,
+      swLiveTrack: track(this.state.swLive, true),
+      swLiveKnob: knob(this.state.swLive, true),
+      toggleSwLive: () => this.setState((s) => ({ swLive: !s.swLive })),
+      cb1: this.state.cb1,
+      cb1Box: box(this.state.cb1),
+      toggleCb1: () => this.setState((s) => ({ cb1: !s.cb1 })),
+      cb2: this.state.cb2,
+      cb2Box: box(this.state.cb2),
+      toggleCb2: () => this.setState((s) => ({ cb2: !s.cb2 })),
+      radioItems,
+      menuOpen: this.state.menuOpen,
+      toggleMenu: () => this.setState((s) => ({ menuOpen: !s.menuOpen })),
+      menuBtnStyle: this.state.menuOpen
+        ? 'display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.14);border:1px solid #4FA37B;color:#DCEAE2'
+        : 'display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;background:rgba(111,208,160,.08);border:1px solid rgba(134,178,153,.28);color:#DCEAE2',
+      tabItems,
+      tabBody,
+    };
+  }
+}
+</script>
+</body>
+</html>
