@@ -524,13 +524,13 @@
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--line1);
   }
   .seg {
     display: flex;
-    background: rgba(0, 0, 0, 0.28);
+    background: var(--bg1);
     border: 1px solid var(--line2);
-    border-radius: 9px;
+    border-radius: var(--r3);
     padding: 3px;
   }
   .segb {
@@ -541,11 +541,11 @@
     font: inherit;
     font-size: 12.5px;
     font-weight: 700;
-    border-radius: 6px;
+    border-radius: var(--r2);
     cursor: pointer;
   }
   .segb.on {
-    background: rgba(47, 138, 102, 0.22);
+    background: var(--fill-g22);
     color: var(--green);
     box-shadow: inset 0 0 0 1px var(--green-dim);
   }
@@ -568,9 +568,9 @@
     width: 100%;
     box-sizing: border-box;
     padding: 7px 10px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
   }
@@ -582,32 +582,32 @@
     align-items: center;
     gap: 5px;
     padding: 6px 11px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
     font-size: 13px;
   }
   .btn:hover {
-    background: rgba(47, 138, 102, 0.16);
+    background: var(--fill-g14);
   }
   .btn.on {
     border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     color: var(--green);
   }
   .btn.solid {
     background: var(--green-dim);
     border-color: var(--green-dim);
-    color: #06120c;
+    color: var(--ink);
     font-weight: 700;
   }
   .importwrap {
     flex: 0 0 auto;
     padding: 10px 14px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--line1);
   }
 
   /* stage */
@@ -619,7 +619,7 @@
     justify-content: center;
     padding: 12px 18px;
     overflow: hidden;
-    background: radial-gradient(680px 460px at 50% 42%, rgba(111, 208, 160, 0.05), transparent 65%);
+    background: radial-gradient(680px 460px at 50% 42%, var(--fill-g08), transparent 65%);
   }
   .deckwrap {
     display: flex;
@@ -694,7 +694,7 @@
     height: 40px;
     border-radius: 50%;
     border: 1px solid var(--line2);
-    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    background: linear-gradient(180deg, var(--surface2), var(--surface1));
     color: var(--green);
     font-size: 20px;
     line-height: 1;
@@ -759,7 +759,7 @@
   /* edit form reads on the dark app surface, so give it a dark backing */
   .card.editmode {
     color: var(--txt);
-    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    background: linear-gradient(180deg, var(--surface2), var(--surface1));
     border-color: var(--line2);
   }
   .spellform {
@@ -1211,7 +1211,7 @@
     border-top: 1px solid var(--card-line);
   }
   .card.editmode .card-foot {
-    border-top-color: var(--line);
+    border-top-color: var(--line1);
   }
   .idx {
     font-size: 10.5px;
@@ -1232,7 +1232,7 @@
     font-size: 12px;
     font-weight: 600;
     padding: 6px 12px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--card-line2);
     background: rgba(255, 255, 255, 0.35);
     color: #241f14;
@@ -1245,22 +1245,22 @@
     background: rgba(255, 255, 255, 0.6);
   }
   .card.editmode .cbtn {
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     border-color: var(--line2);
     color: var(--txt);
   }
   .cbtn.dark {
     background: var(--green-dim);
     border-color: var(--green-dim);
-    color: #06120c;
+    color: var(--ink);
   }
   .cbtn.dark:hover {
     filter: brightness(1.08);
   }
   .cbtn.danger {
-    background: rgba(180, 76, 60, 0.16);
-    border-color: rgba(180, 76, 60, 0.5);
-    color: #e6907f;
+    background: var(--fill-red);
+    border-color: var(--red-dim);
+    color: var(--red);
   }
   .rowflex {
     display: flex;
@@ -1282,7 +1282,7 @@
   .tabstrip {
     flex: 0 0 auto;
     height: 96px;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line1);
     background: linear-gradient(180deg, rgba(12, 21, 18, 0.65), rgba(9, 15, 13, 0.65));
     display: flex;
     align-items: flex-end;

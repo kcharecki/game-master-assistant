@@ -61,8 +61,8 @@
   }
   .bar {
     height: 6px;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.35);
+    border-radius: var(--r1);
+    background: var(--bg1);
     margin: 8px 12px 4px;
     overflow: hidden;
   }
@@ -79,14 +79,14 @@
     color: var(--gold);
     margin: 4px 0 10px;
     padding: 6px 9px;
-    border-radius: 8px;
-    background: rgba(199, 164, 78, 0.1);
-    border: 1px solid rgba(199, 164, 78, 0.3);
+    border-radius: var(--r2);
+    background: var(--fill-gold);
+    border: 1px solid var(--edge-gold);
   }
   .brk .ob {
     margin-left: auto;
     padding: 3px 8px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
     background: transparent;
     color: var(--txt);
@@ -114,9 +114,9 @@
   }
   .in {
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;

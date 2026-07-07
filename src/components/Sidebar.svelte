@@ -158,7 +158,7 @@
   .bbtn {
     flex: 1;
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
     background: var(--panel2);
     color: var(--txt);
@@ -201,9 +201,9 @@
     width: 100%;
     margin-top: 8px;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: #05090a;
+    background: var(--bg);
   }
   .pvframe {
     position: absolute;
@@ -234,10 +234,10 @@
     font-size: 8px;
     letter-spacing: 0.14em;
     font-weight: 700;
-    color: #ff6b6b;
-    background: rgba(9, 16, 13, 0.7);
+    color: var(--gold);
+    background: var(--menu-bg);
     padding: 1px 5px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     pointer-events: none;
   }
 </style>

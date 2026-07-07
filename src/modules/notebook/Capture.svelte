@@ -265,7 +265,7 @@
     width: 100%;
     margin: 0;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
     font-family: var(--serif);
     font-size: 15px;
@@ -285,7 +285,7 @@
   }
   .nb-ta {
     position: relative;
-    background: rgba(0, 0, 0, 0.28);
+    background: var(--bg1);
     color: transparent;
     caret-color: var(--gold);
     resize: none;
@@ -293,7 +293,7 @@
   /* the hero capture is the widget's focal element → gold frame, like the mock */
   .nb-hero .nb-ta {
     border-color: var(--gold);
-    box-shadow: 0 0 0 1px rgba(214, 182, 94, 0.25);
+    box-shadow: 0 0 0 1px var(--fill-gold);
   }
   .nb-hero .nb-mirror,
   .nb-hero .nb-ta {
@@ -340,8 +340,8 @@
     list-style: none;
     min-width: 160px;
     border: 1px solid var(--line2);
-    border-radius: 8px;
-    background: #0c130f;
+    border-radius: var(--r2);
+    background: var(--menu-bg);
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
   }
   .nb-acitem {
@@ -350,7 +350,7 @@
     text-align: left;
     padding: 5px 9px;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--txt);
     font: inherit;
@@ -359,7 +359,7 @@
   }
   .nb-acitem.sel,
   .nb-acitem:hover {
-    background: rgba(214, 182, 94, 0.18);
+    background: var(--fill-gold);
     color: var(--gold);
   }
 
@@ -376,9 +376,9 @@
   .nb-plus {
     width: 28px;
     height: 28px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: var(--panel2);
+    background: var(--surface2);
     color: var(--muted);
     font-size: 16px;
     line-height: 1;
@@ -399,9 +399,9 @@
     flex-direction: column;
     gap: 1px;
     padding: 4px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: #0c130f;
+    background: var(--menu-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
   .nb-mhdr {
@@ -419,7 +419,7 @@
     text-align: left;
     padding: 6px 8px;
     border: 0;
-    border-radius: 5px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--txt);
     cursor: pointer;
@@ -427,7 +427,7 @@
     font-size: 12px;
   }
   .nb-mitem:hover {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .nb-num {
     color: var(--faint);

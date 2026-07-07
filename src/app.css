@@ -746,16 +746,17 @@ option:checked {
   background: var(--faint);
   box-shadow: none;
 }
+/* LIVE = gold (players can see it). Red now belongs to danger alone. */
 .onair.live {
-  border-color: var(--red-dim);
-  background: rgba(120, 40, 40, 0.22);
+  border-color: var(--edge-gold);
+  background: var(--fill-gold);
 }
 .onair.live .lamp {
-  color: #ffb4b4;
+  color: var(--gold);
 }
 .onair.live .lamp .dot {
-  background: #ff5a5a;
-  box-shadow: 0 0 9px rgba(255, 60, 60, 0.85);
+  background: var(--gold);
+  box-shadow: 0 0 9px rgba(214, 182, 94, 0.85);
   animation: onair-pulse 1.6s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {

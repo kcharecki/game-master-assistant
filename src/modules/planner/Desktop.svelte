@@ -205,21 +205,21 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--gold);
-    box-shadow: 0 0 8px var(--gold);
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
   }
   .pr-clock {
     color: var(--faint);
     font-variant-numeric: tabular-nums;
   }
   .pr-now {
-    border: 1px solid rgba(214, 182, 94, 0.4);
-    border-left: 3px solid var(--gold);
-    border-radius: 10px;
+    border: 1px solid var(--line3);
+    border-left: 3px solid var(--green);
+    border-radius: var(--r3);
     padding: 10px 12px;
     background:
-      radial-gradient(120% 120% at 0% 0%, rgba(214, 182, 94, 0.12), transparent 60%),
-      rgba(214, 182, 94, 0.05);
+      radial-gradient(120% 120% at 0% 0%, var(--fill-g14), transparent 60%),
+      var(--fill-g08);
   }
   .pr-nowtop {
     display: flex;
@@ -230,7 +230,7 @@
     font-size: 9px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--green);
     font-weight: 700;
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
   }
@@ -257,7 +257,7 @@
     font-family: var(--serif);
     font-size: 18px;
     font-weight: 600;
-    color: #f0e7cf;
+    color: var(--txt);
     line-height: 1.2;
   }
   .pr-cue {
@@ -292,10 +292,10 @@
     justify-content: center;
     gap: 6px;
     padding: 7px 10px;
-    border-radius: 8px;
-    border: 1px solid var(--gold);
-    background: rgba(214, 182, 94, 0.14);
-    color: var(--gold);
+    border-radius: var(--r2);
+    border: 1px solid var(--green);
+    background: var(--fill-g14);
+    color: var(--green);
     cursor: pointer;
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
     font-size: 10px;
@@ -304,7 +304,7 @@
     text-transform: uppercase;
   }
   .pr-cast:hover:not(:disabled) {
-    background: rgba(214, 182, 94, 0.24);
+    background: var(--fill-g22);
   }
   .pr-cast:disabled {
     opacity: 0.4;
@@ -315,7 +315,7 @@
     align-items: center;
     gap: 4px;
     padding: 7px 12px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
     background: transparent;
     color: var(--muted);
@@ -355,25 +355,25 @@
     font: inherit;
     font-size: 11.5px;
     padding: 7px 10px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
     background: var(--panel2);
     color: var(--txt);
   }
   .pr-branch.jump {
     cursor: pointer;
-    border-color: rgba(214, 182, 94, 0.35);
+    border-color: var(--line3);
   }
   .pr-branch.jump:hover {
-    background: rgba(214, 182, 94, 0.12);
+    background: var(--fill-g14);
   }
   .pr-branch.end {
     opacity: 0.7;
     border-style: dashed;
-    border-color: #45302b;
+    border-color: var(--red-dim);
   }
   .pr-cond {
-    color: var(--gold);
+    color: var(--green);
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
     font-size: 9.5px;
     letter-spacing: 0.06em;
@@ -384,7 +384,7 @@
     max-width: 46%;
   }
   .pr-branch.end .pr-cond {
-    color: #c86a60;
+    color: var(--red);
   }
   .pr-to {
     flex: 1;
@@ -435,9 +435,9 @@
   .pr-mapsec,
   .pr-threads {
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--r3);
     padding: 8px 10px;
-    background: rgba(0, 0, 0, 0.18);
+    background: var(--bg1);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -473,7 +473,7 @@
     max-width: 40%;
   }
   .pr-th.cur {
-    color: var(--gold);
+    color: var(--green);
   }
   .pr-tarr {
     color: var(--faint);

@@ -81,7 +81,7 @@
     align-items: center;
     gap: 5px;
     padding: 6px 4px 8px;
-    border-radius: 9px;
+    border-radius: var(--r3);
     border: 1px solid transparent;
     background: transparent;
     cursor: pointer;
@@ -133,7 +133,7 @@
   .tile:hover,
   .tile:focus-visible {
     outline: none;
-    background: radial-gradient(120% 80% at 50% 15%, rgba(31, 122, 79, 0.18), transparent 70%);
+    background: radial-gradient(120% 80% at 50% 15%, var(--fill-g14), transparent 70%);
     border-color: var(--line2);
   }
   .tile:hover .ico,

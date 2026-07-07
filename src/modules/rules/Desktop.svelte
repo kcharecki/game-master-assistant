@@ -34,15 +34,16 @@
   }
   .in {
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
   }
   .sys {
-    font-size: 10px;
-    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
   }
   .list {
@@ -56,10 +57,10 @@
     flex: 1;
   }
   .row {
-    border: 1px solid var(--line);
-    border-radius: 8px;
+    border: 1px solid var(--line1);
+    border-radius: var(--r2);
     padding: 6px 8px;
-    background: rgba(0, 0, 0, 0.18);
+    background: var(--surface2);
   }
   .term {
     display: flex;
@@ -71,11 +72,12 @@
   }
   .tag {
     color: var(--muted);
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     border: 1px solid var(--line2);
-    border-radius: 5px;
+    border-radius: var(--r1);
     padding: 1px 5px;
   }
   .body {

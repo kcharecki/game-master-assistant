@@ -132,19 +132,19 @@
     position: relative;
     list-style: none;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: var(--r2);
     padding: 7px 9px;
-    background: rgba(0, 0, 0, 0.16);
+    background: var(--fill-g08);
   }
   .nb-note:hover {
-    border-color: var(--line);
+    border-color: var(--line1);
   }
   .nb-note.pinned {
     border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.08);
+    background: var(--fill-g08);
   }
   .nb-note.focused {
-    border-color: var(--line);
+    border-color: var(--line1);
     background: transparent;
     padding: 0;
   }
@@ -187,21 +187,21 @@
     font-size: 12px;
     line-height: 1;
     padding: 3px 5px;
-    border-radius: 5px;
+    border-radius: var(--r1);
   }
   .nb-ic:hover {
     color: var(--gold);
     border-color: var(--gold);
-    background: rgba(214, 182, 94, 0.1);
+    background: var(--fill-gold);
   }
   .nb-ic.on {
     color: var(--gold);
     border-color: var(--gold);
   }
   .nb-ic.danger:hover {
-    color: var(--red, #ffb4ad);
-    border-color: var(--red-dim, #8a4a4a);
-    background: rgba(150, 60, 60, 0.15);
+    color: var(--red);
+    border-color: var(--red-dim);
+    background: var(--fill-red);
   }
   /* focused note: boxed action chrome, always visible (design B) */
   .nb-note.focused .nb-ic {
@@ -217,7 +217,7 @@
     word-break: break-word;
   }
   .nb-note.focused .nb-body {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     font-size: 15px;
     line-height: 1.6;
     margin-top: 6px;
@@ -226,7 +226,7 @@
     margin: 0 0 5px;
   }
   .nb-body :global(.md-h) {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     font-size: 1.15em;
     font-weight: 600;
     color: var(--txt);
@@ -262,16 +262,16 @@
     cursor: pointer;
   }
   .nb-body :global(code) {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg1);
     padding: 0 3px;
-    border-radius: 3px;
+    border-radius: var(--r1);
     font-family: ui-monospace, monospace;
     font-size: 12px;
   }
   .nb-body :global(mark) {
-    background: rgba(214, 182, 94, 0.3);
+    background: var(--fill-gold);
     color: var(--gold);
-    border-radius: 2px;
+    border-radius: var(--r1);
     padding: 0 1px;
   }
   .nb-att {
@@ -279,7 +279,7 @@
     margin-top: 6px;
     max-width: 100%;
     max-height: 200px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
   }
   .nb-edit {
@@ -287,9 +287,9 @@
     width: 100%;
     margin-top: 4px;
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     resize: vertical;
@@ -301,9 +301,9 @@
   }
   .nb-ebtn {
     padding: 4px 10px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--green-dim);
-    background: var(--panel2);
+    background: var(--surface2);
     color: var(--green);
     font: inherit;
     font-size: 12px;

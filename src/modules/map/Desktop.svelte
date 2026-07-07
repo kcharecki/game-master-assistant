@@ -372,7 +372,7 @@
           <path
             d="M {GRID_SIZE} 0 L 0 0 0 {GRID_SIZE}"
             fill="none"
-            stroke="rgba(95,150,120,.18)"
+            stroke="var(--line1)"
             stroke-width="1"
           />
         </pattern>
@@ -768,8 +768,8 @@
     height: 100%;
     min-height: 240px;
     overflow: hidden;
-    border-radius: 8px;
-    background: #07100c;
+    border-radius: var(--r2);
+    background: var(--bg);
   }
   .canvas {
     position: relative;
@@ -803,7 +803,7 @@
     stroke-width: 2;
   }
   .lbl {
-    fill: #06120c;
+    fill: var(--ink);
     font-size: 11px;
     font-weight: 700;
     pointer-events: none;
@@ -825,20 +825,20 @@
     pointer-events: none;
   }
   .marquee {
-    fill: rgba(95, 191, 143, 0.18);
+    fill: var(--fill-g14);
     stroke: var(--green);
     stroke-width: 1.5;
     stroke-dasharray: 5 3;
     pointer-events: none;
   }
   .ruler {
-    stroke: var(--gold);
+    stroke: var(--green);
     stroke-width: 2;
     stroke-dasharray: 4 3;
     pointer-events: none;
   }
   .rulerend {
-    fill: var(--gold);
+    fill: var(--green);
     pointer-events: none;
   }
   .measureline {
@@ -874,8 +874,8 @@
     gap: 4px;
   }
   .gridbox {
-    fill: rgba(199, 164, 78, 0.16);
-    stroke: var(--gold);
+    fill: var(--fill-g14);
+    stroke: var(--green);
     stroke-width: 1.5;
     stroke-dasharray: 6 3;
     pointer-events: none;
@@ -888,7 +888,7 @@
     pointer-events: none;
   }
   .viewframe.live {
-    fill: rgba(57, 217, 138, 0.08);
+    fill: var(--fill-g08);
   }
   /* Stack the toolbar and any calibration panel so a wrapped toolbar never
      overlaps (and blocks clicks on) the panel below it. */
@@ -919,9 +919,9 @@
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
-    border-radius: 8px;
-    background: rgba(9, 16, 13, 0.92);
-    border: 1px solid var(--gold);
+    border-radius: var(--r2);
+    background: var(--menu-bg);
+    border: 1px solid var(--green);
     font-size: 12px;
     color: var(--txt);
   }
@@ -933,8 +933,8 @@
     flex-direction: column;
     gap: 6px;
     padding: 8px 10px;
-    border-radius: 8px;
-    background: rgba(9, 16, 13, 0.92);
+    border-radius: var(--r2);
+    background: var(--menu-bg);
     border: 1px solid var(--line2);
     font-size: 12px;
   }
@@ -962,9 +962,9 @@
     flex: 1;
     text-align: left;
     padding: 5px 8px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
@@ -972,7 +972,7 @@
   }
   .maploadbtn:hover {
     border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.16);
+    background: var(--fill-g14);
   }
   .sizepick {
     display: inline-flex;
@@ -982,16 +982,16 @@
     color: var(--muted);
   }
   .sizepick select {
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     border: 1px solid var(--line2);
-    border-radius: 6px;
+    border-radius: var(--r2);
     font: inherit;
     font-size: 11px;
     padding: 2px 4px;
   }
   .clen {
-    color: var(--gold);
+    color: var(--green);
     font-variant-numeric: tabular-nums;
   }
   .cfield {
@@ -1003,9 +1003,9 @@
   .cfield input {
     width: 64px;
     padding: 3px 5px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;
@@ -1034,8 +1034,8 @@
     flex-wrap: wrap;
     gap: 6px;
     padding: 7px 10px;
-    border-radius: 8px;
-    background: rgba(9, 16, 13, 0.85);
+    border-radius: var(--r2);
+    background: var(--menu-bg);
     border: 1px solid var(--line2);
     font-size: 12px;
     color: var(--txt);
@@ -1047,9 +1047,9 @@
   .tname {
     width: 110px;
     padding: 3px 6px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;
@@ -1068,13 +1068,13 @@
     justify-content: center;
     font-size: 13px;
     line-height: 1;
-    border-radius: 6px;
-    border: 1px solid var(--gold);
-    background: rgba(199, 164, 78, 0.18);
+    border-radius: var(--r2);
+    border: 1px solid var(--focus);
+    background: var(--fill-g14);
     cursor: pointer;
   }
   .statechip:hover {
-    background: rgba(199, 164, 78, 0.32);
+    background: var(--fill-g22);
   }
   /* state picker */
   .statepick {
@@ -1092,9 +1092,9 @@
     grid-template-columns: 1fr 1fr;
     gap: 3px;
     padding: 6px;
-    border-radius: 9px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.97);
+    background: var(--menu-bg);
     box-shadow: 0 14px 40px -16px rgba(0, 0, 0, 0.9);
   }
   .stateopt {
@@ -1103,7 +1103,7 @@
     gap: 5px;
     padding: 4px 5px;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: var(--r2);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
@@ -1112,12 +1112,12 @@
   }
   .stateopt:hover {
     color: var(--txt);
-    background: rgba(95, 191, 143, 0.08);
+    background: var(--fill-g08);
   }
   .stateopt.on {
     color: var(--txt);
-    border-color: var(--gold);
-    background: rgba(199, 164, 78, 0.18);
+    border-color: var(--focus);
+    background: var(--fill-g14);
   }
   .stateopt .og {
     font-size: 13px;
@@ -1131,20 +1131,20 @@
   .btn.sm {
     padding: 4px 9px;
     font-size: 12px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.8);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
   }
   .btn.sm.on {
-    background: rgba(199, 164, 78, 0.2);
-    border-color: var(--gold);
+    background: var(--fill-g14);
+    border-color: var(--focus);
   }
   .btn.sm.solid {
     background: var(--green-dim);
     border-color: var(--green-dim);
-    color: #06120c;
+    color: var(--ink);
     font-weight: 700;
   }
   .btn.sm.danger:hover {

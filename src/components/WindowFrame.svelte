@@ -167,7 +167,7 @@
   }
   .fbcount {
     font-size: 8px;
-    color: var(--green, #5fbf8f);
+    color: var(--green);
     font-weight: 700;
   }
   .fbpanel {
@@ -180,9 +180,9 @@
     flex-direction: column;
     gap: 6px;
     padding: 8px;
-    border-radius: 10px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.98);
+    background: var(--menu-bg);
     box-shadow: 0 16px 44px -16px rgba(0, 0, 0, 0.9);
   }
   .fbhead {
@@ -192,20 +192,20 @@
     font-size: 10px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--faint, #6f6a5c);
+    color: var(--faint);
   }
   .fbexport {
     border: 1px solid var(--line2);
-    border-radius: 6px;
+    border-radius: var(--r1);
     background: transparent;
-    color: var(--muted, #9a9484);
+    color: var(--muted);
     cursor: pointer;
     font-size: 10px;
     padding: 2px 6px;
   }
   .fbexport:hover {
     color: var(--txt);
-    background: rgba(47, 138, 102, 0.16);
+    background: var(--fill-g14);
   }
   .fblist {
     list-style: none;
@@ -223,8 +223,8 @@
     gap: 4px;
     font-size: 12px;
     color: var(--txt);
-    background: rgba(47, 138, 102, 0.08);
-    border-radius: 6px;
+    background: var(--fill-g08);
+    border-radius: var(--r1);
     padding: 4px 6px;
   }
   .fbtext {
@@ -236,22 +236,22 @@
     flex: none;
     border: 0;
     background: transparent;
-    color: var(--faint, #6f6a5c);
+    color: var(--faint);
     cursor: pointer;
     font-size: 11px;
     padding: 0 2px;
   }
   .fbdel:hover {
-    color: #ff6b6b;
+    color: var(--red);
   }
   .fbinput {
     width: 100%;
     box-sizing: border-box;
     resize: vertical;
     padding: 6px 8px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;
@@ -262,9 +262,9 @@
   }
   .fbsave {
     border: 1px solid var(--line2);
-    border-radius: 8px;
-    background: var(--green-dim, #2f8a66);
-    color: #06120c;
+    border-radius: var(--r2);
+    background: var(--green-dim);
+    color: var(--ink);
     font-weight: 700;
     cursor: pointer;
     font-size: 12px;

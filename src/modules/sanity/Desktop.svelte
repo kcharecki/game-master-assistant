@@ -60,26 +60,26 @@
     margin-left: auto;
     flex: 0 0 80px;
     padding: 5px 7px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;
   }
   .result {
     font-size: 12px;
-    color: var(--gold);
+    color: var(--green);
     margin-bottom: 10px;
     padding: 6px 9px;
-    border-radius: 8px;
-    background: rgba(199, 164, 78, 0.1);
-    border: 1px solid rgba(199, 164, 78, 0.3);
+    border-radius: var(--r2);
+    background: var(--fill-g08);
+    border: 1px solid var(--fill-g22);
   }
   .result.bout {
     color: var(--red);
-    background: rgba(122, 42, 42, 0.18);
-    border-color: #7a2a2a;
+    background: var(--fill-red);
+    border-color: var(--red-dim);
   }
   .bouttag {
     font-weight: 700;
@@ -97,7 +97,7 @@
   .ob {
     width: 20px;
     height: 20px;
-    border-radius: 5px;
+    border-radius: var(--r1);
     border: 1px solid transparent;
     background: transparent;
     color: var(--faint);
@@ -106,8 +106,8 @@
     font-size: 10px;
   }
   .ob.x:hover {
-    color: #fff;
-    background: #7a2a2a;
+    color: var(--ink);
+    background: var(--fill-red);
   }
   .add-row {
     margin-top: 8px;

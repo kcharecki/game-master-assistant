@@ -207,8 +207,8 @@
           ondblclick={() => n.srcId && n.branchId && planner.promoteTerminal(n.srcId, n.branchId)}
         >
           <div class="pg-ctop">
-            <span class="pg-dot" style:background="#7c463f"></span>
-            <span class="pg-type" style:color="#c86a60">{t('planner.terminal')}</span>
+            <span class="pg-dot" style:background="var(--red-dim)"></span>
+            <span class="pg-type" style:color="var(--red)">{t('planner.terminal')}</span>
             <span class="pg-promote">↗</span>
           </div>
           <div class="pg-title">{n.title}</div>
@@ -265,10 +265,10 @@
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at 1px 1px, rgba(95, 150, 120, 0.1) 1px, transparent 0) 0 0 / 22px 22px,
+      radial-gradient(circle at 1px 1px, var(--fill-g08) 1px, transparent 0) 0 0 / 22px 22px,
       var(--bg2);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: var(--r3);
     cursor: grab;
     touch-action: none;
     /* dragging cards / panning must never start a browser text selection */
@@ -299,17 +299,17 @@
     stroke-width: 1.5;
   }
   .pg-edge.fork {
-    stroke: rgba(214, 182, 94, 0.55);
+    stroke: var(--edge-gold);
   }
   .pg-edge.terminal {
-    stroke: rgba(124, 70, 63, 0.85);
+    stroke: var(--red-dim);
   }
   .pg-edge.loop {
-    stroke: rgba(214, 182, 94, 0.5);
+    stroke: var(--gold);
     stroke-dasharray: 3 4;
   }
   .pg-edge.cursor {
-    stroke: var(--gold);
+    stroke: var(--green);
     stroke-width: 2;
   }
   .pg-temp {
@@ -319,13 +319,13 @@
     fill: var(--line2);
   }
   .pg-arr.fork path {
-    fill: rgba(214, 182, 94, 0.7);
+    fill: var(--gold);
   }
   .pg-arr.term path {
-    fill: #7c463f;
+    fill: var(--red-dim);
   }
   .pg-arr.cursor path {
-    fill: var(--gold);
+    fill: var(--green);
   }
   /* edge labels — opaque so the line never strikes through the text */
   .pg-elabel {
@@ -343,24 +343,24 @@
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--muted);
-    background: #0c1512;
+    background: var(--menu-bg);
     border: 1px solid var(--line2);
     pointer-events: none;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   }
   .pg-elabel.fork,
   .pg-elabel.loop {
-    color: #e7cf90;
-    border-color: rgba(214, 182, 94, 0.45);
-    background: #14140d;
+    color: var(--gold-hi);
+    border-color: var(--edge-gold);
+    background: var(--menu-bg);
   }
   .pg-elabel.terminal {
-    color: #d69088;
-    border-color: rgba(124, 70, 63, 0.7);
-    background: #170f0e;
+    color: var(--red);
+    border-color: var(--red-dim);
+    background: var(--menu-bg);
   }
   .pg-elabel.cursor {
-    box-shadow: 0 0 10px -2px var(--gold);
+    box-shadow: 0 0 10px -2px var(--green);
   }
   /* cards */
   .pg-card {
@@ -369,7 +369,7 @@
     height: 64px;
     box-sizing: border-box;
     padding: 8px 10px 7px;
-    border-radius: 9px;
+    border-radius: var(--r3);
     background: var(--panel2);
     border: 1px solid var(--line);
     cursor: pointer;
@@ -384,26 +384,26 @@
     border-color: var(--pg-c, var(--line2));
   }
   .pg-card.sel {
-    border-color: rgba(214, 182, 94, 0.5);
-    box-shadow: 0 0 0 1px rgba(214, 182, 94, 0.2);
+    border-color: var(--focus);
+    box-shadow: 0 0 0 1px var(--fill-g14);
   }
   .pg-card.cur {
-    border-color: var(--gold);
-    background: #1b2118;
-    box-shadow: 0 0 22px -6px rgba(214, 182, 94, 0.6);
+    border-color: var(--green);
+    background: var(--surface3);
+    box-shadow: 0 0 22px -6px var(--fill-g22);
   }
   .pg-card.opt {
     border-style: dashed;
-    border-color: rgba(95, 150, 120, 0.4);
+    border-color: var(--line2);
   }
   .pg-card.terminal {
-    background: #181313;
-    border-color: #45302b;
+    background: var(--surface2);
+    border-color: var(--red-dim);
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
     cursor: pointer;
   }
   .pg-card.terminal:hover {
-    border-color: #c86a60;
+    border-color: var(--red);
   }
   .pg-card.drop {
     border-color: var(--green);
@@ -418,9 +418,9 @@
     font-weight: 600;
     letter-spacing: 0.13em;
     padding: 2px 6px;
-    border-radius: 4px;
-    color: #0a120e;
-    background: var(--gold);
+    border-radius: var(--r1);
+    color: var(--ink);
+    background: var(--green);
   }
   .pg-ctop {
     display: flex;
@@ -457,23 +457,23 @@
   .pg-promote {
     margin-left: auto;
     font-size: 10px;
-    color: #7c463f;
+    color: var(--red-dim);
   }
   .pg-card.terminal:hover .pg-promote {
-    color: #c86a60;
+    color: var(--red);
   }
   .pg-title {
     font-family: var(--serif);
     font-size: 13.5px;
     font-weight: 500;
-    color: #f0e7cf;
+    color: var(--txt);
     line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .pg-card.terminal .pg-title {
-    color: #d8c9c6;
+    color: var(--muted);
   }
   .pg-cbot {
     display: flex;
@@ -501,8 +501,8 @@
     opacity: 1;
   }
   .pg-handle:hover {
-    border-color: var(--gold);
-    background: rgba(214, 182, 94, 0.25);
+    border-color: var(--green);
+    background: var(--fill-g22);
   }
   /* drop-to-create ghost */
   .pg-ghost {
@@ -516,10 +516,10 @@
     justify-content: center;
     gap: 6px;
     padding: 8px;
-    border-radius: 9px;
-    border: 1.5px dashed var(--gold);
-    background: rgba(214, 182, 94, 0.08);
-    color: var(--gold);
+    border-radius: var(--r3);
+    border: 1.5px dashed var(--green);
+    background: var(--fill-g08);
+    color: var(--green);
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
     font-size: 9px;
     letter-spacing: 0.08em;
@@ -535,9 +535,9 @@
     display: flex;
     gap: 4px;
     padding: 3px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(8, 13, 11, 0.85);
+    background: var(--menu-bg);
     backdrop-filter: blur(3px);
   }
   .pg-zoom button {
@@ -547,7 +547,7 @@
     align-items: center;
     justify-content: center;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
@@ -555,8 +555,8 @@
     line-height: 1;
   }
   .pg-zoom button:hover {
-    color: var(--gold);
-    background: rgba(214, 182, 94, 0.12);
+    color: var(--green);
+    background: var(--fill-g14);
   }
   .pg-zoom .pg-fit {
     font-size: 12px;

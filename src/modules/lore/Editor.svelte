@@ -93,7 +93,7 @@
     overflow: hidden;
   }
   .side {
-    border-right: 1px solid var(--line);
+    border-right: 1px solid var(--line1);
     padding: 16px 12px;
     overflow: auto;
   }
@@ -104,9 +104,9 @@
     margin-bottom: 12px;
   }
   .shead h2 {
-    font-family: Georgia, serif;
+    font-family: var(--serif), Georgia, serif;
     font-size: 20px;
-    color: #e9f3ed;
+    color: var(--txt);
   }
   .plist {
     list-style: none;
@@ -126,11 +126,11 @@
     cursor: pointer;
   }
   .pbtn:hover {
-    background: rgba(95, 150, 120, 0.08);
+    background: var(--fill-g08);
   }
   .pbtn.on {
     border-color: var(--line2);
-    background: var(--panel2);
+    background: var(--surface2);
   }
   .main {
     padding: 18px 22px;
@@ -141,14 +141,14 @@
   }
   .in {
     padding: 8px 10px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
   }
   .title {
-    font-family: Georgia, serif;
+    font-family: var(--serif), Georgia, serif;
     font-size: 18px;
     font-weight: 600;
   }
@@ -164,18 +164,19 @@
   }
   .metacol h4 {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 10.5px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     margin-bottom: 6px;
   }
   .chip {
     display: inline-block;
     margin: 0 6px 6px 0;
     padding: 4px 9px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
-    background: var(--panel2);
+    background: var(--surface2);
     color: var(--green);
     font: inherit;
     font-size: 13px;

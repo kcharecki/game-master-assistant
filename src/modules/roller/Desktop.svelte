@@ -66,13 +66,15 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     border: 1px solid var(--line2);
-    border-radius: 9px;
+    border-radius: var(--r3);
     padding: 9px 12px;
     margin-bottom: 12px;
   }
   .num {
+    font-family: var(--num);
+    font-variant-numeric: tabular-nums;
     font-size: 36px;
     font-weight: 700;
     line-height: 1;
@@ -95,17 +97,17 @@
     color: var(--muted);
   }
   .air {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     border: 1px solid var(--green);
     color: var(--green);
-    border-radius: 7px;
+    border-radius: var(--r2);
     padding: 6px 12px;
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
   }
   .air:hover {
-    background: rgba(47, 138, 102, 0.3);
+    background: var(--fill-g22);
   }
   .air:disabled {
     opacity: 0.4;
@@ -119,23 +121,23 @@
   }
   .die {
     height: 44px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(47, 138, 102, 0.1);
+    background: var(--fill-g08);
     color: var(--txt);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
   }
   .die:hover {
-    background: rgba(47, 138, 102, 0.24);
+    background: var(--fill-g22);
     border-color: var(--green);
   }
   .die:active {
     transform: scale(0.94);
   }
   .die.hero {
-    background: rgba(47, 138, 102, 0.22);
+    background: var(--fill-g22);
     border-color: var(--green);
   }
   .modes {
@@ -145,7 +147,7 @@
   .seg {
     display: inline-flex;
     border: 1px solid var(--line2);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     overflow: hidden;
   }
   .seg button {
@@ -157,7 +159,7 @@
     cursor: pointer;
   }
   .seg button.on {
-    background: rgba(111, 208, 160, 0.22);
+    background: var(--fill-g22);
     color: var(--green);
   }
 </style>

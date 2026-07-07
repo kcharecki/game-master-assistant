@@ -304,8 +304,8 @@
     box-shadow: 0 0 7px var(--gold);
   }
   .aud-head.closed .aud-dot {
-    background: #ff6b6b;
-    box-shadow: 0 0 7px #ff6b6b;
+    background: var(--red);
+    box-shadow: 0 0 7px var(--red);
   }
   .aud-onair {
     color: var(--gold);
@@ -313,7 +313,7 @@
     font-weight: 700;
   }
   .aud-head.closed .aud-onair {
-    color: #ff8f8f;
+    color: var(--red);
   }
   .aud-conn {
     flex: 1;
@@ -325,9 +325,9 @@
   }
   .aud-tog {
     padding: 3px 9px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--muted);
     cursor: pointer;
     font-family: ui-monospace, monospace;
@@ -342,7 +342,7 @@
   .aud-tog.on {
     color: var(--gold);
     border-color: var(--gold);
-    background: rgba(214, 182, 94, 0.12);
+    background: var(--fill-gold);
   }
   /* ── hero ── */
   .aud-hero {
@@ -354,14 +354,14 @@
     width: 48px;
     height: 48px;
     flex: none;
-    border-radius: 10px;
+    border-radius: var(--r3);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--serif);
     font-size: 24px;
     color: var(--green);
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     border: 1px solid var(--green-dim);
   }
   .aud-hinfo {
@@ -458,7 +458,7 @@
   }
   .aud-ic {
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     width: 38px;
@@ -477,7 +477,7 @@
     cursor: default;
   }
   .aud-ic.muted {
-    color: #ff8f8f;
+    color: var(--red);
   }
   .aud-ic.sm {
     width: 26px;
@@ -492,12 +492,12 @@
     border-radius: 50%;
     border: 0;
     background: var(--gold);
-    color: #1a1204;
+    color: var(--gold-ink);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 18px rgba(214, 182, 94, 0.35);
+    box-shadow: 0 0 18px var(--fill-gold);
   }
   .aud-play:hover:not(:disabled) {
     filter: brightness(1.08);
@@ -524,9 +524,9 @@
   }
   .aud-chip {
     padding: 6px 13px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--muted);
     cursor: pointer;
     font: inherit;
@@ -541,7 +541,7 @@
     cursor: default;
   }
   .aud-chip.live {
-    color: #1a1204;
+    color: var(--gold-ink);
     background: var(--gold);
     border-color: var(--gold);
     font-weight: 600;
@@ -559,9 +559,9 @@
     align-items: flex-end;
     text-align: left;
     padding: 7px 9px;
-    border-radius: 9px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     font-size: 12px;
@@ -569,7 +569,7 @@
   }
   .aud-pad:hover {
     border-color: var(--gold);
-    background: rgba(214, 182, 94, 0.1);
+    background: var(--fill-gold);
   }
   .aud-pad.flash {
     animation: aud-flash 0.65s ease-out;
@@ -577,7 +577,7 @@
   @keyframes aud-flash {
     0% {
       box-shadow: 0 0 0 0 var(--gold);
-      background: rgba(214, 182, 94, 0.4);
+      background: var(--fill-gold);
     }
     100% {
       box-shadow: 0 0 0 6px transparent;
@@ -616,20 +616,20 @@
     gap: 9px;
     text-align: left;
     padding: 7px 10px;
-    border-radius: 9px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
   }
   .aud-ambpad:hover {
     border-color: var(--gold);
-    background: rgba(214, 182, 94, 0.1);
+    background: var(--fill-gold);
   }
   .aud-ambpad.live {
     border-color: var(--gold);
-    background: rgba(214, 182, 94, 0.16);
+    background: var(--fill-gold);
   }
   .aud-ambico {
     flex: none;
@@ -641,11 +641,11 @@
     justify-content: center;
     font-size: 11px;
     color: var(--green);
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     border: 1px solid var(--green-dim);
   }
   .aud-ambpad.live .aud-ambico {
-    color: #1a1204;
+    color: var(--gold-ink);
     background: var(--gold);
     border-color: var(--gold);
   }
@@ -676,8 +676,8 @@
     flex-direction: column;
     gap: 6px;
     padding: 10px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--r3);
+    background: var(--bg1);
     border: 1px solid var(--line2);
   }
   .aud-fader {
@@ -712,10 +712,10 @@
     margin-top: 2px;
     width: 100%;
     padding: 11px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 90, 90, 0.55);
-    background: rgba(255, 90, 90, 0.08);
-    color: #ff9d9d;
+    border-radius: var(--r3);
+    border: 1px solid var(--red-dim);
+    background: var(--fill-red);
+    color: var(--red);
     cursor: pointer;
     font: inherit;
     font-weight: 700;
@@ -723,17 +723,17 @@
     text-transform: uppercase;
   }
   .aud-panic:hover {
-    background: rgba(255, 90, 90, 0.16);
-    border-color: #ff6b6b;
-    color: #ffb3b3;
+    background: var(--fill-red);
+    border-color: var(--red);
+    color: var(--red);
   }
   /* ── silence overlay ── */
   .aud-head.aud-silenced .aud-dot {
-    background: #ff6b6b;
-    box-shadow: 0 0 7px #ff6b6b;
+    background: var(--red);
+    box-shadow: 0 0 7px var(--red);
   }
   .aud-head.aud-silenced .aud-onair {
-    color: #ff8f8f;
+    color: var(--red);
   }
   .aud-silbody {
     display: flex;
@@ -750,13 +750,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ff6b6b;
-    border: 2px solid rgba(255, 90, 90, 0.55);
+    color: var(--red);
+    border: 2px solid var(--red-dim);
   }
   .aud-siltitle {
     font-family: var(--serif);
     font-size: 22px;
-    color: #ff8f8f;
+    color: var(--red);
     letter-spacing: 0.04em;
   }
   .aud-silline {
@@ -774,10 +774,10 @@
   .aud-resume {
     width: 100%;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: var(--r3);
     border: 0;
-    background: #d64a3f;
-    color: #fff;
+    background: var(--red-dim);
+    color: var(--txt);
     cursor: pointer;
     font: inherit;
     font-weight: 700;

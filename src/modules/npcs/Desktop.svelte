@@ -69,9 +69,9 @@
     width: 100%;
     margin-bottom: 8px;
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 13px;

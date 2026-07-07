@@ -128,7 +128,7 @@
           cx={n.x}
           cy={m.BASE}
           r={n.cur ? m.R + 1 : m.R}
-          style:--pfm-c={n.cur ? 'var(--gold)' : (TYPE_C[n.type] ?? 'var(--faint)')}
+          style:--pfm-c={n.cur ? 'var(--green)' : (TYPE_C[n.type] ?? 'var(--faint)')}
         >
           <title>{n.title}</title>
         </circle>
@@ -157,7 +157,7 @@
   }
   .pfm-forkline {
     fill: none;
-    stroke: rgba(214, 182, 94, 0.45);
+    stroke: var(--edge-gold);
     stroke-width: 1;
     stroke-dasharray: 2 2;
   }
@@ -189,16 +189,16 @@
     opacity: 0.5;
   }
   .pfm-node.cur .pfm-dot {
-    fill: var(--gold);
+    fill: var(--green);
   }
   .pfm-ring {
     fill: none;
-    stroke: var(--gold);
+    stroke: var(--green);
     stroke-width: 1.4;
     opacity: 0.35;
   }
   .pfm-node:hover .pfm-dot {
-    stroke: var(--gold);
+    stroke: var(--green);
   }
   .pfm-n {
     fill: var(--faint);
@@ -207,6 +207,6 @@
     font-variant-numeric: tabular-nums;
   }
   .pfm-node.cur .pfm-n {
-    fill: var(--gold);
+    fill: var(--green);
   }
 </style>

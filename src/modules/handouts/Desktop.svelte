@@ -98,9 +98,9 @@
     justify-content: space-between;
     gap: 4px;
     padding: 6px 8px;
-    border-radius: 7px;
-    border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.18);
+    border-radius: var(--r2);
+    border: 1px solid var(--line1);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     text-align: left;
@@ -108,7 +108,7 @@
   }
   .row.on {
     border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.14);
+    background: var(--fill-g14);
   }
   .img {
     color: var(--muted);
@@ -125,9 +125,9 @@
   }
   .in {
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
   }
@@ -148,9 +148,9 @@
   }
   .btn {
     padding: 6px 10px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--green-dim);
-    background: var(--panel2);
+    background: var(--surface2);
     color: var(--green);
     font: inherit;
     font-size: 12px;
@@ -172,7 +172,7 @@
   .send {
     border-color: var(--green);
     color: var(--txt);
-    background: rgba(47, 138, 102, 0.22);
+    background: var(--fill-g22);
   }
   .del {
     border-color: var(--line2);

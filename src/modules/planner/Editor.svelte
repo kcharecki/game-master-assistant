@@ -485,7 +485,7 @@
                   y1={ROW_H / 2}
                   x2="160"
                   y2={(beats.length - 1) * ROW_H + ROW_H / 2}
-                  stroke="rgba(232,226,213,.14)"
+                  stroke="var(--line1)"
                   stroke-width="2"
                 />
                 {#each arcs as arc (arc.d)}
@@ -514,7 +514,7 @@
                       cy={i * ROW_H + ROW_H / 2}
                       r="12"
                       fill="none"
-                      stroke="var(--gold)"
+                      stroke="var(--green)"
                       stroke-width="1"
                       class="sp-pulse"
                     />
@@ -735,7 +735,7 @@
     border-bottom: 1px solid var(--line);
   }
   .sp-diamond {
-    color: var(--gold);
+    color: var(--green);
     font-size: 12px;
   }
   .sp-camp {
@@ -751,7 +751,7 @@
   }
   .sp-camp:focus {
     outline: none;
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
   }
   .sp-total {
     font-size: 12px;
@@ -765,7 +765,7 @@
     border-radius: 999px;
   }
   .sp-seg.gold {
-    border-color: rgba(214, 182, 94, 0.3);
+    border-color: var(--line2);
   }
   .sp-segbtn {
     border: none;
@@ -780,15 +780,15 @@
     font-size: 11px;
   }
   .sp-segbtn.on {
-    background: rgba(232, 226, 213, 0.12);
+    background: var(--fill-g14);
     color: var(--txt);
   }
   .sp-seg.gold .sp-segbtn {
-    color: var(--gold);
+    color: var(--green);
   }
   .sp-seg.gold .sp-segbtn.on {
-    background: var(--gold);
-    color: #14110a;
+    background: var(--green);
+    color: var(--ink);
     font-weight: 700;
   }
   .sp-threadsbtn {
@@ -838,13 +838,13 @@
     font-family: var(--serif);
     font-style: italic;
     font-size: 16px;
-    color: var(--gold);
+    color: var(--green);
     opacity: 0.85;
   }
   .sp-actline {
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, rgba(214, 182, 94, 0.25), transparent);
+    background: linear-gradient(90deg, var(--fill-g22), transparent);
   }
 
   .sp-row {
@@ -857,10 +857,10 @@
     cursor: pointer;
   }
   .sp-row:hover {
-    background: rgba(232, 226, 213, 0.04);
+    background: var(--fill-g08);
   }
   .sp-row.sel {
-    background: rgba(214, 182, 94, 0.05);
+    background: var(--fill-g14);
   }
   .sp-dot {
     width: 9px;
@@ -875,10 +875,10 @@
     font-family: var(--serif);
     font-size: 22px;
     font-weight: 500;
-    color: #e8e2d5;
+    color: var(--txt);
   }
   .sp-btitle.planned {
-    color: #c9c2b2;
+    color: var(--muted);
   }
   .sp-pill {
     font-size: 11px;
@@ -890,7 +890,7 @@
   .sp-nowtag {
     font-size: 10px;
     letter-spacing: 0.14em;
-    color: var(--gold);
+    color: var(--green);
   }
   .sp-cue {
     font-size: 12px;
@@ -922,15 +922,15 @@
     font-size: 13px;
   }
   .sp-fork:hover {
-    background: rgba(79, 163, 123, 0.12);
+    background: var(--fill-g14);
   }
   .sp-runbtn {
-    border-color: rgba(214, 182, 94, 0.3);
-    color: var(--gold);
+    border-color: var(--line2);
+    color: var(--green);
     font-size: 11px;
   }
   .sp-runbtn:hover {
-    background: rgba(214, 182, 94, 0.12);
+    background: var(--fill-g14);
   }
 
   .sp-branchline {
@@ -941,7 +941,7 @@
     cursor: pointer;
   }
   .sp-branchline:hover {
-    background: rgba(232, 226, 213, 0.03);
+    background: var(--fill-g08);
   }
   .sp-bglyph {
     font-size: 13px;
@@ -970,9 +970,9 @@
   .sp-edit {
     margin: 8px 0 16px 34px;
     padding: 16px 18px;
-    border: 1px solid rgba(214, 182, 94, 0.16);
-    border-radius: 12px;
-    background: rgba(214, 182, 94, 0.03);
+    border: 1px solid var(--focus);
+    border-radius: var(--r4);
+    background: var(--fill-g08);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -990,7 +990,7 @@
     font-style: italic;
     font-size: 18px;
     line-height: 1.55;
-    color: var(--gold);
+    color: var(--green);
   }
   .sp-notes {
     font-size: 14px;
@@ -1016,12 +1016,12 @@
     padding: 4px 0;
     font-size: 13px;
     font-style: italic;
-    color: #c9c2b2;
+    color: var(--muted);
     font-family: inherit;
   }
   .sp-cuein:focus {
     outline: none;
-    border-bottom-color: rgba(214, 182, 94, 0.5);
+    border-bottom-color: var(--fill-g22);
   }
   .sp-minsfield {
     display: flex;
@@ -1032,18 +1032,18 @@
   }
   .sp-minsin {
     width: 52px;
-    background: rgba(232, 226, 213, 0.05);
+    background: var(--fill-g08);
     border: 1px solid var(--line2);
-    border-radius: 6px;
+    border-radius: var(--r2);
     padding: 4px 6px;
     font-size: 13px;
     color: var(--txt);
     font-family: inherit;
   }
   .sp-select {
-    background: rgba(232, 226, 213, 0.05);
+    background: var(--fill-g08);
     border: 1px solid var(--line2);
-    border-radius: 6px;
+    border-radius: var(--r2);
     padding: 4px 8px;
     font-size: 12px;
     color: var(--txt);
@@ -1052,9 +1052,9 @@
   .sp-actinput {
     flex: 1;
     min-width: 90px;
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     border: 1px solid var(--line2);
-    border-radius: 6px;
+    border-radius: var(--r2);
     padding: 4px 8px;
     font-size: 12px;
     color: var(--muted);
@@ -1064,15 +1064,15 @@
     border: 1px solid var(--line2);
     background: transparent;
     color: var(--faint);
-    border-radius: 6px;
+    border-radius: var(--r2);
     padding: 4px 10px;
     cursor: pointer;
     font: inherit;
     font-size: 12px;
   }
   .sp-optbtn.on {
-    color: var(--gold);
-    border-color: rgba(214, 182, 94, 0.4);
+    color: var(--green);
+    border-color: var(--fill-g22);
   }
   .sp-del {
     border: none;
@@ -1083,7 +1083,7 @@
     font-size: 13px;
   }
   .sp-del:hover {
-    color: #c96f4a;
+    color: var(--red);
   }
   .sp-brancheditor {
     display: flex;
@@ -1107,7 +1107,7 @@
     border-bottom: 1px solid var(--line);
     padding: 3px 0;
     font-size: 13px;
-    color: #c9c2b2;
+    color: var(--muted);
     font-family: inherit;
   }
   .sp-bcondin:focus {
@@ -1130,13 +1130,13 @@
     font: inherit;
   }
   .sp-brdel:hover {
-    color: #c96f4a;
+    color: var(--red);
   }
   .sp-termin {
     margin-left: 24px;
     background: transparent;
     border: none;
-    border-bottom: 1px dashed rgba(214, 182, 94, 0.3);
+    border-bottom: 1px dashed var(--edge-gold);
     padding: 3px 0;
     font-size: 13px;
     font-style: italic;
@@ -1162,13 +1162,13 @@
     font-size: 12px;
   }
   .sp-addbranch:hover {
-    background: rgba(79, 163, 123, 0.1);
+    background: var(--fill-g08);
   }
   .sp-runfrom {
-    border: 1px solid rgba(214, 182, 94, 0.4);
-    background: rgba(214, 182, 94, 0.08);
-    color: var(--gold);
-    border-radius: 6px;
+    border: 1px solid var(--line3);
+    background: var(--fill-g08);
+    color: var(--green);
+    border-radius: var(--r2);
     padding: 5px 14px;
     cursor: pointer;
     font: inherit;
@@ -1176,7 +1176,7 @@
     letter-spacing: 0.08em;
   }
   .sp-runfrom:hover {
-    background: rgba(214, 182, 94, 0.16);
+    background: var(--fill-g14);
   }
 
   .sp-capture {
@@ -1200,7 +1200,7 @@
     border: none;
     font-family: var(--serif);
     font-size: 20px;
-    color: #e8e2d5;
+    color: var(--txt);
     padding: 8px 0;
   }
   .sp-capturein:focus {
@@ -1239,10 +1239,10 @@
     cursor: pointer;
   }
   .sp-maprow:hover {
-    background: rgba(232, 226, 213, 0.04);
+    background: var(--fill-g08);
   }
   .sp-maprow.sel {
-    background: rgba(214, 182, 94, 0.05);
+    background: var(--fill-g14);
   }
   .sp-maptype {
     font-size: 11px;
@@ -1288,7 +1288,7 @@
     font-family: var(--serif);
     font-size: 24px;
     font-weight: 500;
-    color: #e8e2d5;
+    color: var(--txt);
   }
   .sp-detmeta {
     font-size: 11px;
@@ -1299,7 +1299,7 @@
     font-style: italic;
     font-size: 15px;
     line-height: 1.55;
-    color: var(--gold);
+    color: var(--green);
     opacity: 0.9;
   }
   .sp-debranch {
@@ -1328,10 +1328,10 @@
     font-size: 12px;
   }
   .sp-derun {
-    border: 1px solid rgba(214, 182, 94, 0.4);
-    background: rgba(214, 182, 94, 0.08);
-    color: var(--gold);
-    border-radius: 6px;
+    border: 1px solid var(--line3);
+    background: var(--fill-g08);
+    color: var(--green);
+    border-radius: var(--r2);
     padding: 5px 12px;
     cursor: pointer;
     font: inherit;
@@ -1374,7 +1374,7 @@
   .sp-thtext {
     font-size: 13.5px;
     line-height: 1.45;
-    color: #c9c2b2;
+    color: var(--muted);
   }
   .sp-thtext.res {
     color: var(--faint);
@@ -1386,7 +1386,7 @@
     border-bottom: 1px solid var(--line);
     padding: 7px 0;
     font-size: 13px;
-    color: #c9c2b2;
+    color: var(--muted);
     margin-top: 8px;
     font-family: inherit;
   }
@@ -1402,11 +1402,7 @@
     justify-content: center;
     min-height: 0;
     overflow-y: auto;
-    background: radial-gradient(
-      ellipse 80% 60% at 50% 0%,
-      rgba(214, 182, 94, 0.045),
-      transparent 70%
-    );
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--fill-g08), transparent 70%);
   }
   .sp-runinner {
     width: 100%;
@@ -1425,7 +1421,7 @@
   .sp-runnow {
     font-size: 11px;
     letter-spacing: 0.3em;
-    color: var(--gold);
+    color: var(--green);
     animation: sp-pulse 2.4s ease infinite;
   }
   .sp-runtype {
@@ -1444,7 +1440,7 @@
     font-variant-numeric: tabular-nums;
   }
   .sp-runclock.over {
-    color: #c96f4a;
+    color: var(--red);
   }
   .sp-of {
     color: var(--faint);
@@ -1455,20 +1451,20 @@
     font-weight: 600;
     line-height: 1.05;
     letter-spacing: -0.01em;
-    color: #f0e7cf;
+    color: var(--txt);
   }
   .sp-runbox {
     padding: 18px 22px;
-    border: 1px solid rgba(214, 182, 94, 0.18);
-    border-radius: 14px;
-    background: rgba(214, 182, 94, 0.035);
+    border: 1px solid var(--line1);
+    border-radius: var(--r4);
+    background: var(--fill-g08);
   }
   .sp-runread {
     font-family: var(--serif);
     font-style: italic;
     font-size: 24px;
     line-height: 1.55;
-    color: var(--gold);
+    color: var(--green);
   }
   .sp-runbcast {
     display: flex;
@@ -1477,10 +1473,10 @@
     margin-top: 14px;
   }
   .sp-bcastbtn {
-    border: 1px solid rgba(79, 163, 123, 0.4);
+    border: 1px solid var(--green-dim);
     background: transparent;
     color: var(--green);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     padding: 6px 16px;
     cursor: pointer;
     font: inherit;
@@ -1488,14 +1484,14 @@
     letter-spacing: 0.08em;
   }
   .sp-bcastbtn:hover {
-    background: rgba(79, 163, 123, 0.12);
+    background: var(--fill-g14);
   }
   .sp-key {
     opacity: 0.6;
   }
   .sp-livelbl {
     font-size: 12px;
-    color: var(--green);
+    color: var(--gold);
   }
   .sp-runcue {
     font-size: 16px;
@@ -1515,9 +1511,9 @@
     align-items: center;
     gap: 14px;
     padding: 16px 22px;
-    border: 1px solid rgba(214, 182, 94, 0.45);
-    border-radius: 12px;
-    background: rgba(214, 182, 94, 0.07);
+    border: 1px solid var(--edge-gold);
+    border-radius: var(--r4);
+    background: var(--fill-gold);
   }
   .sp-tdiamond {
     color: var(--gold);
@@ -1531,10 +1527,10 @@
     flex: 1;
   }
   .sp-tcontinue {
-    border: 1px solid rgba(214, 182, 94, 0.4);
+    border: 1px solid var(--edge-gold);
     background: transparent;
     color: var(--gold);
-    border-radius: 8px;
+    border-radius: var(--r2);
     padding: 8px 16px;
     cursor: pointer;
     font: inherit;
@@ -1553,16 +1549,16 @@
     min-height: 80px;
     padding: 18px 22px;
     border: 1px solid var(--line2);
-    border-radius: 14px;
-    background: rgba(232, 226, 213, 0.025);
+    border-radius: var(--r4);
+    background: var(--fill-g08);
     cursor: pointer;
     transition: all 0.15s ease;
     font: inherit;
     color: var(--txt);
   }
   .sp-choice:hover {
-    border-color: rgba(214, 182, 94, 0.5);
-    background: rgba(214, 182, 94, 0.05);
+    border-color: var(--line3);
+    background: var(--fill-g14);
     transform: translateY(-1px);
   }
   .sp-choicenum {
@@ -1631,10 +1627,10 @@
     color: var(--muted);
   }
   .sp-advance {
-    border: 1px solid rgba(214, 182, 94, 0.45);
-    background: rgba(214, 182, 94, 0.08);
-    color: var(--gold);
-    border-radius: 10px;
+    border: 1px solid var(--line3);
+    background: var(--fill-g08);
+    color: var(--green);
+    border-radius: var(--r3);
     padding: 12px 26px;
     cursor: pointer;
     font: inherit;
@@ -1642,7 +1638,7 @@
     letter-spacing: 0.06em;
   }
   .sp-advance:hover {
-    background: rgba(214, 182, 94, 0.16);
+    background: var(--fill-g14);
   }
   .sp-runkeys {
     text-align: center;
@@ -1655,7 +1651,7 @@
   .sp-scrim {
     position: absolute;
     inset: 0;
-    background: rgba(8, 7, 5, 0.5);
+    background: color-mix(in oklab, var(--bg) 50%, transparent);
     z-index: 40;
   }
   .sp-threadspanel {
@@ -1664,8 +1660,8 @@
     right: 0;
     bottom: 0;
     width: 320px;
-    background: var(--panel);
-    border-left: 1px solid rgba(214, 182, 94, 0.15);
+    background: var(--menu-bg);
+    border-left: 1px solid var(--line1);
     padding: 26px;
     z-index: 41;
     display: flex;

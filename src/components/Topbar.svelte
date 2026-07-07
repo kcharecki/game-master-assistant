@@ -140,9 +140,9 @@
     display: inline-flex;
     gap: 2px;
     padding: 2px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
   }
   .sysbtn {
     padding: 4px 10px;
@@ -160,7 +160,7 @@
     color: var(--txt);
   }
   .sysbtn.on {
-    background: rgba(47, 138, 102, 0.22);
+    background: var(--fill-g22);
     color: var(--txt);
   }
   .layouts {
@@ -176,9 +176,9 @@
     flex-direction: column;
     gap: 2px;
     padding: 8px;
-    border-radius: 12px;
+    border-radius: var(--r4);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.98);
+    background: var(--menu-bg);
     box-shadow: 0 16px 44px -16px rgba(0, 0, 0, 0.9);
   }
   .lhead {
@@ -202,14 +202,14 @@
     text-align: left;
     padding: 7px 8px;
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--r2);
     background: transparent;
     color: var(--txt);
     cursor: pointer;
     font-size: 13px;
   }
   .lname:hover {
-    background: rgba(47, 138, 102, 0.16);
+    background: var(--fill-g14);
   }
   .ldel {
     border: 0;
@@ -232,17 +232,17 @@
     flex: 1;
     min-width: 0;
     padding: 6px 8px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;
   }
   .lsavebtn {
     border: 1px solid var(--line2);
-    border-radius: 8px;
-    background: rgba(47, 138, 102, 0.18);
+    border-radius: var(--r2);
+    background: var(--fill-g14);
     color: var(--txt);
     cursor: pointer;
     font-size: 12px;

@@ -230,13 +230,13 @@
     align-items: center;
     gap: 8px;
     padding: 5px 12px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
   }
   .nbe-find:focus-within {
     border-color: var(--gold);
-    box-shadow: 0 0 0 1px rgba(214, 182, 94, 0.25);
+    box-shadow: 0 0 0 1px var(--fill-gold);
   }
   .nbe-mag {
     color: var(--muted);
@@ -257,9 +257,9 @@
   }
   .nbe-fchip {
     padding: 2px 8px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--gold);
-    background: rgba(214, 182, 94, 0.14);
+    background: var(--fill-gold);
     color: var(--gold);
     font: inherit;
     font-size: 11px;
@@ -306,14 +306,14 @@
     padding: 7px 10px;
     border: 1px solid transparent;
     border-left: 2px solid transparent;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.16);
+    border-radius: var(--r2);
+    background: var(--fill-g08);
     color: var(--txt);
     font: inherit;
     cursor: pointer;
   }
   .nbe-row:hover {
-    border-color: var(--line);
+    border-color: var(--line1);
   }
   .nbe-row.pinned {
     border-left-color: var(--gold);
@@ -321,7 +321,7 @@
   .nbe-row.active {
     border-color: var(--gold);
     border-left-color: var(--gold);
-    background: rgba(214, 182, 94, 0.08);
+    background: var(--fill-gold);
   }
   .nbe-rbody {
     flex: 1;
@@ -366,9 +366,9 @@
   }
   .nbe-card {
     border: 1px solid var(--line2);
-    border-radius: 10px;
+    border-radius: var(--r3);
     padding: 12px;
-    background: rgba(0, 0, 0, 0.18);
+    background: var(--surface1);
   }
   .nbe-chdr {
     font-size: 9px;
@@ -413,9 +413,9 @@
   .nbe-chip {
     flex: 0 0 auto;
     padding: 3px 8px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
-    background: var(--panel2);
+    background: var(--surface2);
     color: var(--muted);
     font: inherit;
     font-size: 11px;
@@ -434,9 +434,9 @@
     min-width: 0;
     padding: 3px 6px;
     font-size: 11px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font-family: inherit;
   }
@@ -445,9 +445,9 @@
     max-width: 92px;
     padding: 3px 4px;
     font-size: 11px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--muted);
     font-family: inherit;
   }
@@ -471,9 +471,9 @@
   }
   .nbe-btn {
     padding: 8px 14px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--green-dim);
-    background: var(--panel2);
+    background: var(--surface2);
     color: var(--green);
     font: inherit;
     cursor: pointer;
@@ -487,7 +487,7 @@
     font-size: 12px;
   }
   .nbe-btn.sm.solid {
-    background: rgba(47, 138, 102, 0.2);
+    background: var(--fill-g22);
   }
   .nbe-btn.sm.ghost {
     color: var(--muted);

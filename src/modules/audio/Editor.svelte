@@ -337,7 +337,7 @@
     font-size: 11px;
     letter-spacing: 0.1em;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--line1);
   }
   .aude-dot {
     width: 9px;
@@ -347,8 +347,8 @@
     box-shadow: 0 0 7px var(--gold);
   }
   .aude-top.closed .aude-dot {
-    background: #ff6b6b;
-    box-shadow: 0 0 7px #ff6b6b;
+    background: var(--red);
+    box-shadow: 0 0 7px var(--red);
   }
   .aude-top.idle .aude-dot {
     background: var(--faint);
@@ -367,10 +367,10 @@
   }
   .aude-panic {
     padding: 5px 12px;
-    border-radius: 7px;
-    border: 1px solid rgba(255, 90, 90, 0.55);
-    background: rgba(255, 90, 90, 0.08);
-    color: #ff9d9d;
+    border-radius: var(--r2);
+    border: 1px solid var(--red-dim);
+    background: var(--fill-red);
+    color: var(--red);
     cursor: pointer;
     font: inherit;
     font-size: 11px;
@@ -378,8 +378,8 @@
     font-weight: 700;
   }
   .aude-panic:hover {
-    background: rgba(255, 90, 90, 0.16);
-    border-color: #ff6b6b;
+    background: var(--fill-red);
+    border-color: var(--red);
   }
   /* ── grid ── */
   .aude-grid {
@@ -417,10 +417,10 @@
   }
   .aude-mini {
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--muted);
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: var(--r2);
     width: 24px;
     height: 24px;
     display: flex;
@@ -443,9 +443,9 @@
     flex-direction: column;
     gap: 10px;
     padding: 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.22);
-    border: 1px solid var(--line);
+    border-radius: var(--r3);
+    background: var(--bg1);
+    border: 1px solid var(--line1);
   }
   .aude-scenes {
     list-style: none;
@@ -456,18 +456,18 @@
     gap: 6px;
   }
   .aude-scard {
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid transparent;
     border-left: 3px solid transparent;
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
   }
   .aude-scard.on {
     border-color: var(--line2);
-    background: rgba(214, 182, 94, 0.08);
+    background: var(--fill-gold);
   }
   .aude-scard.live {
     border-left-color: var(--gold);
-    background: rgba(214, 182, 94, 0.12);
+    background: var(--fill-gold);
   }
   .aude-spick {
     width: 100%;
@@ -509,9 +509,9 @@
     flex-direction: column;
     gap: 6px;
     padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--r2);
+    border: 1px solid var(--line1);
+    background: var(--bg1);
   }
   .aude-svol input[type='range'] {
     accent-color: var(--gold);
@@ -532,14 +532,14 @@
   .aude-avatar {
     width: 52px;
     height: 52px;
-    border-radius: 10px;
+    border-radius: var(--r3);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--serif);
     font-size: 26px;
     color: var(--green);
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     border: 1px solid var(--green-dim);
   }
   .aude-hinfo {
@@ -587,14 +587,14 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--line);
+    border-radius: var(--r3);
+    background: var(--bg1);
+    border: 1px solid var(--line1);
     flex-wrap: wrap;
   }
   .aude-ic {
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     width: 34px;
@@ -622,11 +622,11 @@
   }
   .aude-ic.sm:hover {
     color: var(--gold);
-    background: rgba(214, 182, 94, 0.12);
+    background: var(--fill-gold);
   }
   .aude-ic.del:hover {
-    color: #ff6b6b;
-    background: rgba(255, 90, 90, 0.12);
+    color: var(--red);
+    background: var(--fill-red);
   }
   .aude-ic.sm.star {
     font-size: 14px;
@@ -640,12 +640,12 @@
     border-radius: 50%;
     border: 0;
     background: var(--gold);
-    color: #1a1204;
+    color: var(--gold-ink);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 14px rgba(214, 182, 94, 0.3);
+    box-shadow: 0 0 14px var(--fill-gold);
   }
   .aude-play:hover:not(:disabled) {
     filter: brightness(1.08);
@@ -670,9 +670,9 @@
   }
   .aude-tbtn {
     padding: 6px 10px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--muted);
     cursor: pointer;
     font: inherit;
@@ -700,14 +700,14 @@
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.22);
+    border-radius: var(--r2);
+    background: var(--bg1);
     border: 1px solid transparent;
     border-left: 3px solid transparent;
   }
   .aude-tracks li.playing {
     border-left-color: var(--gold);
-    background: rgba(214, 182, 94, 0.1);
+    background: var(--fill-gold);
   }
   .aude-tracks li.drag {
     opacity: 0.5;
@@ -739,14 +739,14 @@
     font-family: ui-monospace, monospace;
     font-size: 9px;
     padding: 2px 5px;
-    border-radius: 4px;
-    background: rgba(95, 150, 120, 0.18);
+    border-radius: var(--r1);
+    background: var(--line1);
     color: var(--muted);
     letter-spacing: 0.05em;
   }
   .aude-badge.yt {
-    background: rgba(255, 90, 90, 0.18);
-    color: #ff9d9d;
+    background: var(--fill-red);
+    color: var(--red);
   }
   .aude-dur {
     color: var(--faint);
@@ -769,7 +769,7 @@
     flex-wrap: wrap;
     padding: 10px 12px;
     border: 1px dashed var(--line2);
-    border-radius: 8px;
+    border-radius: var(--r2);
     color: var(--faint);
     font-size: 11px;
   }
@@ -789,9 +789,9 @@
     display: flex;
     flex-direction: column;
     padding: 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.22);
-    border: 1px solid var(--line);
+    border-radius: var(--r3);
+    background: var(--bg1);
+    border: 1px solid var(--line1);
   }
   .aude-grouplbl {
     font-family: ui-monospace, monospace;
@@ -812,13 +812,13 @@
     flex-direction: column;
     gap: 5px;
     padding: 7px 8px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--r2);
+    background: var(--bg1);
     border: 1px solid var(--line2);
   }
   .aude-tile.pinned {
-    border-color: rgba(214, 182, 94, 0.4);
-    background: rgba(214, 182, 94, 0.06);
+    border-color: var(--gold);
+    background: var(--fill-gold);
   }
   .aude-tilehd {
     display: flex;
@@ -873,9 +873,9 @@
     width: 54px;
     flex: none;
     padding: 3px 5px;
-    border-radius: 5px;
+    border-radius: var(--r1);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 10px;
@@ -883,10 +883,10 @@
   .aude-alias {
     width: 100%;
     padding: 3px 6px;
-    border-radius: 5px;
+    border-radius: var(--r1);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
-    color: var(--gold);
+    background: var(--bg1);
+    color: var(--green);
     font: inherit;
     font-size: 11px;
   }
@@ -909,9 +909,9 @@
     flex-direction: column;
     gap: 7px;
     padding: 10px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--line);
+    border-radius: var(--r2);
+    background: var(--bg1);
+    border: 1px solid var(--line1);
   }
   .aude-fader {
     display: grid;
@@ -939,17 +939,17 @@
     flex: 1;
     min-width: 0;
     padding: 5px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 13px;
   }
   .aude-btn {
     border: 1px solid var(--line2);
-    border-radius: 7px;
-    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--r2);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
@@ -966,9 +966,9 @@
     cursor: default;
   }
   .aude-btn.rec {
-    border-color: #ff6b6b;
-    color: #ff9d9d;
-    background: rgba(255, 90, 90, 0.12);
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--fill-red);
   }
   .aude-btn.del {
     align-self: flex-start;
@@ -976,7 +976,7 @@
     color: var(--muted);
   }
   .aude-btn.del:hover:not(:disabled) {
-    color: #ff6b6b;
-    border-color: #ff6b6b;
+    color: var(--red);
+    border-color: var(--red);
   }
 </style>

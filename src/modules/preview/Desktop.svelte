@@ -26,9 +26,9 @@
     position: relative;
     width: 100%;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: #05090a;
+    background: var(--bg);
   }
   .pvframe {
     position: absolute;
@@ -46,10 +46,10 @@
     font-size: 9px;
     letter-spacing: 0.14em;
     font-weight: 700;
-    color: #ff6b6b;
-    background: rgba(9, 16, 13, 0.7);
+    color: var(--gold);
+    background: var(--menu-bg);
     padding: 1px 6px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     pointer-events: none;
   }
 </style>

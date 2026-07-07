@@ -141,11 +141,11 @@
     z-index: 10000;
     max-height: 70vh;
     overflow-y: auto;
-    border-radius: 12px;
+    border-radius: var(--r4);
     animation: peekin 0.12s ease-out;
   }
   .peek.pinned {
-    box-shadow: 0 0 0 1px var(--gold, #c7a44e), 0 14px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 0 1px var(--focus), 0 14px 40px rgba(0, 0, 0, 0.6);
   }
   @keyframes peekin {
     from {
@@ -161,17 +161,18 @@
     align-items: center;
     gap: 4px;
     padding: 4px 6px;
-    background: rgba(9, 16, 13, 0.92);
-    border: 1px solid var(--line);
+    background: var(--menu-bg);
+    border: 1px solid var(--line1);
     border-bottom: 0;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--r4) var(--r4) 0 0;
   }
   .gmtag {
     flex: 1;
-    font-size: 9px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
-    color: #d98c7a;
+    color: var(--red);
   }
   .peekbtn {
     display: grid;
@@ -179,18 +180,18 @@
     width: 22px;
     height: 20px;
     border: 1px solid var(--line2);
-    border-radius: 5px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
   }
   .peekbtn:hover {
     color: var(--txt);
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .peekbtn.on {
-    color: var(--gold, #c7a44e);
-    border-color: var(--gold, #c7a44e);
-    background: rgba(199, 164, 78, 0.18);
+    color: var(--green);
+    border-color: var(--green-dim);
+    background: var(--fill-g14);
   }
 </style>

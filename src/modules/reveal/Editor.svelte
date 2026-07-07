@@ -158,7 +158,7 @@
   .ehead h2 {
     font-family: Georgia, serif;
     font-size: 22px;
-    color: #e9f3ed;
+    color: var(--txt);
   }
   .seg button {
     padding: 7px 14px;
@@ -168,22 +168,22 @@
     cursor: pointer;
   }
   .seg button:first-child {
-    border-radius: 8px 0 0 8px;
+    border-radius: var(--r2) 0 0 var(--r2);
   }
   .seg button:last-child {
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 var(--r2) var(--r2) 0;
     border-left: 0;
   }
   .seg button.on {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     color: var(--txt);
   }
   .in {
     width: 100%;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
   }
@@ -208,7 +208,7 @@
   }
   .moodbtn {
     padding: 5px 10px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
     background: transparent;
     color: var(--muted);
@@ -217,7 +217,7 @@
     font-size: 12px;
   }
   .moodbtn.on {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     color: var(--txt);
     border-color: var(--green-dim);
   }
@@ -228,18 +228,18 @@
     gap: 10px;
     padding: 18px;
     border: 1px dashed var(--line2);
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.18);
+    border-radius: var(--r3);
+    background: var(--bg1);
     text-align: center;
   }
   .drop.over {
     border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.12);
+    background: var(--fill-g14);
   }
   .thumb {
     max-width: 100%;
     max-height: 160px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
   }
   .btn.sm {

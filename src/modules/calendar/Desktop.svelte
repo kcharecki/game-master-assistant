@@ -209,13 +209,14 @@
     border-bottom: 1px solid var(--line);
   }
   .date {
-    font-family: Georgia, serif;
+    font-family: var(--num);
+    font-variant-numeric: tabular-nums;
     font-size: 18px;
-    color: #e9f3ed;
+    color: var(--txt);
   }
   .moon {
     margin-top: 2px;
-    color: var(--gold);
+    color: var(--green);
     font-size: 12px;
   }
   .glyph {
@@ -223,9 +224,9 @@
     font-size: 14px;
   }
   .clock {
-    font-family: Georgia, serif;
+    font-family: var(--num);
     font-size: 28px;
-    color: var(--green, #5fbf8f);
+    color: var(--green);
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
@@ -252,9 +253,9 @@
   .in {
     box-sizing: border-box;
     padding: 5px 7px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;
@@ -284,14 +285,14 @@
   .btn.sm {
     padding: 4px 8px;
     font-size: 12px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.8);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
   }
   .btn.sm:hover {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .timeline {
     flex: 1;
@@ -303,11 +304,11 @@
     display: flex;
     gap: 8px;
     padding: 3px 2px;
-    border-bottom: 1px solid rgba(95, 150, 120, 0.08);
+    border-bottom: 1px solid var(--line1);
   }
   .hrow.current {
     position: relative;
-    background: rgba(47, 138, 102, 0.14);
+    background: var(--fill-g14);
   }
   .hrow.current::before {
     content: '';
@@ -316,19 +317,19 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: var(--green, #5fbf8f);
-    box-shadow: 0 0 6px var(--green, #5fbf8f);
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
     animation: beam 1.8s ease-in-out infinite;
   }
   @keyframes beam {
     0%,
     100% {
       opacity: 0.45;
-      box-shadow: 0 0 4px var(--green, #5fbf8f);
+      box-shadow: 0 0 4px var(--green);
     }
     50% {
       opacity: 1;
-      box-shadow: 0 0 10px var(--green, #5fbf8f), 0 0 16px rgba(57, 217, 138, 0.5);
+      box-shadow: 0 0 10px var(--green), 0 0 16px var(--fill-g22);
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -361,10 +362,10 @@
     width: 46px;
     box-sizing: border-box;
     padding: 4px 5px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
-    color: var(--gold, #c7a44e);
+    background: var(--bg1);
+    color: var(--green);
     font: inherit;
     font-size: 11px;
     text-align: center;
@@ -374,9 +375,9 @@
     flex: 1;
     min-width: 0;
     padding: 4px 6px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
     font-size: 12px;
@@ -387,14 +388,14 @@
     height: 18px;
     padding: 0;
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
   }
   .evx:hover {
-    background: #8a3b34;
-    color: #fff;
+    background: var(--fill-red);
+    color: var(--ink);
   }
   .addhr {
     align-self: flex-start;
@@ -402,14 +403,14 @@
     height: 18px;
     padding: 0;
     border: 1px solid var(--line2);
-    border-radius: 4px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
     font-size: 11px;
   }
   .addhr:hover {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
     color: var(--txt);
   }
   .upcoming {

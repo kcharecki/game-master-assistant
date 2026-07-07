@@ -1002,8 +1002,8 @@
     align-items: center;
     gap: 14px;
     padding: 6px 12px;
-    border-radius: 8px 8px 0 0;
-    background: rgba(9, 16, 13, 0.92);
+    border-radius: var(--r2) var(--r2) 0 0;
+    background: var(--bg1);
     border: 1px solid var(--line2);
   }
   .st-wm {
@@ -1017,14 +1017,14 @@
     display: flex;
     gap: 3px;
     padding: 3px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(20, 28, 22, 0.5);
+    background: var(--surface2);
   }
   .st-mode {
     padding: 5px 16px;
     border: 0;
-    border-radius: 5px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
@@ -1034,8 +1034,9 @@
     letter-spacing: 0.1em;
   }
   .st-mode.on {
-    background: var(--gold);
-    color: #120d02;
+    /* segmented-control selection, not on-air: green per gold-rule */
+    background: var(--green-dim);
+    color: var(--ink);
   }
   .st-sess {
     font-family: var(--serif);
@@ -1059,8 +1060,9 @@
     padding: 0;
   }
   .st-moodchip.on {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 2px rgba(199, 164, 78, 0.4);
+    /* mood preset selection, not on-air: green per gold-rule */
+    border-color: var(--focus);
+    box-shadow: 0 0 0 2px var(--fill-g22);
   }
   .st-topright {
     margin-left: auto;
@@ -1144,8 +1146,8 @@
     gap: 7px;
     padding: 5px 7px;
     border: 1px solid var(--line2);
-    border-radius: 6px;
-    background: rgba(20, 28, 22, 0.5);
+    border-radius: var(--r2);
+    background: var(--surface2);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
@@ -1191,9 +1193,10 @@
     color: var(--red);
   }
   .st-add {
+    /* decorative action accent, not on-air: green per gold-rule */
     border: 0;
     background: transparent;
-    color: var(--gold);
+    color: var(--green);
     cursor: pointer;
     font: inherit;
     font-size: 11px;
@@ -1206,15 +1209,16 @@
     cursor: default;
   }
   .st-inline {
+    /* active inline-edit field, not on-air: focus-green border per gold-rule */
     box-sizing: border-box;
     width: 100%;
     padding: 6px 8px;
     font: inherit;
     font-size: 11px;
-    background: #11160f;
+    background: var(--bg1);
     color: var(--txt);
-    border: 1px solid var(--gold);
-    border-radius: 6px;
+    border: 1px solid var(--focus);
+    border-radius: var(--r2);
   }
   .st-inline::placeholder {
     color: var(--faint);
@@ -1232,8 +1236,8 @@
     gap: 8px;
     padding: 7px 9px;
     border: 1px solid var(--line2);
-    border-radius: 6px;
-    background: rgba(20, 28, 22, 0.5);
+    border-radius: var(--r2);
+    background: var(--surface2);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
@@ -1244,8 +1248,9 @@
     border-color: var(--green-dim);
   }
   .st-var.on {
-    border-color: var(--gold);
-    background: rgba(199, 164, 78, 0.12);
+    /* variant selection (PLAN-time, not on-air): green per gold-rule */
+    border-color: var(--focus);
+    background: var(--fill-g14);
   }
   .st-varrow {
     display: flex;
@@ -1253,8 +1258,8 @@
     gap: 4px;
   }
   .st-varrow.on .st-var {
-    border-color: var(--gold);
-    background: rgba(199, 164, 78, 0.12);
+    border-color: var(--focus);
+    background: var(--fill-g14);
   }
   .st-var.grow {
     flex: 1;
@@ -1265,7 +1270,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--gold);
+    background: var(--green);
   }
   .st-vdot.off {
     background: transparent;
@@ -1289,10 +1294,10 @@
     padding: 5px 7px;
     font: inherit;
     font-size: 11px;
-    background: #11160f;
+    background: var(--bg1);
     color: var(--txt);
-    border: 1px solid var(--gold);
-    border-radius: 6px;
+    border: 1px solid var(--focus);
+    border-radius: var(--r2);
   }
   .st-vedit.grow {
     flex: 1;
@@ -1304,8 +1309,8 @@
     gap: 4px;
     padding: 7px 8px;
     border: 1px solid var(--line2);
-    border-radius: 6px;
-    background: rgba(20, 28, 22, 0.4);
+    border-radius: var(--r2);
+    background: var(--surface2);
   }
   .st-forkhd {
     display: flex;
@@ -1313,10 +1318,11 @@
     gap: 6px;
   }
   .st-forklbl {
+    /* decorative label, not on-air: green per gold-rule */
     flex: 1;
     min-width: 0;
     font-size: 11px;
-    color: var(--gold);
+    color: var(--green);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1328,17 +1334,18 @@
     padding: 4px 6px;
     font: inherit;
     font-size: 10px;
-    border-radius: 5px;
+    border-radius: var(--r1);
     border: 1px solid var(--line2);
-    background: #11160f;
+    background: var(--bg1);
     color: var(--muted);
   }
   .st-safety {
+    /* player-safety callout: kept gold (ambiguous, not a selection state; see receipt) */
     margin-top: auto;
     padding: 10px;
-    border: 1px solid rgba(199, 164, 78, 0.3);
-    border-radius: 7px;
-    background: rgba(199, 164, 78, 0.07);
+    border: 1px solid var(--edge-gold);
+    border-radius: var(--r2);
+    background: var(--fill-gold);
   }
   .st-safelbl {
     font-size: 9px;
@@ -1409,17 +1416,17 @@
     gap: 8px;
   }
   .st-prevlbl {
-    color: #9fd8b7;
+    color: var(--green);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .st-vcycle {
     margin-left: auto;
-    border: 1px solid rgba(159, 216, 183, 0.5);
-    border-radius: 5px;
-    background: rgba(159, 216, 183, 0.08);
-    color: #9fd8b7;
+    border: 1px solid var(--green-dim);
+    border-radius: var(--r1);
+    background: var(--fill-g08);
+    color: var(--green);
     cursor: pointer;
     font: inherit;
     font-size: 10px;
@@ -1439,16 +1446,18 @@
     max-height: 100%;
     display: grid;
     gap: 0;
-    border-radius: 5px;
+    border-radius: var(--r1);
     overflow: hidden;
-    background: #0c1310;
+    background: var(--bg1);
   }
   .st-frame.air .st-mini {
+    /* genuinely on-air (AIR frame): keep gold */
     border: 2px solid var(--gold);
-    box-shadow: 0 0 26px rgba(199, 164, 78, 0.16);
+    box-shadow: 0 0 26px var(--fill-gold);
   }
   .st-frame.prev .st-mini {
-    border: 1.5px solid rgba(159, 216, 183, 0.55);
+    /* preview/armed frame, not on-air: green per gold-rule */
+    border: 1.5px solid var(--green-dim);
   }
   .st-miniempty {
     position: absolute;
@@ -1472,18 +1481,19 @@
     gap: 14px;
   }
   .st-take {
+    /* genuinely on-air action (TAKE pushes to broadcast): keep gold */
     width: 100px;
     height: 100px;
     border-radius: 50%;
     border: 0;
-    background: radial-gradient(circle at 38% 30%, #eec87e, var(--gold) 58%, #8f7135);
-    color: #161006;
+    background: radial-gradient(circle at 38% 30%, var(--gold-hi), var(--gold) 58%, #8f7135);
+    color: var(--gold-ink);
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 30px rgba(199, 164, 78, 0.3);
+    box-shadow: 0 10px 30px var(--fill-gold);
   }
   .st-take:disabled {
     opacity: 0.4;
@@ -1514,9 +1524,9 @@
   .st-toggle {
     width: 38px;
     height: 20px;
-    border-radius: 10px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
-    background: rgba(20, 28, 22, 0.6);
+    background: var(--surface3);
     cursor: pointer;
     padding: 0;
     position: relative;
@@ -1532,8 +1542,9 @@
     transition: transform 0.12s;
   }
   .st-toggle.on {
+    /* live-edit-to-air toggle: on-air-adjacent, keep gold */
     border-color: var(--gold);
-    background: rgba(199, 164, 78, 0.25);
+    background: rgba(214, 182, 94, 0.25);
   }
   .st-toggle.on i {
     transform: translateX(17px);
@@ -1548,7 +1559,7 @@
 
   /* rundown */
   .st-rundown {
-    border-top: 1px solid rgba(199, 164, 78, 0.18);
+    border-top: 1px solid var(--fill-gold);
     padding: 10px 6px 4px;
   }
   .st-rhd {
@@ -1571,10 +1582,11 @@
     white-space: nowrap;
   }
   .st-radd {
+    /* decorative action accent, not on-air: green per gold-rule */
     margin-left: auto;
     border: 0;
     background: transparent;
-    color: var(--gold);
+    color: var(--green);
     cursor: pointer;
     font: inherit;
     font-size: 11px;
@@ -1599,13 +1611,14 @@
     gap: 5px;
   }
   .st-beatwrap.dropbefore::before {
+    /* drag drop-target indicator, not on-air: green per gold-rule */
     content: '';
     position: absolute;
     left: -6px;
     top: 0;
     bottom: 0;
     width: 2px;
-    background: var(--gold);
+    background: var(--green);
     border-radius: 1px;
   }
   .st-beat {
@@ -1618,13 +1631,14 @@
     padding: 8px 10px;
     box-sizing: border-box;
     border: 1px solid var(--line2);
-    border-radius: 7px;
-    background: rgba(20, 28, 22, 0.5);
+    border-radius: var(--r2);
+    background: var(--surface2);
     cursor: grab;
   }
   .st-beat.cur {
-    border-color: var(--gold);
-    background: rgba(199, 164, 78, 0.12);
+    /* cursor beat (PLAN-time selection, not on-air): green per gold-rule */
+    border-color: var(--focus);
+    background: var(--fill-g14);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   }
   .st-runbeat {
@@ -1636,8 +1650,8 @@
     padding: 7px 9px;
     box-sizing: border-box;
     border: 1px solid var(--line2);
-    border-radius: 6px;
-    background: rgba(20, 28, 22, 0.4);
+    border-radius: var(--r2);
+    background: var(--surface2);
     color: var(--txt);
     cursor: pointer;
     text-align: left;
@@ -1646,12 +1660,14 @@
     border-color: var(--green-dim);
   }
   .st-runbeat.aired {
+    /* genuinely on-air (this beat is currently aired): keep gold */
     border-color: var(--gold);
-    background: rgba(199, 164, 78, 0.14);
-    box-shadow: 0 0 18px rgba(199, 164, 78, 0.16);
+    background: var(--fill-gold);
+    box-shadow: 0 0 18px var(--fill-gold);
   }
   .st-runbeat.armed {
-    border-color: #9fd8b7;
+    /* armed/next beat, not yet on-air: dashed green per gold-rule */
+    border-color: var(--green);
     border-style: dashed;
   }
   .st-brow {
@@ -1669,14 +1685,16 @@
     color: var(--muted);
   }
   .st-bvar {
+    /* decorative badge, not on-air: green per gold-rule */
     margin-left: auto;
     font-size: 8.5px;
-    color: var(--gold);
+    color: var(--green);
   }
   .st-barmed {
+    /* armed/next indicator, not on-air: green per gold-rule */
     margin-left: auto;
     font-size: 8px;
-    color: #9fd8b7;
+    color: var(--green);
     letter-spacing: 0.08em;
   }
   .st-bname {
@@ -1688,15 +1706,16 @@
     white-space: nowrap;
   }
   .st-bedit {
+    /* active inline-edit field, not on-air: focus-green per gold-rule */
     width: 100%;
     box-sizing: border-box;
     padding: 2px 5px;
     font: inherit;
     font-size: 12px;
-    background: #11160f;
+    background: var(--bg1);
     color: var(--txt);
-    border: 1px solid var(--gold);
-    border-radius: 4px;
+    border: 1px solid var(--focus);
+    border-radius: var(--r1);
   }
   .st-bmini {
     display: flex;
@@ -1719,19 +1738,19 @@
     width: 18px;
     height: 18px;
     border: 0;
-    border-radius: 3px;
-    background: rgba(5, 9, 10, 0.6);
+    border-radius: var(--r1);
+    background: var(--bg1);
     color: var(--muted);
     cursor: pointer;
     font-size: 10px;
     line-height: 1;
   }
   .st-baction:hover:not(:disabled) {
-    background: rgba(47, 138, 102, 0.3);
+    background: var(--fill-g22);
     color: var(--txt);
   }
   .st-baction.danger:hover:not(:disabled) {
-    background: #8a3b34;
+    background: var(--fill-red);
     color: #fff;
   }
   .st-baction:disabled {
@@ -1746,8 +1765,8 @@
   }
   .st-forkchip {
     border: 1px solid var(--line2);
-    border-radius: 4px;
-    background: rgba(20, 28, 22, 0.5);
+    border-radius: var(--r1);
+    background: var(--surface2);
     color: var(--muted);
     cursor: pointer;
     font: inherit;
@@ -1759,13 +1778,15 @@
     white-space: nowrap;
   }
   .st-forkchip:hover:not(:disabled) {
-    border-color: #9fd8b7;
-    color: #9fd8b7;
+    /* armed-target hover, not on-air: green per gold-rule */
+    border-color: var(--green);
+    color: var(--green);
   }
   .st-forkchip.armed {
-    border-color: #9fd8b7;
-    color: #9fd8b7;
-    background: rgba(159, 216, 183, 0.1);
+    /* fork is the armed target, not on-air: green per gold-rule */
+    border-color: var(--green);
+    color: var(--green);
+    background: var(--fill-g14);
   }
   .st-forkchip:disabled {
     opacity: 0.4;
@@ -1776,7 +1797,7 @@
     width: 132px;
     align-self: stretch;
     border: 1px dashed var(--line2);
-    border-radius: 7px;
+    border-radius: var(--r2);
     background: transparent;
     color: var(--green-dim);
     cursor: pointer;
@@ -1794,13 +1815,14 @@
     gap: 5px;
   }
   .onair {
+    /* genuinely the on-air control cluster: keep gold */
     display: flex;
     align-items: center;
     gap: 5px;
     padding: 4px 7px;
     border: 1px solid var(--gold);
-    border-radius: 8px;
-    background: rgba(199, 164, 78, 0.06);
+    border-radius: var(--r2);
+    background: rgba(214, 182, 94, 0.06);
   }
   .oalbl {
     font-size: 9px;
@@ -1811,14 +1833,14 @@
   .btn {
     padding: 5px 10px;
     font-size: 12px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.8);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
   }
   .btn:hover:not(:disabled) {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .btn:disabled {
     opacity: 0.4;
@@ -1833,15 +1855,16 @@
     font-weight: 600;
   }
   .btn.live.on {
+    /* live-edit-to-air toggle: on-air-adjacent, keep gold */
     border-color: var(--gold);
     background: var(--gold);
-    color: #120d02;
+    color: var(--gold-ink);
     font-weight: 700;
   }
   .btn.panic:hover {
-    border-color: var(--red, #d05a52);
-    color: var(--red, #ffb4ad);
-    background: rgba(180, 60, 52, 0.18);
+    border-color: var(--red-dim);
+    color: var(--red);
+    background: var(--fill-red);
   }
   .btn.sm {
     padding: 4px 8px;
@@ -1854,25 +1877,26 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.8);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     font-size: 13px;
     line-height: 1;
   }
   .ico:hover:not(:disabled) {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .ico:disabled {
     opacity: 0.4;
     cursor: default;
   }
   .ico.on {
-    border-color: var(--gold);
-    color: var(--gold);
-    background: rgba(199, 164, 78, 0.16);
+    /* menu-open toggle state, not on-air: green per gold-rule */
+    border-color: var(--focus);
+    color: var(--green);
+    background: var(--fill-g14);
   }
   .ico.laser {
     border-color: #ff5a5a;
@@ -1898,9 +1922,9 @@
     flex-direction: column;
     gap: 2px;
     padding: 4px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: #0c130f;
+    background: var(--menu-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
   .menu.right {
@@ -1932,11 +1956,12 @@
     white-space: nowrap;
   }
   .mitem:hover:not(:disabled) {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .mitem.sel {
-    color: var(--gold);
-    background: rgba(199, 164, 78, 0.14);
+    /* selected menu item (mood/display pick, not on-air): green per gold-rule */
+    color: var(--green);
+    background: var(--fill-g14);
   }
   .chips {
     display: flex;
@@ -1949,8 +1974,8 @@
     gap: 6px;
     padding: 3px 5px;
     border: 1px solid var(--line2);
-    border-radius: 6px;
-    background: rgba(20, 28, 22, 0.5);
+    border-radius: var(--r2);
+    background: var(--surface2);
     color: var(--txt);
     cursor: grab;
     font: inherit;
@@ -1965,7 +1990,7 @@
     flex: 0 0 auto;
     width: 22px;
     height: 22px;
-    border-radius: 4px;
+    border-radius: var(--r1);
     object-fit: cover;
     display: grid;
     place-items: center;
@@ -1992,9 +2017,9 @@
     max-height: 100%;
     display: grid;
     gap: 0;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background-color: #0e140f;
+    background-color: var(--bg1);
     background-image: radial-gradient(rgba(214, 182, 94, 0.13) 1px, transparent 1.6px);
     background-size: calc(100% / 12) calc(100% / 8);
     background-position: calc(100% / 24) calc(100% / 16);
@@ -2003,11 +2028,12 @@
   }
   .board.over {
     border-color: var(--green);
-    box-shadow: inset 0 0 0 2px rgba(47, 138, 102, 0.4);
+    box-shadow: inset 0 0 0 2px var(--fill-g22);
   }
   .board.variant {
-    border-color: rgba(199, 164, 78, 0.55);
-    box-shadow: inset 0 0 0 1px rgba(199, 164, 78, 0.3);
+    /* editing a variant on the board (not on-air): green per gold-rule */
+    border-color: var(--focus);
+    box-shadow: inset 0 0 0 1px var(--fill-g14);
   }
   .empty {
     position: absolute;
@@ -2024,7 +2050,7 @@
     gap: 8px;
     padding: 26px 34px;
     border: 1px dashed var(--line2);
-    border-radius: 12px;
+    border-radius: var(--r4);
     text-align: center;
   }
   .emico {
@@ -2047,9 +2073,9 @@
   }
   .emkind {
     padding: 4px 12px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
-    background: rgba(20, 28, 22, 0.5);
+    background: var(--surface2);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
@@ -2057,7 +2083,7 @@
   }
   .emkind:hover {
     border-color: var(--green-dim);
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
 
   /* tiles (shared by editable board + mini boards) */
@@ -2066,22 +2092,23 @@
     min-width: 0;
     min-height: 0;
     border: 1px solid transparent;
-    background: rgba(20, 28, 22, 0.4);
+    background: var(--surface2);
     overflow: hidden;
   }
   .tile.edit {
     cursor: move;
   }
   .tile.sel {
-    border-color: var(--gold);
+    /* selected tile (PLAN-time selection, not on-air): green per gold-rule */
+    border-color: var(--focus);
     z-index: 2;
   }
-  /* gold targeting-frame corners on the selected tile (matches the mock). */
+  /* green targeting-frame corners on the selected tile (was gold; selection, not on-air). */
   .tcorners i {
     position: absolute;
     width: 7px;
     height: 7px;
-    background: var(--gold);
+    background: var(--focus);
     z-index: 3;
     pointer-events: none;
   }
@@ -2291,15 +2318,15 @@
     display: flex;
     gap: 2px;
     padding: 3px;
-    border-radius: 8px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: #0c130f;
+    background: var(--menu-bg);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
   }
   .ab {
     padding: 4px 8px;
     border: 0;
-    border-radius: 5px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--txt);
     cursor: pointer;
@@ -2308,15 +2335,16 @@
     white-space: nowrap;
   }
   .ab:hover {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .ab.on {
-    color: var(--gold);
-    background: rgba(199, 164, 78, 0.14);
+    /* floating-bar menu-open toggle, not on-air: green per gold-rule */
+    color: var(--green);
+    background: var(--fill-g14);
   }
   .ab.danger:hover {
-    background: rgba(180, 60, 52, 0.22);
-    color: #ffb4ad;
+    background: var(--fill-red);
+    color: var(--red);
   }
   .pop {
     position: fixed;
@@ -2326,9 +2354,9 @@
     flex-direction: column;
     gap: 8px;
     padding: 10px;
-    border-radius: 10px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
-    background: #0c130f;
+    background: var(--menu-bg);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
   }
   .pophd {
@@ -2360,9 +2388,9 @@
     padding: 5px 7px;
     font: inherit;
     font-size: 12px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: #11160f;
+    background: var(--bg1);
     color: var(--txt);
   }
   .grow {
@@ -2385,13 +2413,14 @@
   }
   .seg button:first-child {
     border-left-width: 1px;
-    border-radius: 6px 0 0 6px;
+    border-radius: var(--r2) 0 0 var(--r2);
   }
   .seg button:last-child {
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 var(--r2) var(--r2) 0;
   }
   .seg button.on {
-    background: rgba(47, 138, 102, 0.18);
+    /* segmented-control selection, not on-air: already green per gold-rule */
+    background: var(--fill-g14);
     color: var(--txt);
     border-color: var(--green-dim);
   }

@@ -121,14 +121,14 @@
     font: inherit;
     font-weight: 600;
     padding: 1px 3px;
-    border-radius: 4px;
+    border-radius: var(--r1);
     width: 12ch;
     min-width: 0;
   }
   .nm-in:hover,
   .nm-in:focus {
     border-color: var(--line2);
-    background: rgba(95, 150, 120, 0.1);
+    background: var(--fill-g08);
     outline: none;
   }
   .num {
@@ -137,7 +137,7 @@
     color: inherit;
     font: inherit;
     padding: 0 2px;
-    border-radius: 4px;
+    border-radius: var(--r1);
     width: 3.2ch;
     text-align: center;
     -moz-appearance: textfield;
@@ -151,7 +151,7 @@
   .num:hover,
   .num:focus {
     border-color: var(--line2);
-    background: rgba(95, 150, 120, 0.1);
+    background: var(--fill-g08);
     outline: none;
   }
   .hp-in.low {
@@ -164,7 +164,7 @@
     width: 3.5ch;
   }
   .vague {
-    color: var(--gold);
+    color: var(--green);
     font-style: italic;
     font-size: 11px;
   }
@@ -173,11 +173,11 @@
     font-size: 10px;
   }
   .hid {
-    color: var(--gold);
+    color: var(--green);
     font-size: 10px;
   }
   .cond {
-    color: var(--gold);
+    color: var(--green);
   }
   .ord {
     display: flex;
@@ -186,7 +186,7 @@
   .ob {
     width: 20px;
     height: 20px;
-    border-radius: 5px;
+    border-radius: var(--r1);
     border: 1px solid transparent;
     background: transparent;
     color: var(--faint);
@@ -196,10 +196,10 @@
   }
   .ob:hover {
     color: var(--txt);
-    background: rgba(95, 150, 120, 0.14);
+    background: var(--fill-g14);
   }
   .ob.x:hover {
-    color: #fff;
-    background: #7a2a2a;
+    color: var(--ink);
+    background: var(--fill-red);
   }
 </style>

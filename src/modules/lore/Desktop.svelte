@@ -37,9 +37,9 @@
   }
   .pick {
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     font: inherit;
   }
@@ -54,7 +54,7 @@
     flex-wrap: wrap;
     gap: 6px;
     align-items: center;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line1);
     padding-top: 8px;
   }
   .lbl {
@@ -63,9 +63,9 @@
   }
   .chip {
     padding: 3px 8px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--line2);
-    background: var(--panel2);
+    background: var(--surface2);
     color: var(--green);
     font: inherit;
     font-size: 12px;

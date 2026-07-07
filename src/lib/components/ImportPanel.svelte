@@ -97,16 +97,16 @@
     gap: 6px;
     padding: 8px;
     border: 1px solid var(--line2);
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.22);
+    border-radius: var(--r2);
+    background: var(--bg1);
   }
   .ipta {
     width: 100%;
     box-sizing: border-box;
     padding: 8px 10px;
-    border-radius: 6px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg1);
     color: var(--txt);
     font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
     resize: vertical;
@@ -122,16 +122,16 @@
     align-items: center;
     gap: 5px;
     padding: 5px 11px;
-    border-radius: 7px;
+    border-radius: var(--r2);
     border: 1px solid var(--line2);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg1);
     color: var(--txt);
     cursor: pointer;
     font: inherit;
     font-size: 12px;
   }
   .btn:hover:not(:disabled) {
-    background: rgba(47, 138, 102, 0.16);
+    background: var(--fill-g14);
   }
   .btn:disabled {
     opacity: 0.45;
@@ -140,7 +140,7 @@
   .btn.solid {
     background: var(--green-dim);
     border-color: var(--green-dim);
-    color: #06120c;
+    color: var(--ink);
     font-weight: 700;
   }
   .ipmsg {
@@ -150,6 +150,6 @@
     color: var(--green);
   }
   .ipmsg.err {
-    color: #e6907f;
+    color: var(--red);
   }
 </style>

@@ -102,9 +102,9 @@
     max-height: 64vh;
     display: flex;
     flex-direction: column;
-    border-radius: 14px;
+    border-radius: var(--r4);
     border: 1px solid var(--line2);
-    background: rgba(9, 16, 13, 0.98);
+    background: var(--menu-bg);
     box-shadow: 0 28px 70px -20px rgba(0, 0, 0, 0.92);
     overflow: hidden;
   }
@@ -124,12 +124,12 @@
     gap: 8px;
     padding: 8px 16px;
     border-bottom: 1px solid var(--line);
-    color: var(--green, #6fd0a0);
+    color: var(--green);
     font-size: 12px;
   }
   .vk {
     border: 1px solid var(--line2);
-    border-radius: 4px;
+    border-radius: var(--r1);
     padding: 1px 6px;
     font-size: 11px;
     color: var(--muted);
@@ -151,7 +151,7 @@
     font-size: 13px;
   }
   .row.on {
-    background: rgba(47, 138, 102, 0.18);
+    background: var(--fill-g14);
   }
   .label {
     flex: 0 1 auto;
@@ -174,7 +174,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     border: 1px solid var(--line2);
-    border-radius: 6px;
+    border-radius: var(--r2);
     padding: 2px 6px;
   }
   .empty {

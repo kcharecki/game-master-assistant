@@ -505,7 +505,7 @@
     padding: 2px 7px;
     border-radius: 5px;
     background: rgba(43, 36, 26, 0.08);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line1);
     color: #241f14;
   }
   .chip b {

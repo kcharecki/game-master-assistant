@@ -641,7 +641,7 @@
             <path
               d="M {CELL} 0 L 0 0 0 {CELL}"
               fill="none"
-              stroke="rgba(95,150,120,.22)"
+              style="stroke: var(--line1)"
               stroke-width="1"
             />
           </pattern>
@@ -661,7 +661,7 @@
         {#if (payload.grid ?? 'square') === 'square'}
           <rect x={vf.x} y={vf.y} width={vf.w} height={vf.h} fill="url(#bgrid)" />
         {:else if payload.grid === 'hex'}
-          <path d={hexGridPath(cols, rows, CELL)} fill="none" stroke="rgba(95,150,120,.22)" stroke-width="1" />
+          <path d={hexGridPath(cols, rows, CELL)} fill="none" style="stroke: var(--line1)" stroke-width="1" />
         {/if}
 
         <!-- tokens (player-safe: position + label + footprint). Position is a CSS
@@ -698,7 +698,7 @@
               y={row * CELL}
               width={CELL}
               height={CELL}
-              fill="#05090a"
+              style="fill: var(--bg)"
               opacity={cell === 0 ? 1 : 0}
             />
           {/each}
@@ -878,7 +878,7 @@
     display: grid;
     place-items: center;
     padding: 6vh 6vw;
-    background: radial-gradient(120% 100% at 50% 0%, #0d1b16, #05090a 70%);
+    background: radial-gradient(120% 100% at 50% 0%, var(--surface1), var(--bg) 70%);
     color: var(--txt);
   }
   .idle {
@@ -907,7 +907,7 @@
   figure img {
     max-width: 80vw;
     max-height: 70vh;
-    border-radius: 12px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
   }
   .mapview {
@@ -919,12 +919,12 @@
   .mapview svg {
     max-width: 86vw;
     max-height: 82vh;
-    background: #0a1611;
-    border-radius: 10px;
+    background: var(--surface1);
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
   }
   .mapview .tlbl {
-    fill: #06120c;
+    fill: var(--ink);
     font-size: 11px;
     font-weight: 700;
   }
@@ -943,7 +943,7 @@
   }
   .mapview .tcond {
     fill: #eafff3;
-    stroke: #05090a;
+    stroke: var(--bg);
     stroke-width: 2.6;
     paint-order: stroke;
     stroke-linejoin: round;
@@ -1007,7 +1007,7 @@
     margin: 0;
     padding: 4px 8px;
     background: rgba(5, 9, 10, 0.6);
-    color: #e9f3ed;
+    color: var(--txt);
     font-style: normal;
     font-size: clamp(11px, 1.4vw, 18px);
   }
@@ -1020,7 +1020,7 @@
   .gcell img {
     max-width: 100%;
     max-height: 60vh;
-    border-radius: 10px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
     object-fit: contain;
   }
@@ -1103,7 +1103,7 @@
     font-size: clamp(10px, 1.2vw, 15px);
   }
   .ctime {
-    font-family: Georgia, serif;
+    font-family: var(--num);
     color: var(--green);
     font-weight: 700;
     line-height: 1;
@@ -1112,7 +1112,7 @@
     text-shadow: 0 0 26px rgba(47, 138, 102, 0.4);
   }
   .ddate {
-    font-family: Georgia, serif;
+    font-family: var(--num);
     color: var(--txt);
     font-size: clamp(18px, 3vw, 40px);
   }
@@ -1254,7 +1254,7 @@
     animation: cardin 0.55s cubic-bezier(0.2, 0.9, 0.25, 1) both;
   }
   .rlabel {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     color: var(--muted);
     font-size: clamp(16px, 2.4vw, 28px);
     letter-spacing: 0.05em;
@@ -1268,7 +1268,8 @@
     margin-bottom: 10px;
   }
   .rtotal {
-    font-family: Georgia, serif;
+    font-family: var(--num);
+    font-variant-numeric: tabular-nums;
     color: var(--green);
     font-weight: 700;
     line-height: 1;
@@ -1283,7 +1284,7 @@
   }
   .routcome {
     margin-top: 16px;
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: clamp(18px, 3vw, 40px);
@@ -1440,16 +1441,16 @@
     transform: translateX(-50%);
     z-index: 3;
     padding: 10px 18px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     border: 1px solid var(--green);
-    background: rgba(9, 16, 13, 0.92);
+    background: var(--menu-bg);
     color: var(--green);
     font: inherit;
     font-size: 14px;
     cursor: pointer;
   }
   .unlock:hover {
-    background: rgba(47, 138, 102, 0.2);
+    background: var(--fill-g22);
   }
 
   .ping {
@@ -1494,7 +1495,7 @@
 
   /* Plain mode: flat, high-contrast framing for legibility over atmosphere. */
   .broadcast.plain {
-    background: #05090a;
+    background: var(--bg);
   }
   .broadcast.plain .card h1 {
     font-family: system-ui, sans-serif;
@@ -1502,7 +1503,7 @@
   }
   .broadcast.plain figure img,
   .broadcast.plain .gcell img {
-    border-radius: 4px;
+    border-radius: var(--r1);
   }
   .broadcast.plain .gtext h2 {
     font-family: system-ui, sans-serif;
