@@ -175,16 +175,18 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 8px;
-    border-radius: var(--r4);
+    padding: 4px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
     background: var(--menu-bg);
-    box-shadow: 0 16px 44px -16px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
   }
   .lhead {
     color: var(--faint);
-    font-size: 10px;
-    letter-spacing: 0.12em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     padding: 2px 6px 6px;
   }
@@ -200,9 +202,10 @@
   .lname {
     flex: 1;
     text-align: left;
-    padding: 7px 8px;
+    height: var(--menu-item);
+    padding: 0 10px;
     border: 0;
-    border-radius: var(--r2);
+    border-radius: var(--r1);
     background: transparent;
     color: var(--txt);
     cursor: pointer;

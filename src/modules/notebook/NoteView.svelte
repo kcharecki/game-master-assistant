@@ -159,8 +159,9 @@
     min-width: 0;
     color: var(--faint);
     font-family: ui-monospace, monospace;
-    font-size: 9px;
-    letter-spacing: 0.02em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     overflow: hidden;
     text-overflow: ellipsis;

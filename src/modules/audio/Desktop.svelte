@@ -451,8 +451,9 @@
     line-height: 1;
   }
   .aud-glabel {
-    font-size: 8.5px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
   }
@@ -510,8 +511,9 @@
   /* ── captions ── */
   .aud-caplbl {
     font-family: ui-monospace, monospace;
-    font-size: 9.5px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
     margin-top: 2px;
@@ -661,8 +663,9 @@
     text-overflow: ellipsis;
   }
   .aud-ambscn {
-    font-size: 9.5px;
-    letter-spacing: 0.06em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
     font-family: ui-monospace, monospace;

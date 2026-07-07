@@ -341,8 +341,9 @@
   }
   .subj {
     font-family: var(--mono);
-    font-size: 7.5px;
-    letter-spacing: 0.16em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--ink-muted);
     margin-bottom: 2px;
@@ -405,11 +406,11 @@
   /* typewriter red section head with a ruled underline */
   .h {
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--red);
-    font-weight: 700;
+    font-weight: 600;
     padding-bottom: 3px;
     border-bottom: 1px solid var(--line2);
   }
@@ -518,9 +519,10 @@
   }
   .dk {
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10.5px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     color: var(--ink-muted);
   }
 

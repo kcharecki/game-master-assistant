@@ -102,10 +102,12 @@
     max-height: 64vh;
     display: flex;
     flex-direction: column;
-    border-radius: var(--r4);
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
     background: var(--menu-bg);
-    box-shadow: 0 28px 70px -20px rgba(0, 0, 0, 0.92);
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
+    padding: 4px;
     overflow: hidden;
   }
   .pin {
@@ -142,8 +144,10 @@
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 9px 16px;
+    height: var(--menu-item);
+    padding: 0 10px;
     border: 0;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--txt);
     cursor: pointer;

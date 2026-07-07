@@ -1115,8 +1115,9 @@
     gap: 7px;
   }
   .st-seclbl {
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
   }
@@ -1348,8 +1349,9 @@
     background: var(--fill-gold);
   }
   .st-safelbl {
-    font-size: 9px;
-    letter-spacing: 0.12em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--gold);
     margin-bottom: 4px;
@@ -1403,8 +1405,9 @@
   }
   .st-airlbl,
   .st-prevlbl {
-    font-size: 10px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
   }
   .st-airlbl {
@@ -1569,8 +1572,9 @@
     margin-bottom: 8px;
   }
   .st-rlbl {
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
   }
@@ -1922,10 +1926,11 @@
     flex-direction: column;
     gap: 2px;
     padding: 4px;
-    border-radius: var(--r2);
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
     background: var(--menu-bg);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
   }
   .menu.right {
     left: auto;
@@ -1935,17 +1940,19 @@
     min-width: 200px;
   }
   .mhdr {
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
     padding: 4px 6px 2px;
   }
   .mitem {
     text-align: left;
-    padding: 5px 8px;
+    height: var(--menu-item);
+    padding: 0 10px;
     border: 0;
-    border-radius: 5px;
+    border-radius: var(--r1);
     background: transparent;
     color: var(--txt);
     cursor: pointer;
@@ -2317,11 +2324,12 @@
     transform: translateY(-100%);
     display: flex;
     gap: 2px;
-    padding: 3px;
-    border-radius: var(--r2);
+    padding: 4px;
+    border-radius: var(--r3);
     border: 1px solid var(--line2);
     background: var(--menu-bg);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
   }
   .ab {
     padding: 4px 8px;
@@ -2353,18 +2361,21 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 10px;
+    padding: 12px;
     border-radius: var(--r3);
     border: 1px solid var(--line2);
     background: var(--menu-bg);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
   }
   .pophd {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
+    text-transform: uppercase;
     color: var(--muted);
   }
   .fld {
@@ -2377,8 +2388,9 @@
     gap: 5px;
   }
   .flbl {
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
   }

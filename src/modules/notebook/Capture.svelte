@@ -406,8 +406,9 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
   .nb-mhdr {
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
     padding: 4px 6px 2px;

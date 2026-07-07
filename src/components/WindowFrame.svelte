@@ -199,8 +199,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 10px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
   }

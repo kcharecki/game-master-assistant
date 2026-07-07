@@ -50,11 +50,11 @@
     margin-bottom: 10px;
   }
   .rnd {
-    font-size: 11px;
-    letter-spacing: 0.18em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted);
-    font-weight: 700;
+    font-weight: 600;
   }
   .in.spec {
     margin-left: auto;

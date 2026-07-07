@@ -280,10 +280,11 @@
     padding: 6px 2px 2px;
   }
   .nbe-snum {
-    font-size: 11px;
-    letter-spacing: 0.12em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--muted);
   }
   .nbe-smeta {
     font-size: 10px;
@@ -347,8 +348,9 @@
     align-self: center;
     color: var(--faint);
     font-family: ui-monospace, monospace;
-    font-size: 9px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     padding: 3px 0;
     text-transform: uppercase;
   }
@@ -372,8 +374,9 @@
     background: var(--surface1);
   }
   .nbe-chdr {
-    font-size: 9px;
-    letter-spacing: 0.16em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
     margin-bottom: 8px;

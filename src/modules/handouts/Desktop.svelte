@@ -112,8 +112,9 @@
   }
   .img {
     color: var(--muted);
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
   .edit {

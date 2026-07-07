@@ -146,8 +146,9 @@
   }
   .bhead {
     color: var(--faint);
-    font-size: 10px;
-    letter-spacing: 0.12em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     margin-bottom: 6px;
   }

@@ -395,8 +395,9 @@
   }
   .aude-cap {
     font-family: ui-monospace, monospace;
-    font-size: 9.5px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
   }
@@ -795,10 +796,11 @@
   }
   .aude-grouplbl {
     font-family: ui-monospace, monospace;
-    font-size: 9px;
-    letter-spacing: 0.16em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--muted);
     opacity: 0.8;
     margin: 10px 0 5px;
   }
@@ -898,10 +900,11 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 10px;
+    font-size: 10.5px;
+    font-weight: 600;
     color: var(--muted);
     font-family: ui-monospace, monospace;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
   .aude-mixer {

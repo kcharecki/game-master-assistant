@@ -190,8 +190,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    font-size: 9.5px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
+    color: var(--muted);
     text-transform: uppercase;
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
   }
@@ -228,11 +230,11 @@
     gap: 8px;
   }
   .pr-nowlab {
-    font-size: 9px;
-    letter-spacing: 0.2em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--green);
-    font-weight: 700;
+    font-weight: 600;
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
   }
   .pr-type {
@@ -247,8 +249,9 @@
   .pr-mins {
     margin-left: auto;
     color: var(--muted);
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
     font-variant-numeric: tabular-nums;
@@ -335,8 +338,8 @@
     cursor: default;
   }
   .pr-blabel {
-    font-size: 8.5px;
-    letter-spacing: 0.18em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--faint);
     font-weight: 600;
@@ -376,8 +379,9 @@
   .pr-cond {
     color: var(--green);
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
-    font-size: 9.5px;
-    letter-spacing: 0.06em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
@@ -419,8 +423,9 @@
     border-color: var(--green-dim);
   }
   .pr-nextlab {
-    font-size: 8px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
@@ -448,8 +453,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 8.5px;
-    letter-spacing: 0.16em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
     font-family: ui-monospace, 'IBM Plex Mono', monospace;
@@ -506,8 +512,9 @@
     text-decoration: line-through;
   }
   .pr-tmeta {
-    font-size: 8px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--faint);
     font-family: ui-monospace, 'IBM Plex Mono', monospace;

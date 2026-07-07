@@ -245,8 +245,9 @@
     flex: 0 0 84px;
   }
   .flbl {
-    font-size: 10px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
   }
@@ -419,8 +420,9 @@
     padding-top: 6px;
   }
   .uplbl {
-    font-size: 10px;
-    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--muted);
   }

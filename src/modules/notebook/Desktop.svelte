@@ -99,10 +99,11 @@
     min-height: 0;
   }
   .nbw-band {
-    font-size: 9px;
-    letter-spacing: 0.16em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--muted);
     padding: 2px 2px 0;
   }
   .nbw-notes {

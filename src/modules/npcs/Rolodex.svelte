@@ -907,8 +907,9 @@
   }
   .subjlabel {
     font-family: var(--mono);
-    font-size: 8.5px;
-    letter-spacing: 0.18em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--card-ink-muted);
     margin-bottom: 3px;
@@ -959,11 +960,11 @@
 
   .fld .k {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--card-red);
-    font-weight: 700;
+    font-weight: 600;
     margin-bottom: 6px;
     padding-bottom: 3px;
     border-bottom: 1px solid var(--card-line2);
@@ -1023,9 +1024,9 @@
   .sb .l {
     color: var(--card-ink-muted);
     text-transform: uppercase;
-    font-size: 8.5px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     line-height: 1.15;
     overflow-wrap: anywhere;
   }
@@ -1132,11 +1133,11 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 9.5px;
-    letter-spacing: 0.12em;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #9a3d3d;
-    font-weight: 800;
+    font-weight: 600;
     margin-bottom: 4px;
   }
   .secret .v {
