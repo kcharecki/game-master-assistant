@@ -24,44 +24,95 @@
   font-display: swap;
 }
 
-/* ---- Keeper design tokens (Command Deck) ---- */
+/* ---- Keeper design tokens (Command Deck) ----
+   Canonical values come from the Unified Design System brief
+   ("Design System.dc.html"). Token names below map 1:1 to the brief's roles.
+   Legacy aliases (--bg2/--panel/--panel2/--line/--line2/--r) are kept so
+   un-migrated components keep working while modules converge. */
 :root {
-  /* display serif for window titles + section headers; body stays sans */
+  /* display serif names things; sans operates; Cormorant counts numerals */
   --serif: 'IM Fell English', 'Cormorant', 'Georgia', 'Times New Roman', serif;
-  --bg: #080d0b;
-  --bg2: #0b1411;
-  --panel: #0f1815;
-  --panel2: #13201b;
-  --line: rgba(95, 150, 120, 0.18);
-  --line2: rgba(95, 150, 120, 0.32);
-  --txt: #dbeae1;
-  /* AA-contrast bumps: lighter muted/faint so they pass on the dark bg */
-  --muted: #a7bcb0;
-  --faint: #8a9d93;
-  --green: #6fd0a0;
-  --green-dim: #4fa37b;
-  --green-glow: #1f7a4f;
+  --num: 'Cormorant', 'Georgia', 'Times New Roman', serif;
+
+  /* surfaces — four levels + card-hover + floating-menu; never mix steps */
+  --bg: #070c0a; /* bg/0  app canvas & broadcast base */
+  --bg1: #0b1310; /* bg/1  rails, topbar, the one input well */
+  --surface1: #0f1714; /* window body, panels */
+  --surface2: #141e19; /* cards, tiles, raised rows */
+  --surface3: #19261f; /* hover fill on cards */
+  --menu-bg: rgba(11, 18, 15, 0.97); /* menus & popovers over blur(10px) */
+  --bg2: var(--bg1); /* legacy alias */
+  --panel: var(--surface1); /* legacy alias */
+  --panel2: var(--surface2); /* legacy alias */
+
+  /* lines — one hue, three strengths */
+  --line1: rgba(134, 178, 153, 0.14); /* hairlines, dividers, quiet borders */
+  --line2: rgba(134, 178, 153, 0.28); /* control & menu borders */
+  --line3: rgba(134, 178, 153, 0.45); /* active / selected borders */
+  --line: var(--line1); /* legacy alias */
+
+  /* text — all pass AA on surface/1 */
+  --txt: #dceae2; /* text/1 primary */
+  --muted: #a9beb2; /* text/2 muted, labels */
+  --faint: #879a90; /* text/3 faint, hints, meta */
+  --ink: #0a130e; /* text on solid green/gold fills */
+
+  /* green — the operator accent (active, selected, healthy, ours) */
+  --green: #6fd0a0; /* green/1 text, icons, live values */
+  --green-dim: #4fa37b; /* green/2 borders, solid-button top */
+  --green-glow: #1f7a4f; /* green/3 glows, washes, deep fills */
   --eye: #46e89a;
-  --red: #d97a7a;
-  --red-dim: #8a4a4a;
-  --gold: #d6b65e;
-  --focus: #7dffc0;
-  --r: 9px;
-  /* density-driven control sizing (overridden per [data-density] below) */
+  --fill-g08: rgba(111, 208, 160, 0.08); /* rest fill on tinted controls */
+  --fill-g14: rgba(111, 208, 160, 0.14); /* hover / selected menu item */
+  --fill-g22: rgba(111, 208, 160, 0.22); /* pressed fill */
+
+  /* gold — ON AIR only. if it's gold, players can see it (or are about to) */
+  --gold: #d6b65e; /* gold/1 on-air text, lamps, aired borders */
+  --gold-hi: #eec87e; /* gold/2 highlight on gold solids */
+  --gold-ink: #171106; /* text on gold solids */
+  --fill-gold: rgba(214, 182, 94, 0.12); /* aired card / lamp fill */
+  --edge-gold: rgba(214, 182, 94, 0.45); /* on-air borders */
+
+  /* danger — destruction & foes, never status */
+  --red: #e08d8d; /* red/1 danger text (bumped from #d97a7a for AA) */
+  --red-dim: #8a4a4a; /* red/2 quiet danger borders, foe rows */
+  --fill-red: #7a2a2a; /* danger hover fill */
+
+  --focus: #7dffc0; /* 2px ring; also the editing-selection border */
+
+  /* radii — 4 steps + pill (retires the 9-value scatter) */
+  --r1: 4px; /* menu items, badges, swatches */
+  --r2: 7px; /* buttons, inputs, chips, rows */
+  --r3: 10px; /* panels, cards, menus, popovers */
+  --r4: 14px; /* windows, dock */
+  --r-pill: 999px;
+  --r: var(--r3); /* legacy alias */
+
+  /* density-driven sizing (overridden per [data-density] below);
+     --field / --row / --menu-item derive from the same three densities */
   --ctrl: 30px;
   --ctrl-pad: 7px 13px;
   --ic: 30px;
+  --field: 30px;
+  --row: 32px;
+  --menu-item: 30px;
 }
 /* Comfortable (default) = bigger hit targets; compact = denser. */
 :root[data-density='comfortable'] {
   --ctrl: 34px;
   --ctrl-pad: 8px 14px;
   --ic: 34px;
+  --field: 34px;
+  --row: 36px;
+  --menu-item: 34px;
 }
 :root[data-density='compact'] {
   --ctrl: 26px;
   --ctrl-pad: 5px 10px;
   --ic: 26px;
+  --field: 26px;
+  --row: 28px;
+  --menu-item: 26px;
 }
 
 * {
@@ -420,7 +471,8 @@ button {
   color: var(--muted);
 }
 .iv {
-  font-family: Georgia, serif;
+  font-family: var(--num);
+  font-variant-numeric: tabular-nums;
   font-size: 17px;
   font-weight: 600;
   color: var(--green);
@@ -443,7 +495,8 @@ button {
   color: var(--muted);
 }
 .diebox .dn {
-  font-family: Georgia, serif;
+  font-family: var(--num);
+  font-variant-numeric: tabular-nums;
   font-size: 46px;
   font-weight: 600;
   line-height: 1;

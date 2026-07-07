@@ -19,6 +19,13 @@ export default ts.config(
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', 'playwright-report/', 'test-results/', 'mockups/'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'playwright-report/',
+      'test-results/',
+      'mockups/',
+      'Unified Design System brief/',
+    ],
   }
 );

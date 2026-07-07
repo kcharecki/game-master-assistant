@@ -11,6 +11,25 @@ A virtual "desktop / operating system" for a single Game Master to organise ever
 
 List of features is inside @gm-assistant-features.md
 
+# Styling — Unified Design System is the baseline
+
+**All styling MUST derive from the Unified Design System brief.** It is the canonical, read-only
+source of truth for the app's visual language — tokens, components, states, and the Stage render
+language. When you build or restyle any component, match this baseline; do not invent new colors,
+radii, spacing, or hover/focus treatments.
+
+- **Design catalog** → `Unified Design System brief/Design System.dc.html` (tokens + every component
+  in all states + the "What changed & why" refactor map).
+- **Stage reference layout** → `Unified Design System brief/Stage Showcase.dc.html`.
+- **Do not edit** anything in `Unified Design System brief/` unless explicitly told to — treat as read-only.
+
+The design tokens map 1:1 onto `src/app.css` `:root` custom properties. The current implementation is
+the **reference, not the target** — it drifted component-by-component and must converge to the brief.
+Core rules: **gold means on-air only** (selection is green, armed is green-dashed); one input well
+(`bg/1 #0B1310`); radii collapse to 4 + pill (r/1 4 · r/2 7 · r/3 10 · r/4 14); one label style
+(10.5px / .14em / 600); tabular Cormorant for all numerals (not Georgia); line hue is
+`rgba(134,178,153,*)` at .14/.28/.45. See `DESIGN-GAP.md` for the current-state → target gap list.
+
 # Project status & where things live
 
 Pure-web Svelte 5 + TS, three surfaces (desktop / editor tabs / broadcast), IndexedDB persistence,
