@@ -389,20 +389,28 @@
   let dragBeat = $state<string | null>(null);
   let dropIndex = $state<number | null>(null);
 
+  // Inline "add" fields — no browser prompts. Enter commits, blur/Esc cancels.
+  let addingTemplate = $state(false);
+  let addingVariant = $state(false);
+  let addingFork = $state(false);
+
   function useBuiltin(nameKey: string, slots: Template['slots']) {
     stage.addBeatFrom({ id: crypto.randomUUID(), name: t(nameKey), cols, rows, slots });
   }
-  function saveTemplate() {
-    const name = prompt(t('stage.saveTemplatePrompt'));
-    if (name?.trim()) stage.saveTemplate(name.trim());
+  function commitTemplate(v: string) {
+    const n = v.trim();
+    if (n) stage.saveTemplate(n);
+    addingTemplate = false;
   }
-  function newVariant() {
-    const name = prompt(t('stage.newVariantPrompt'));
-    if (name?.trim()) stage.addVariant(name.trim());
+  function commitVariant(v: string) {
+    const n = v.trim();
+    if (n) stage.addVariant(n);
+    addingVariant = false;
   }
-  function newFork() {
-    const label = prompt(t('stage.newForkPrompt'));
-    if (label?.trim()) stage.addFork(stage.active.id, label.trim());
+  function commitFork(v: string) {
+    const n = v.trim();
+    if (n) stage.addFork(stage.active.id, n);
+    addingFork = false;
   }
   function beatDrop(toIndex: number) {
     if (dragBeat) stage.moveBeat(dragBeat, toIndex);
@@ -608,7 +616,14 @@
               </div>
             {/each}
           </div>
-          <button class="btn ghost sm" disabled={stage.tiles.length === 0} onclick={saveTemplate}>＋ {t('stage.saveTemplate')}</button>
+          {#if addingTemplate}
+            <!-- svelte-ignore a11y_autofocus -->
+            <input class="st-inline" autofocus placeholder={t('stage.saveTemplatePrompt')} aria-label={t('stage.saveTemplate')}
+              onblur={() => (addingTemplate = false)}
+              onkeydown={(e) => { if (e.key === 'Enter') commitTemplate((e.currentTarget as HTMLInputElement).value); else if (e.key === 'Escape') addingTemplate = false; }} />
+          {:else}
+            <button class="st-add" disabled={stage.tiles.length === 0} onclick={() => (addingTemplate = true)}>＋ {t('stage.saveTemplate')}</button>
+          {/if}
         </div>
 
         <div class="st-sec">
@@ -719,6 +734,7 @@
                 onpointerleave={() => peek?.scheduleClose()}
               >
                 <div class="content">{@render tileContent(tl)}</div>
+                {#if tl.id === stage.selected}<span class="tcorners"><i></i><i></i><i></i><i></i></span>{/if}
                 <button class="rsz" data-control aria-label="resize" onpointerdown={(e) => startResize(e, tl)} onpointermove={onMove} onpointerup={endMove}></button>
               </div>
             {/each}
@@ -767,7 +783,14 @@
               </div>
             {/each}
           </div>
-          <button class="st-add" onclick={newVariant}>＋ {t('stage.newVariant')}</button>
+          {#if addingVariant}
+            <!-- svelte-ignore a11y_autofocus -->
+            <input class="st-inline" autofocus placeholder={t('stage.newVariantPrompt')} aria-label={t('stage.newVariant')}
+              onblur={() => (addingVariant = false)}
+              onkeydown={(e) => { if (e.key === 'Enter') commitVariant((e.currentTarget as HTMLInputElement).value); else if (e.key === 'Escape') addingVariant = false; }} />
+          {:else}
+            <button class="st-add" onclick={() => (addingVariant = true)}>＋ {t('stage.newVariant')}</button>
+          {/if}
           {#if stage.activeVariantId !== null}<div class="st-hint gold">{t('stage.variantEditing')}</div>{/if}
         </div>
 
@@ -793,7 +816,14 @@
               </select>
             </div>
           {/each}
-          <button class="st-add" onclick={newFork}>＋ {t('stage.newFork')}</button>
+          {#if addingFork}
+            <!-- svelte-ignore a11y_autofocus -->
+            <input class="st-inline" autofocus placeholder={t('stage.newForkPrompt')} aria-label={t('stage.newFork')}
+              onblur={() => (addingFork = false)}
+              onkeydown={(e) => { if (e.key === 'Enter') commitFork((e.currentTarget as HTMLInputElement).value); else if (e.key === 'Escape') addingFork = false; }} />
+          {:else}
+            <button class="st-add" onclick={() => (addingFork = true)}>＋ {t('stage.newFork')}</button>
+          {/if}
         </div>
 
         <div class="st-safety">
@@ -977,7 +1007,7 @@
     border: 1px solid var(--line2);
   }
   .st-wm {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     font-weight: 700;
     font-size: 14px;
     letter-spacing: 0.16em;
@@ -1008,7 +1038,7 @@
     color: #120d02;
   }
   .st-sess {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     font-style: italic;
     font-size: 13px;
     color: var(--txt);
@@ -1170,6 +1200,24 @@
     font-weight: 600;
     text-align: left;
     padding: 2px 0;
+  }
+  .st-add:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .st-inline {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 6px 8px;
+    font: inherit;
+    font-size: 11px;
+    background: #11160f;
+    color: var(--txt);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+  }
+  .st-inline::placeholder {
+    color: var(--faint);
   }
 
   /* inspector — variants + forks + safety */
@@ -1632,7 +1680,7 @@
     letter-spacing: 0.08em;
   }
   .st-bname {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     font-size: 13px;
     color: var(--txt);
     overflow: hidden;
@@ -1799,13 +1847,6 @@
     padding: 4px 8px;
     font-size: 11px;
   }
-  .btn.ghost {
-    background: transparent;
-    border-color: var(--line2);
-    color: var(--muted);
-    font-size: 11px;
-    padding: 4px 9px;
-  }
   .ico {
     min-width: 26px;
     height: 26px;
@@ -1953,10 +1994,10 @@
     gap: 0;
     border-radius: 8px;
     border: 1px solid var(--line2);
-    background-color: #05090a;
-    background-image: linear-gradient(rgba(47, 138, 102, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(47, 138, 102, 0.06) 1px, transparent 1px);
+    background-color: #0e140f;
+    background-image: radial-gradient(rgba(214, 182, 94, 0.13) 1px, transparent 1.6px);
     background-size: calc(100% / 12) calc(100% / 8);
+    background-position: calc(100% / 24) calc(100% / 16);
     touch-action: none;
     overflow: hidden;
   }
@@ -1991,7 +2032,7 @@
     color: var(--green-dim);
   }
   .emttl {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     font-size: 17px;
     color: var(--txt);
   }
@@ -2033,8 +2074,32 @@
   }
   .tile.sel {
     border-color: var(--gold);
-    box-shadow: 0 0 0 1px var(--gold);
     z-index: 2;
+  }
+  /* gold targeting-frame corners on the selected tile (matches the mock). */
+  .tcorners i {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: var(--gold);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .tcorners i:nth-child(1) {
+    left: 0;
+    top: 0;
+  }
+  .tcorners i:nth-child(2) {
+    right: 0;
+    top: 0;
+  }
+  .tcorners i:nth-child(3) {
+    left: 0;
+    bottom: 0;
+  }
+  .tcorners i:nth-child(4) {
+    right: 0;
+    bottom: 0;
   }
   .tile.hidden {
     opacity: 0.4;
@@ -2071,10 +2136,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 3px 6px;
-    background: rgba(5, 9, 10, 0.6);
-    color: #e9f3ed;
-    font-size: 11px;
+    padding: 6px 12px;
+    background: rgba(6, 10, 7, 0.85);
+    color: #d8d2c0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2087,14 +2154,16 @@
   }
   .ttext strong {
     display: block;
-    font-family: Georgia, serif;
-    color: var(--green);
-    font-size: 14px;
+    font-family: var(--serif);
+    color: var(--gold);
+    font-size: 15px;
+    letter-spacing: 0.01em;
     margin-bottom: 4px;
   }
   .ttext span {
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.5;
+    color: var(--muted);
   }
   .ttext.parchment,
   .ttext.letter,
@@ -2114,20 +2183,27 @@
     border: 1px solid #b39a63;
   }
   .ttext.parchment strong {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     color: #5a3b1c;
   }
   .ttext.parchment span {
     color: #3a2c14;
   }
   .ttext.letter {
-    background: #f6f4ee;
-    border: 1px solid #cfc9bb;
+    background: linear-gradient(175deg, #d8cdb2, #c8bc9e);
+    border: 1px solid #b7ab8c;
   }
-  .ttext.letter strong,
+  .ttext.letter strong {
+    font-family: var(--serif);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: #3a3226;
+  }
   .ttext.letter span {
-    font-family: 'Courier New', monospace;
-    color: #22201c;
+    font-family: var(--serif);
+    font-style: italic;
+    line-height: 1.55;
+    color: #4a4030;
   }
   .ttext.telegram {
     background: #f0ead6;
@@ -2164,24 +2240,29 @@
     letter-spacing: 0.1em;
   }
   .tmbig {
-    font-family: Georgia, serif;
-    color: var(--green);
-    font-size: 26px;
+    font-family: var(--serif);
+    color: var(--gold);
+    font-size: 27px;
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
   .tmmid {
-    font-family: Georgia, serif;
+    font-family: var(--serif);
     color: var(--txt);
-    font-size: 15px;
+    font-size: 16px;
+    letter-spacing: 0.01em;
   }
   .tmoon {
-    color: var(--gold);
-    font-size: 11px;
+    color: var(--faint);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
   .ttime {
-    color: var(--muted);
-    font-size: 11px;
+    color: var(--faint);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     font-variant-numeric: tabular-nums;
   }
   .rsz {
