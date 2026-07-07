@@ -2,6 +2,7 @@
   import { onMount, tick } from 'svelte';
   import { planner } from './store.svelte';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   // Command Deck "Session Graph": beats auto-laid on a layered spine, branches as
   // routed edges. Pan (drag empty canvas), zoom (wheel / buttons). Click a card =
@@ -190,7 +191,7 @@
     {/each}
 
     {#if ghost}
-      <div class="pg-ghost" style:left="{ghost.x}px" style:top="{ghost.y}px">＋ {t('planner.dropToCreate')}</div>
+      <div class="pg-ghost" style:left="{ghost.x}px" style:top="{ghost.y}px"><Icon name="plus" size={14} /> {t('planner.dropToCreate')}</div>
     {/if}
 
     {#each g.nodes as n (n.id)}
@@ -256,7 +257,7 @@
   <div class="pg-zoom">
     <button title={t('planner.zoomOut')} aria-label={t('planner.zoomOut')} onclick={() => zoomBy(1 / 1.2)}>−</button>
     <button class="pg-fit" title={t('planner.zoomFit')} aria-label={t('planner.zoomFit')} onclick={fit}>⊡</button>
-    <button title={t('planner.zoomIn')} aria-label={t('planner.zoomIn')} onclick={() => zoomBy(1.2)}>＋</button>
+    <button title={t('planner.zoomIn')} aria-label={t('planner.zoomIn')} onclick={() => zoomBy(1.2)}><Icon name="plus" size={16} /></button>
   </div>
 </div>
 

@@ -8,6 +8,7 @@
   import { t } from '../../lib/i18n';
   import Empty from '../../lib/components/Empty.svelte';
   import FlowMap from './FlowMap.svelte';
+  import Icon from '../../lib/components/Icon.svelte';
 
   let root = $state<HTMLDivElement>();
   let elapsed = $state(0); // seconds since the run cockpit mounted
@@ -103,7 +104,7 @@
       {/if}
       <div class="pr-nowact">
         <button class="pr-cast" disabled={!beat.boxed.trim()} onclick={broadcast}>
-          {t('planner.pushReadAloud')} ▸
+          {t('planner.pushReadAloud')} <Icon name="play" size={14} />
         </button>
         <button class="pr-back" disabled={!planner.canBack} onclick={() => planner.back()}>↩ {t('planner.back')}</button>
       </div>

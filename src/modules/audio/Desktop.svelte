@@ -151,7 +151,7 @@
         {output === 'idle' ? '' : output === 'closed' ? t('audio.broadcastShut') : t('audio.broadcastConnected')}
       </span>
       <button class="aud-tog" class:on={audio.monitor} onclick={() => audio.setMonitor(!audio.monitor)} title={t('audio.monitorTitle')}>{t('audio.mon')}</button>
-      <button class="aud-tog" class:on={mixOpen} onclick={() => (mixOpen = !mixOpen)}>{t('audio.mix')} ▾</button>
+      <button class="aud-tog" class:on={mixOpen} onclick={() => (mixOpen = !mixOpen)}>{t('audio.mix')} <Icon name="chevron" size={14} /></button>
     </div>
 
     <!-- ── Now-playing hero ───────────────────────────────────── -->
@@ -194,13 +194,13 @@
     <!-- ── Transport ──────────────────────────────────────────── -->
     <div class="aud-transport">
       <button class="aud-glyph" onclick={cycleRepeat} title={t('audio.repeat')}>
-        <span class="aud-gsym">↺</span><span class="aud-glabel">{repeatLabel}</span>
+        <span class="aud-gsym"><Icon name="undo" size={14} /></span><span class="aud-glabel">{repeatLabel}</span>
       </button>
       <button class="aud-ic" onclick={() => audio.prev()} disabled={!audio.playingScene} aria-label={t('audio.prev')}><Icon name="prev" /></button>
       <button class="aud-play" onclick={() => audio.togglePause()} disabled={!audio.playingScene} aria-label={audio.paused ? t('audio.resume') : t('audio.pause')}><Icon name={audio.paused ? 'play' : 'pause'} size={20} /></button>
       <button class="aud-ic" onclick={() => audio.next()} disabled={!audio.playingScene} aria-label={t('audio.next')}><Icon name="next" /></button>
       <button class="aud-glyph" onclick={cycleFade} title={t('audio.crossfade')}>
-        <span class="aud-gsym">✕</span><span class="aud-glabel">{fadeLabel}</span>
+        <span class="aud-gsym"><Icon name="close" size={14} /></span><span class="aud-glabel">{fadeLabel}</span>
       </button>
     </div>
 
@@ -239,7 +239,7 @@
             class:live={audio.playingScene === p.sceneId && audio.trackIndex === p.index}
             onclick={() => audio.playPinnedTrack(p.sceneId, p.index)}
           >
-            <span class="aud-ambico">{p.track.youtubeId ? '▶' : '♪'}</span>
+            <span class="aud-ambico"><Icon name="play" size={14} /></span>
             <span class="aud-ambinfo">
               <span class="aud-amblbl">{p.track.label}</span>
               <span class="aud-ambscn">{p.sceneName}{p.track.youtubeId ? ' · YT' : ''}</span>

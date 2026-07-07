@@ -3,6 +3,7 @@
   // toast from the shared store, styled as a telegram / newspaper-clipping slip.
   import { toast } from '../lib/stores/toast.svelte';
   import { t } from '../lib/i18n';
+  import Icon from '../lib/components/Icon.svelte';
 </script>
 
 {#if toast.current}
@@ -12,7 +13,7 @@
       {#if toast.current.undoFn}
         <button class="undo" onclick={() => toast.undo()}>{t('toast.undo')}</button>
       {/if}
-      <button class="x" onclick={() => toast.dismiss()} aria-label={t('toast.dismiss')}>×</button>
+      <button class="x" onclick={() => toast.dismiss()} aria-label={t('toast.dismiss')}><Icon name="close" size={14} /></button>
     </div>
   </div>
 {/if}

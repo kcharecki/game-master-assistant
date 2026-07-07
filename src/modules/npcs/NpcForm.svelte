@@ -147,12 +147,12 @@
             type="button"
             class="thumbx"
             aria-label={t('npcs.removePhoto')}
-            onclick={() => npcs.removePhoto(npc.id, gid)}>×</button
+            onclick={() => npcs.removePhoto(npc.id, gid)}><Icon name="close" size={14} /></button
           >
         </div>
       {/each}
       <label class="thumb addthumb" title={t('npcs.addPhoto')}>
-        ＋
+        <Icon name="plus" size={14} />
         <input
           type="file"
           accept="image/*"
@@ -183,7 +183,7 @@
           oninput={(e) => npcs.updateStat(npc.id, s.id, { val: sl(s.val, e.currentTarget.value) })}
           placeholder={t('npcs.statValPlaceholder')}
         />
-        <button class="mini" aria-label={t('npcs.removeStat')} onclick={() => npcs.removeStat(npc.id, s.id)}>×</button>
+        <button class="mini" aria-label={t('npcs.removeStat')} onclick={() => npcs.removeStat(npc.id, s.id)}><Icon name="close" size={14} /></button>
       </div>
     {/each}
   </section>
@@ -214,7 +214,7 @@
           oninput={(e) => npcs.updateAttack(npc.id, a.id, { damage: sl(a.damage, e.currentTarget.value) })}
           placeholder={t('npcs.attackDamagePlaceholder')}
         />
-        <button class="mini" aria-label={t('npcs.removeAttack')} onclick={() => npcs.removeAttack(npc.id, a.id)}>×</button>
+        <button class="mini" aria-label={t('npcs.removeAttack')} onclick={() => npcs.removeAttack(npc.id, a.id)}><Icon name="close" size={14} /></button>
       </div>
     {/each}
   </section>
@@ -239,7 +239,7 @@
           oninput={(e) => npcs.updateSkill(npc.id, sk.id, { value: sl(sk.value, e.currentTarget.value) })}
           placeholder={t('npcs.skillValPlaceholder')}
         />
-        <button class="mini" aria-label={t('npcs.removeSkill')} onclick={() => npcs.removeSkill(npc.id, sk.id)}>×</button>
+        <button class="mini" aria-label={t('npcs.removeSkill')} onclick={() => npcs.removeSkill(npc.id, sk.id)}><Icon name="close" size={14} /></button>
       </div>
     {/each}
   </section>
@@ -293,7 +293,7 @@
           oninput={(e) => npcs.updateEquip(npc.id, it.id, { notes: sl(it.notes, e.currentTarget.value) })}
           placeholder={t('npcs.notesPlaceholder')}
         />
-        <button class="mini" aria-label={t('npcs.removeItem')} onclick={() => npcs.removeEquip(npc.id, it.id)}>×</button>
+        <button class="mini" aria-label={t('npcs.removeItem')} onclick={() => npcs.removeEquip(npc.id, it.id)}><Icon name="close" size={14} /></button>
       </div>
     {/each}
   </section>
@@ -327,7 +327,7 @@
           class="mini"
           aria-label={t('npcs.detachSpell')}
           title={t('npcs.detachSpell')}
-          onclick={() => npcs.detachSpell(npc.id, sp.id)}>×</button
+          onclick={() => npcs.detachSpell(npc.id, sp.id)}><Icon name="close" size={14} /></button
         >
       </div>
       {#if spellEdit[sp.id]}

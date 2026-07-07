@@ -3,6 +3,7 @@
   import { renderMarkdown, highlight, relativeShort } from './logic';
   import { assetPut, assetUrl } from '../../lib/db';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   let { note, focused = false }: { note: Note; focused?: boolean } = $props();
 
@@ -98,15 +99,15 @@
         class:on={note.pinned}
         title={note.pinned ? t('notebook.unpin') : t('notebook.pin')}
         aria-label={note.pinned ? t('notebook.unpin') : t('notebook.pin')}
-        onclick={() => notebook.togglePin(note.id)}>▲</button
+        onclick={() => notebook.togglePin(note.id)}><Icon name="pin" size={14} /></button
       >
       <label class="nb-ic" title={t('notebook.attach')}>
-        ▤
+        <Icon name="attach" size={14} />
         <input type="file" accept="image/*" hidden onchange={(e) => attach((e.currentTarget as HTMLInputElement).files?.[0])} />
       </label>
-      <button class="nb-ic" class:on={copied} title={t('notebook.copy')} aria-label={t('notebook.copy')} onclick={copy}>⧉</button>
-      <button class="nb-ic" title={t('notebook.edit')} aria-label={t('notebook.editNote')} onclick={startEdit}>✎</button>
-      <button class="nb-ic danger" title={t('notebook.archive')} aria-label={t('notebook.deleteNote')} onclick={() => notebook.remove(note.id)}>⌫</button>
+      <button class="nb-ic" class:on={copied} title={t('notebook.copy')} aria-label={t('notebook.copy')} onclick={copy}><Icon name="duplicate" size={14} /></button>
+      <button class="nb-ic" title={t('notebook.edit')} aria-label={t('notebook.editNote')} onclick={startEdit}><Icon name="edit" size={14} /></button>
+      <button class="nb-ic danger" title={t('notebook.archive')} aria-label={t('notebook.deleteNote')} onclick={() => notebook.remove(note.id)}><Icon name="trash" size={14} /></button>
     </div>
   </div>
 

@@ -3,6 +3,7 @@
   import { TEMPLATES, escapeHtml } from './logic';
   import { assetPut } from '../../lib/db';
   import { t } from '../../lib/i18n';
+  import Icon from '../../lib/components/Icon.svelte';
 
   let {
     onsaved,
@@ -227,14 +228,14 @@
             </button>
           {/each}
           <label class="nb-mitem nb-file">
-            ▤ {t('notebook.attachImage')}
+            <Icon name="attach" size={14} /> {t('notebook.attachImage')}
             <input type="file" accept="image/*" hidden onchange={(e) => pick((e.currentTarget as HTMLInputElement).files?.[0])} />
           </label>
         </div>
       {/if}
     </div>
 
-    {#if pendingAsset}<span class="nb-pend" title={t('notebook.attachment')}>▤</span>{/if}
+    {#if pendingAsset}<span class="nb-pend" title={t('notebook.attachment')}><Icon name="attach" size={14} /></span>{/if}
     <button class="nb-save" onclick={submit}>⏎ {t('notebook.save').toLowerCase()}</button>
   </div>
 </div>

@@ -29,7 +29,9 @@
     | 'duplicate'
     | 'eye-off'
     | 'spotlight'
-    | 'message';
+    | 'message'
+    | 'shuffle'
+    | 'attach';
 
   const PATHS: Record<IconName, string> = {
     edit: 'M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z M14 6l3 3',
@@ -59,6 +61,8 @@
     'eye-off': 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z M4 4l16 16',
     spotlight: 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M5 21a7 7 0 0 1 14 0',
     message: 'M4 5h16v11H9l-4 4V5z',
+    shuffle: 'M17 4l3 3-3 3 M3 7h4l10 10h4 M17 20l3-3-3-3 M3 17h4l3-3',
+    attach: 'M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.6 8.5a2 2 0 0 1-2.9-2.9L15 6',
   };
 </script>
 

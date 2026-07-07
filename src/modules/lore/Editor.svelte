@@ -59,7 +59,7 @@
                 class:dangling={!l.targetId}
                 onclick={() => openOrCreate(l.title, l.targetId)}
               >
-                {l.title}{#if !l.targetId}<span class="plus"> ＋</span>{/if}
+                {l.title}{#if !l.targetId}<span class="plus"> <Icon name="plus" size={14} /></span>{/if}
               </button>
             {/each}
           {:else}

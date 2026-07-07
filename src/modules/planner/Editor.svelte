@@ -13,6 +13,7 @@
   import { toast } from '../../lib/stores/toast.svelte';
   import { t } from '../../lib/i18n';
   import Empty from '../../lib/components/Empty.svelte';
+  import Icon from '../../lib/components/Icon.svelte';
 
   onMount(() => {
     void planner.load();
@@ -304,7 +305,7 @@
                     onclick={(e) => {
                       e.stopPropagation();
                       planner.forkToNew(b.id);
-                    }}>⑂</button
+                    }}><Icon name="fork" size={14} /></button
                   >
                   <button
                     class="sp-runbtn"
@@ -313,7 +314,7 @@
                     onclick={(e) => {
                       e.stopPropagation();
                       startRun(b.id);
-                    }}>▶</button
+                    }}><Icon name="play" size={14} /></button
                   >
                 </div>
 
@@ -408,7 +409,7 @@
                         >{t('planner.skippable')}</button
                       >
                       <button class="sp-del" onclick={() => planner.removeBeat(b.id)}
-                        >✕ {t('planner.deleteBeat')}</button
+                        ><Icon name="close" size={14} /> {t('planner.deleteBeat')}</button
                       >
                     </div>
 
@@ -437,7 +438,7 @@
                             <option value="__terminal">◆ {t('planner.terminalOutcome')}</option>
                           </select>
                           <button class="sp-brdel" onclick={() => planner.removeBranch(b.id, br.id)}
-                            >✕</button
+                            ><Icon name="close" size={14} /></button
                           >
                         </div>
                         {#if bi.isTerminal}
@@ -456,7 +457,7 @@
                         >
                         <span class="sp-spacer"></span>
                         <button class="sp-runfrom" onclick={() => startRun(b.id)}
-                          >▶ {t('planner.runFromHereBtn')}</button
+                          ><Icon name="play" size={14} /> {t('planner.runFromHereBtn')}</button
                         >
                       </div>
                     </div>
@@ -587,7 +588,7 @@
               <button class="sp-deedit" onclick={() => (viz = 'outline')}
                 >{t('planner.editInOutline')}</button
               >
-              <button class="sp-derun" onclick={() => startRun(d.id)}>▶ {t('planner.run')}</button>
+              <button class="sp-derun" onclick={() => startRun(d.id)}><Icon name="play" size={14} /> {t('planner.run')}</button>
             </div>
           </div>
         {/if}
@@ -694,7 +695,7 @@
       <div class="sp-panelhd">
         <span class="sp-paneltitle">{t('planner.openThreads')}</span>
         <span class="sp-spacer"></span>
-        <button class="sp-panelclose" onclick={() => (showThreads = false)}>✕</button>
+        <button class="sp-panelclose" onclick={() => (showThreads = false)}><Icon name="close" size={16} /></button>
       </div>
       {#each planner.threads as th (th.id)}
         <!-- svelte-ignore a11y_no_static_element_interactions -->

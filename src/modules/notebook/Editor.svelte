@@ -5,6 +5,7 @@
   import { t } from '../../lib/i18n';
   import Capture from './Capture.svelte';
   import NoteView from './NoteView.svelte';
+  import Icon from '../../lib/components/Icon.svelte';
 
   onMount(() => void notebook.load());
 
@@ -70,7 +71,7 @@
       {/if}
       {#if notebook.activeTag}
         <button class="nbe-fchip" onclick={() => notebook.setTag(notebook.activeTag)}
-          >#{notebook.activeTag} ✕</button
+          >#{notebook.activeTag} <Icon name="close" size={14} /></button
         >
       {/if}
     </div>
@@ -184,12 +185,12 @@
         <pre class="nbe-rtext">{notebook.recap}</pre>
         <div class="nbe-rmeta">{t('notebook.recapFrom')} {totalActive} {t('notebook.recapNotes')}</div>
         <div class="nbe-racts">
-          <button class="nbe-btn sm" onclick={() => navigator.clipboard.writeText(notebook.recap ?? '')}>⧉ {t('notebook.copy')}</button>
-          <button class="nbe-btn sm solid" onclick={() => notebook.pushRecapToBroadcast()}>▶ {t('notebook.pushCaption')}</button>
+          <button class="nbe-btn sm" onclick={() => navigator.clipboard.writeText(notebook.recap ?? '')}><Icon name="duplicate" size={14} /> {t('notebook.copy')}</button>
+          <button class="nbe-btn sm solid" onclick={() => notebook.pushRecapToBroadcast()}><Icon name="play" size={14} /> {t('notebook.pushCaption')}</button>
           <button class="nbe-btn sm ghost" onclick={() => (notebook.recap = null)}>{t('notebook.dismiss')}</button>
         </div>
       {:else}
-        <button class="nbe-btn gen" onclick={() => notebook.makeRecap()}>✦ {t('notebook.generateRecap')}</button>
+        <button class="nbe-btn gen" onclick={() => notebook.makeRecap()}><Icon name="spotlight" size={14} /> {t('notebook.generateRecap')}</button>
       {/if}
     </section>
   </aside>

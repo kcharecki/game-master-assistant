@@ -393,7 +393,7 @@
               <span class="idx">{idx >= 0 ? idx + 1 : 1} / {shownNpcs.length} · {t('npcs.filedUnder')} “{filedLetter(n.name)}”</span>
               <div class="foot-btns">
                 <button class="cbtn danger" onclick={() => removeNpc(n)}><Icon name="trash" /> {t('npcs.delete')}</button>
-                <button class="cbtn" onclick={() => (editing = true)}>✎ {t('npcs.edit')}</button>
+                <button class="cbtn" onclick={() => (editing = true)}><Icon name="edit" size={14} /> {t('npcs.edit')}</button>
                 <button class="cbtn dark" onclick={() => reveal(n)}>{t('npcs.reveal')}</button>
               </div>
             </div>
@@ -460,7 +460,7 @@
           </div>
           <div class="card-foot">
             <span class="idx">{idx >= 0 ? idx + 1 : 1} / {shownSpells.length} · {t('npcs.filedUnder')} “{filedLetter(sp.name)}”</span>
-            <div class="foot-btns"><button class="cbtn" onclick={() => (editing = true)}>✎ {t('npcs.edit')}</button></div>
+            <div class="foot-btns"><button class="cbtn" onclick={() => (editing = true)}><Icon name="edit" size={14} /> {t('npcs.edit')}</button></div>
           </div>
         {/if}
           </article>

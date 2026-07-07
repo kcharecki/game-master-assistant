@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Icon from '../lib/components/Icon.svelte';
   import { createBus } from '../lib/bus';
   import { kvGet, assetUrl } from '../lib/db';
   import { lang, t } from '../lib/i18n';
@@ -741,7 +742,7 @@
               {#if cell.label}<div class="dlbl">{cell.label}</div>{/if}
               <div class="ddate">{cell.date}</div>
               {#if cell.time}<div class="dtime">{cell.time}</div>{/if}
-              {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
+              {#if cell.moon}<div class="dmoon"><Icon name="moon" size={16} /> {cell.moon}</div>{/if}
             </div>
           {:else}
             <div
@@ -783,7 +784,7 @@
             {#if cell.label}<div class="dlbl">{cell.label}</div>{/if}
             <div class="ddate">{cell.date}</div>
             {#if cell.time}<div class="dtime">{cell.time}</div>{/if}
-            {#if cell.moon}<div class="dmoon">☾ {cell.moon}</div>{/if}
+            {#if cell.moon}<div class="dmoon"><Icon name="moon" size={16} /> {cell.moon}</div>{/if}
           </div>
         {:else}
           <div

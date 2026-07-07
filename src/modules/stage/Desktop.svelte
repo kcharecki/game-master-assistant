@@ -451,7 +451,7 @@
       {#if tl.title}<span class="tmlbl">{tl.title}</span>{/if}
       <strong class="tmmid">{tl.date ?? '—'}</strong>
       {#if tl.time}<span class="ttime">{tl.time}</span>{/if}
-      {#if tl.moon}<span class="tmoon">☾ {tl.moon}</span>{/if}
+      {#if tl.moon}<span class="tmoon"><Icon name="moon" size={14} /> {tl.moon}</span>{/if}
     </div>
   {:else}
     {@const img = tileImg(tl)}
@@ -580,7 +580,7 @@
                     disabled={!f.targetBeatId}
                     onclick={() => f.targetBeatId && stage.arm(f.targetBeatId)}
                     title={f.label}
-                  >⑂ {f.label}</button>
+                  ><Icon name="fork" size={14} /> {f.label}</button>
                 {/each}
               </div>
             {/if}
@@ -612,7 +612,7 @@
                   </span>
                   <span class="st-tplname">{tpl.name}</span>
                 </button>
-                <button class="st-tplx" aria-label={t('stage.removeTemplate')} onclick={() => stage.removeTemplate(tpl.id)}>×</button>
+                <button class="st-tplx" aria-label={t('stage.removeTemplate')} onclick={() => stage.removeTemplate(tpl.id)}><Icon name="close" size={14} /></button>
               </div>
             {/each}
           </div>
@@ -622,7 +622,7 @@
               onblur={() => (addingTemplate = false)}
               onkeydown={(e) => { if (e.key === 'Enter') commitTemplate((e.currentTarget as HTMLInputElement).value); else if (e.key === 'Escape') addingTemplate = false; }} />
           {:else}
-            <button class="st-add" disabled={stage.tiles.length === 0} onclick={() => (addingTemplate = true)}>＋ {t('stage.saveTemplate')}</button>
+            <button class="st-add" disabled={stage.tiles.length === 0} onclick={() => (addingTemplate = true)}><Icon name="plus" size={14} /> {t('stage.saveTemplate')}</button>
           {/if}
         </div>
 
@@ -652,11 +652,11 @@
       <div class="st-center">
         <div class="st-strip">
           <div class="compose">
-            <button class="ico" disabled={!stage.canUndo} onclick={() => stage.undo()} title={t('stage.undo')}>↺</button>
-            <button class="ico" disabled={!stage.canRedo} onclick={() => stage.redo()} title={t('stage.redo')}>↷</button>
+            <button class="ico" disabled={!stage.canUndo} onclick={() => stage.undo()} title={t('stage.undo')}><Icon name="undo" size={14} /></button>
+            <button class="ico" disabled={!stage.canRedo} onclick={() => stage.redo()} title={t('stage.redo')}><Icon name="redo" size={14} /></button>
             <div class="mwrap">
               <button class="btn add" class:on={addMenu} title={t('stage.addHint')}
-                onclick={(e) => { e.stopPropagation(); closeGlobalMenus(); addMenu = !addMenu; }}><Icon name="plus" /> {t('stage.add')}</button>
+                onclick={(e) => { e.stopPropagation(); closeGlobalMenus(); addMenu = !addMenu; }}><Icon name="plus" size={14} /> {t('stage.add')}</button>
               {#if addMenu}
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div class="menu" onpointerdown={(e) => e.stopPropagation()}>
@@ -664,7 +664,7 @@
                 </div>
               {/if}
             </div>
-            <button class="ico" disabled={stage.tiles.length === 0} onclick={() => stage.distribute()} title={t('stage.distributeHint')}>▦</button>
+            <button class="ico" disabled={stage.tiles.length === 0} onclick={() => stage.distribute()} title={t('stage.distributeHint')}><Icon name="grid" size={14} /></button>
           </div>
 
           <span class="st-editing">{t('stage.editing')} · <b>{stage.active.name}</b> · {variantName}</span>
@@ -673,9 +673,9 @@
             <span class="oalbl">{t('stage.onAir').toUpperCase()}</span>
             <button class="btn live" class:on={stage.live} onclick={() => stage.toggleLive()} title={t('stage.live')}>{stage.live ? t('stage.liveOn') : t('stage.liveOff')}</button>
             <button class="btn" disabled={!stage.preview} onclick={() => stage.broadcast()}>{t('stage.toAir')}</button>
-            <button class="ico" class:laser={laserOn} onclick={toggleLaser} title={t('stage.laserHint')}>✦</button>
+            <button class="ico" class:laser={laserOn} onclick={toggleLaser} title={t('stage.laserHint')}><Icon name="laser" size={14} /></button>
             <div class="mwrap">
-              <button class="ico" class:on={moodMenu} title={t('stage.mood')} onclick={(e) => { e.stopPropagation(); closeGlobalMenus(); moodMenu = !moodMenu; }}>☾</button>
+              <button class="ico" class:on={moodMenu} title={t('stage.mood')} onclick={(e) => { e.stopPropagation(); closeGlobalMenus(); moodMenu = !moodMenu; }}><Icon name="moon" size={14} /></button>
               {#if moodMenu}
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div class="menu right" onpointerdown={(e) => e.stopPropagation()}>
@@ -685,7 +685,7 @@
               {/if}
             </div>
             <div class="mwrap">
-              <button class="ico" class:on={displayMenu} title={t('stage.display')} onclick={(e) => { e.stopPropagation(); closeGlobalMenus(); displayMenu = !displayMenu; }}>▤</button>
+              <button class="ico" class:on={displayMenu} title={t('stage.display')} onclick={(e) => { e.stopPropagation(); closeGlobalMenus(); displayMenu = !displayMenu; }}><Icon name="tile" size={14} /></button>
               {#if displayMenu}
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div class="menu right wide" onpointerdown={(e) => e.stopPropagation()}>
@@ -742,7 +742,7 @@
             {#if stage.tiles.length === 0}
               <div class="empty">
                 <div class="emptycard">
-                  <div class="emico">⊕</div>
+                  <div class="emico"><Icon name="plus" size={14} /></div>
                   <div class="emttl">{t('stage.emptyTitle')}</div>
                   <div class="emsub">{t('stage.emptyHint')}</div>
                   <div class="emkinds">
@@ -778,7 +778,7 @@
                     <span class="st-vname">{v.name}</span>
                     <span class="st-vbadge">Δ {Object.keys(v.patches).length + v.added.length + v.removed.length}</span>
                   </button>
-                  <button class="st-vx" aria-label={t('stage.removeVariant')} onclick={() => stage.removeVariant(v.id)}>×</button>
+                  <button class="st-vx" aria-label={t('stage.removeVariant')} onclick={() => stage.removeVariant(v.id)}><Icon name="close" size={14} /></button>
                 {/if}
               </div>
             {/each}
@@ -789,7 +789,7 @@
               onblur={() => (addingVariant = false)}
               onkeydown={(e) => { if (e.key === 'Enter') commitVariant((e.currentTarget as HTMLInputElement).value); else if (e.key === 'Escape') addingVariant = false; }} />
           {:else}
-            <button class="st-add" onclick={() => (addingVariant = true)}>＋ {t('stage.newVariant')}</button>
+            <button class="st-add" onclick={() => (addingVariant = true)}><Icon name="plus" size={14} /> {t('stage.newVariant')}</button>
           {/if}
           {#if stage.activeVariantId !== null}<div class="st-hint gold">{t('stage.variantEditing')}</div>{/if}
         </div>
@@ -806,9 +806,9 @@
                     onkeydown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); else if (e.key === 'Escape') editingFork = null; }} />
                 {:else}
                   <!-- svelte-ignore a11y_no_static_element_interactions -->
-                  <span class="st-forklbl" ondblclick={() => (editingFork = f.id)}>⑂ {f.label}</span>
+                  <span class="st-forklbl" ondblclick={() => (editingFork = f.id)}><Icon name="fork" size={14} /> {f.label}</span>
                 {/if}
-                <button class="st-vx" aria-label={t('stage.removeFork')} onclick={() => stage.removeFork(stage.active.id, f.id)}>×</button>
+                <button class="st-vx" aria-label={t('stage.removeFork')} onclick={() => stage.removeFork(stage.active.id, f.id)}><Icon name="close" size={14} /></button>
               </div>
               <select class="st-forksel" value={f.targetBeatId ?? ''} onchange={(e) => stage.updateFork(stage.active.id, f.id, { targetBeatId: (e.currentTarget as HTMLSelectElement).value || undefined })}>
                 <option value="">{t('stage.forkTarget')}</option>
@@ -822,7 +822,7 @@
               onblur={() => (addingFork = false)}
               onkeydown={(e) => { if (e.key === 'Enter') commitFork((e.currentTarget as HTMLInputElement).value); else if (e.key === 'Escape') addingFork = false; }} />
           {:else}
-            <button class="st-add" onclick={() => (addingFork = true)}>＋ {t('stage.newFork')}</button>
+            <button class="st-add" onclick={() => (addingFork = true)}><Icon name="plus" size={14} /> {t('stage.newFork')}</button>
           {/if}
         </div>
 
@@ -838,7 +838,7 @@
       <div class="st-rhd">
         <span class="st-rlbl">{t('stage.rundown')}</span>
         <span class="st-rhint">{t('stage.rundownHint')}</span>
-        <button class="st-radd" onclick={() => stage.addBeat()}>＋ {t('stage.addBeat')}</button>
+        <button class="st-radd" onclick={() => stage.addBeat()}><Icon name="plus" size={14} /> {t('stage.addBeat')}</button>
       </div>
       <div class="st-spine">
         {#each stage.beats as b, i (b.id)}
@@ -853,7 +853,7 @@
             >
               <div class="st-brow">
                 <span class="st-bnum">{String(i + 1).padStart(2, '0')}</span>
-                {#if b.forks.length}<span class="st-bfork">⑂ {b.forks.length}</span>{/if}
+                {#if b.forks.length}<span class="st-bfork"><Icon name="fork" size={14} /> {b.forks.length}</span>{/if}
                 {#if b.variants.length}<span class="st-bvar">×{b.variants.length + 1}</span>{/if}
               </div>
               {#if editingBeat === b.id}
@@ -871,14 +871,14 @@
               </div>
               {#if b.id === stage.cursorId}
                 <div class="st-bactions">
-                  <button class="st-baction" onclick={(e) => { e.stopPropagation(); stage.duplicateBeat(b.id); }} title={t('stage.duplicateBeat')}>⧉</button>
-                  <button class="st-baction danger" disabled={stage.beats.length <= 1} onclick={(e) => { e.stopPropagation(); stage.removeBeat(b.id); }} title={t('stage.deleteBeat')}>✕</button>
+                  <button class="st-baction" onclick={(e) => { e.stopPropagation(); stage.duplicateBeat(b.id); }} title={t('stage.duplicateBeat')}><Icon name="duplicate" size={14} /></button>
+                  <button class="st-baction danger" disabled={stage.beats.length <= 1} onclick={(e) => { e.stopPropagation(); stage.removeBeat(b.id); }} title={t('stage.deleteBeat')}><Icon name="close" size={14} /></button>
                 </div>
               {/if}
             </div>
           </div>
         {/each}
-        <button class="st-newbeat" onclick={() => stage.addBeat()} title={t('stage.addBeat')} aria-label={t('stage.addBeat')}>＋</button>
+        <button class="st-newbeat" onclick={() => stage.addBeat()} title={t('stage.addBeat')} aria-label={t('stage.addBeat')}><Icon name="plus" size={16} /></button>
       </div>
     </div>
   {/if}
@@ -919,7 +919,7 @@
     <div class="pop" style={popStyle} onpointerdown={(e) => e.stopPropagation()}>
       <div class="pophd">
         <span>{t('stage.edit').toUpperCase()} · {kindLabel(sel.kind)}</span>
-        <button class="ico xs" aria-label={t('stage.close')} onclick={() => (editOpen = false)}>✕</button>
+        <button class="ico xs" aria-label={t('stage.close')} onclick={() => (editOpen = false)}><Icon name="close" size={14} /></button>
       </div>
 
       {#if sel.kind === 'image'}

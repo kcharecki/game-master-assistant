@@ -203,16 +203,16 @@
           {#if audio.playingScene}<span class="aude-idx">· {audio.trackIndex + 1} / {audio.trackCount}</span>{/if}
         </span>
         <span class="aude-tspacer"></span>
-        <button class="aude-tbtn" onclick={cycleRepeat} title={t('audio.repeat')}>↺ {repeatLabel}</button>
-        <button class="aude-tbtn" onclick={() => audio.shuffleScene(pick)} disabled={tracks.length < 2}>🔀 {t('audio.shuffle')}</button>
-        <button class="aude-tbtn" onclick={cycleFade} title={t('audio.crossfade')}>✕ {fadeLabel}</button>
+        <button class="aude-tbtn" onclick={cycleRepeat} title={t('audio.repeat')}><Icon name="undo" size={14} /> {repeatLabel}</button>
+        <button class="aude-tbtn" onclick={() => audio.shuffleScene(pick)} disabled={tracks.length < 2}><Icon name="shuffle" size={14} /> {t('audio.shuffle')}</button>
+        <button class="aude-tbtn" onclick={cycleFade} title={t('audio.crossfade')}><Icon name="close" size={14} /> {fadeLabel}</button>
       </div>
 
       <!-- tracks -->
       <div class="aude-caphead">
         <span class="aude-cap">{t('audio.tracksReorder')}</span>
         <span class="aude-tacts">
-          <label class="aude-btn">＋ {t('audio.importFiles')}<input type="file" accept="audio/*" multiple hidden onchange={importTracks} /></label>
+          <label class="aude-btn"><Icon name="plus" size={14} /> {t('audio.importFiles')}<input type="file" accept="audio/*" multiple hidden onchange={importTracks} /></label>
         </span>
       </div>
       {#if tracks.length}
@@ -251,7 +251,7 @@
       </div>
       <div class="aude-ytrow">
         <input class="aude-in" type="url" placeholder={t('audio.ytUrlPlaceholder')} bind:value={ytUrl} aria-label={t('audio.ytUrl')} />
-        <button class="aude-btn" onclick={addYouTube} disabled={!ytUrl.trim()}>▷ {t('audio.addYouTube')}</button>
+        <button class="aude-btn" onclick={addYouTube} disabled={!ytUrl.trim()}><Icon name="play" size={14} /> {t('audio.addYouTube')}</button>
       </div>
     </section>
 
@@ -261,7 +261,7 @@
         <span class="aude-cap">{t('audio.soundboard')}</span>
         <span class="aude-tacts">
           <button class="aude-btn" class:rec={audio.recording} onclick={toggleRec}>● {audio.recording ? t('audio.stopRec') : t('audio.rec')}</button>
-          <label class="aude-btn">＋ {t('audio.import')}<input type="file" accept="audio/*" multiple hidden onchange={importSfx} /></label>
+          <label class="aude-btn"><Icon name="plus" size={14} /> {t('audio.import')}<input type="file" accept="audio/*" multiple hidden onchange={importSfx} /></label>
         </span>
       </div>
 
