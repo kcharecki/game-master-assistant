@@ -4,6 +4,8 @@ import {
   fromDayIndex,
   advance,
   moonPhase,
+  moonFraction,
+  moonPhaseName,
   upcoming,
   formatDate,
   daysPerYear,
@@ -66,6 +68,32 @@ describe('moonPhase', () => {
   });
   it('is Full Moon at the half-cycle (day 14)', () => {
     expect(moonPhase(advance(d(1, 1, 0), 14))).toBe('Full Moon');
+  });
+});
+
+describe('moon fraction & phase name', () => {
+  it('names the New Moon and Full Moon fractions', () => {
+    expect(moonPhaseName(0)).toBe('New Moon');
+    expect(moonPhaseName(0.5)).toBe('Full Moon');
+  });
+
+  it('is New Moon at Faerûn day index 15 (day 16, month 1, year 0)', () => {
+    // toDayIndex(16,1,0) = 15 -> ((15-15)%30+30)%30 = 0 -> frac 0
+    expect(moonFraction(d(16, 1, 0), 'faerun')).toBe(0);
+    expect(moonPhaseName(moonFraction(d(16, 1, 0), 'faerun'))).toBe('New Moon');
+  });
+
+  it('is Full Moon at Faerûn day index 0 (day 1, month 1, year 0)', () => {
+    // toDayIndex(1,1,0) = 0 -> ((0-15)%30+30)%30 = 15 -> frac 0.5
+    expect(moonFraction(d(1, 1, 0), 'faerun')).toBe(0.5);
+    expect(moonPhaseName(moonFraction(d(1, 1, 0), 'faerun'))).toBe('Full Moon');
+  });
+
+  it('is ~New Moon on the real 2000-01-06 anchor date (Gregorian)', () => {
+    const frac = moonFraction(d(6, 1, 2000), 'gregorian');
+    expect(frac).toBeGreaterThanOrEqual(0);
+    expect(frac).toBeLessThan(1);
+    expect(frac < 0.05 || frac > 0.95).toBe(true);
   });
 });
 

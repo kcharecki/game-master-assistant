@@ -83,6 +83,15 @@ class CalendarStore {
   advanceBy(days: number): void {
     this.advanceMinutes(days * MINUTES_PER_DAY);
   }
+  /** Step whole months, keeping the time-of-day and clamping day to month length. */
+  advanceMonths(k: number): void {
+    const c = this.current;
+    const total = c.year * 12 + (c.month - 1) + Math.trunc(k);
+    const year = Math.floor(total / 12);
+    const month = (((total % 12) + 12) % 12) + 1;
+    this.current = clampDate({ ...c, year, month }, this.config);
+    this.touch();
+  }
   setClock(hour: number, minute: number): void {
     const h = Math.min(23, Math.max(0, Math.floor(hour)));
     const m = Math.min(59, Math.max(0, Math.floor(minute)));

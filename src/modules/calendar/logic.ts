@@ -119,6 +119,27 @@ export function moonPhase(d: WorldDate, cfg: CalendarConfig = DEFAULT_CONFIG): M
   return MOON_PHASES[phase];
 }
 
+/**
+ * Moon phase fraction 0..1 (0 = new moon, 0.5 = full), calendar-aware.
+ * Faerûn: a tidy 30-day cycle over the 12×30 day index (Selûne is full mid-cycle).
+ * Gregorian: the real synodic month (29.530588 d) anchored to a known 2000-01-06
+ * new moon, computed from the proleptic-Gregorian day number so CoC-era dates get
+ * an astronomically plausible moon.
+ */
+export function moonFraction(d: WorldDate, calId: CalendarId): number {
+  if (calId === 'faerun') {
+    const a = toDayIndex(d, DEFAULT_CONFIG);
+    return ((((a - 15) % 30) + 30) % 30) / 30;
+  }
+  const a = Math.floor(Date.UTC(d.year, d.month - 1, d.day) / 86400000);
+  return (((((a - 10962) / 29.530588) % 1) + 1) % 1);
+}
+
+/** Name the moon phase from a 0..1 fraction (New Moon at 0, Full Moon at 0.5). */
+export function moonPhaseName(frac: number): MoonPhase {
+  return MOON_PHASES[Math.round(frac * 8) % 8];
+}
+
 /** Events on or after `from`, soonest first, capped at `limit`. */
 export function upcoming(
   events: WorldEvent[],
