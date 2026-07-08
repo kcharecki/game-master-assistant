@@ -7,10 +7,10 @@ import type {
 } from '../../lib/types';
 import type { PublicNpc } from '../npcs/public';
 
-// The stage is a fixed grid the GM lays tiles onto. 12 columns is the de-facto
+// The stage is a fixed grid the GM lays tiles onto. 24 columns is the de-facto
 // layout unit (matches the broadcast aspect well); rows give vertical structure.
-export const STAGE_COLS = 12;
-export const STAGE_ROWS = 8;
+export const STAGE_COLS = 24;
+export const STAGE_ROWS = 16;
 
 // image/text/npc are content sources; clock/date are computed/snapshot tiles.
 // All project to player-safe grid cells.
@@ -134,26 +134,26 @@ export interface BuiltinTemplate {
 }
 
 export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
-  { id: 'bt-handout', nameKey: 'stage.tplHandout', slots: [{ kind: 'text', col: 3, row: 2, cw: 8, rh: 5 }] },
+  { id: 'bt-handout', nameKey: 'stage.tplHandout', slots: [{ kind: 'text', col: 5, row: 3, cw: 16, rh: 10 }] },
   {
     id: 'bt-portrait-letter',
     nameKey: 'stage.tplPortraitLetter',
     slots: [
-      { kind: 'npc', col: 1, row: 1, cw: 5, rh: 8 },
-      { kind: 'text', col: 6, row: 2, cw: 6, rh: 5 },
+      { kind: 'npc', col: 1, row: 1, cw: 10, rh: 16 },
+      { kind: 'text', col: 11, row: 3, cw: 12, rh: 10 },
     ],
   },
-  { id: 'bt-location', nameKey: 'stage.tplLocation', slots: [{ kind: 'image', col: 1, row: 1, cw: 12, rh: 8 }] },
-  { id: 'bt-countdown', nameKey: 'stage.tplCountdown', slots: [{ kind: 'clock', col: 4, row: 3, cw: 5, rh: 3 }] },
+  { id: 'bt-location', nameKey: 'stage.tplLocation', slots: [{ kind: 'image', col: 1, row: 1, cw: 24, rh: 16 }] },
+  { id: 'bt-countdown', nameKey: 'stage.tplCountdown', slots: [{ kind: 'clock', col: 7, row: 5, cw: 10, rh: 6 }] },
   {
     id: 'bt-maptable',
     nameKey: 'stage.tplMapTable',
     slots: [
-      { kind: 'image', col: 1, row: 1, cw: 9, rh: 8 },
-      { kind: 'date', col: 10, row: 1, cw: 3, rh: 2 },
+      { kind: 'image', col: 1, row: 1, cw: 18, rh: 16 },
+      { kind: 'date', col: 19, row: 1, cw: 6, rh: 4 },
     ],
   },
-  { id: 'bt-date', nameKey: 'stage.tplDate', slots: [{ kind: 'date', col: 4, row: 3, cw: 5, rh: 2 }] },
+  { id: 'bt-date', nameKey: 'stage.tplDate', slots: [{ kind: 'date', col: 7, row: 5, cw: 10, rh: 4 }] },
 ];
 
 function uid(): string {

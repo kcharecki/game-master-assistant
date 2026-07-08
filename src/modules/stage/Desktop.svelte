@@ -2028,8 +2028,8 @@
     border: 1px solid var(--line2);
     background-color: var(--bg1);
     background-image: radial-gradient(rgba(214, 182, 94, 0.13) 1px, transparent 1.6px);
-    background-size: calc(100% / 12) calc(100% / 8);
-    background-position: calc(100% / 24) calc(100% / 16);
+    background-size: calc(100% / 24) calc(100% / 16);
+    background-position: calc(100% / 48) calc(100% / 32);
     touch-action: none;
     overflow: hidden;
   }
