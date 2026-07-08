@@ -32,9 +32,16 @@ into the real module). Keep those two roles separate.
    logic but are missing from the UI**; those are usually the highest-value redesign wins.
 2. **Skim the theme tokens** in `src/app.css` (`--green`, `--txt`, `--muted`, `--faint`, `--line2`,
    `--serif`, `--gold`, `--panel`…) so the prompt names the real palette this app uses.
-3. **Emit the prompt** in the template below, filled from what you read. Then stop — ask if the user
-   wants a real before-screenshot captured (build → static serve on :8794 → `preview_screenshot`) to
-   upload alongside the prompt.
+3. **Emit the prompt** in the template below, filled from what you read. Then stop.
+
+## Output rule (strict)
+
+Your entire reply is **only the filled prompt** (the blockquote below). No preamble, no lead-in
+("Here's the prompt…"), no sign-off, no follow-up offer (screenshots, next steps, questions). Nothing
+before or after the prompt block. The user copies your whole message straight into Claude Design.
+
+The one exception: if the target can't be resolved, skip the prompt and instead list the module ids
+under `src/modules/` and ask which one.
 
 ## App facts to bake into every prompt
 
@@ -47,7 +54,7 @@ into the real module). Keep those two roles separate.
   the default window `size` from the manifest and that it must stay usable at min size.
 - Tell Claude Design to **read the codebase** for brand tokens so the mock slots into the real product.
 
-## Prompt template (fill and output verbatim to the user)
+## Prompt template (fill and output verbatim to the user — and output NOTHING else)
 
 > # Claude Design prompt: Rework "<TITLE>"
 >
