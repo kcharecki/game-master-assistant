@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Planer Sesji — Hollowmere</title>
+<style>
+  :root {
+    --bg: #070c0a;
+    --bg1: #0b1310;
+    --bg2: #0d1712;
+    --line1: rgba(134, 178, 153, 0.14);
+    --line2: rgba(134, 178, 153, 0.28);
+    --line3: rgba(134, 178, 153, 0.45);
+    --txt: #dceae2;
+    --muted: #a9beb2;
+    --faint: #879a90;
+    --ink: #0a130e;
+    --green: #6fd0a0;
+    --green-dim: #4fa37b;
+    --green-glow: #1f7a4f;
+    --fill-g08: rgba(111, 208, 160, 0.08);
+    --fill-g14: rgba(111, 208, 160, 0.14);
+    --fill-g22: rgba(111, 208, 160, 0.22);
+    --gold: #d6b65e;
+    --gold-hi: #eec87e;
+    --gold-ink: #171106;
+    --fill-gold: rgba(214, 182, 94, 0.12);
+    --edge-gold: rgba(214, 182, 94, 0.5);
+    --red: #e08d8d;
+    --red-dim: #8a4a4a;
+
+    --t-intro: #6fae86;
+    --t-scene: #7fb0c9;
+    --t-social: #b58fc0;
+    --t-combat: #c86a60;
+    --t-reveal: #6cc0a8;
+
+    --serif: 'Cormorant', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Menlo, Consolas, monospace;
+
+    --r2: 7px;
+    --r3: 10px;
+    --r4: 14px;
+    --maxw: 860px;
+  }
+
+  /* This page commits to a single séance-dark world on purpose — it mirrors the
+     product it documents, which has no light theme. */
+  * { box-sizing: border-box; }
+
+  body { margin: 0; }
+
+  .page {
+    background:
+      radial-gradient(900px 600px at 82% -6%, rgba(31, 122, 79, 0.10), transparent 60%),
+      radial-gradient(700px 520px at 8% 102%, rgba(214, 182, 94, 0.05), transparent 62%),
+      var(--bg);
+    color: var(--txt);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    min-height: 100vh;
+    padding: 0 20px 120px;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  /* ── labels / eyebrows ─────────────────────────────────────────────── */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+  .eyebrow .di { color: var(--green); margin-right: 8px; }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; text-wrap: balance; color: var(--txt); }
+  h1 { font-size: clamp(40px, 7vw, 68px); line-height: 1.02; letter-spacing: -0.01em; margin: 0 0 18px; }
+  h2 { font-size: clamp(28px, 4.5vw, 40px); line-height: 1.08; margin: 0 0 6px; }
+  h3 { font-size: 23px; line-height: 1.15; margin: 0 0 4px; }
+  p { margin: 0 0 16px; max-width: 65ch; }
+  a { color: var(--green); }
+  strong { color: var(--txt); font-weight: 600; }
+  em.gloss { color: var(--gold); font-style: italic; }
+
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ── hero ──────────────────────────────────────────────────────────── */
+  header.hero {
+    padding: 88px 0 40px;
+    border-bottom: 1px solid var(--line1);
+    margin-bottom: 8px;
+  }
+  .hero .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--green);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 26px;
+  }
+  .lamp {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 10px var(--green);
+    animation: pulse 2.4s ease infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .hero .lede {
+    font-family: var(--serif);
+    font-size: clamp(19px, 2.6vw, 24px);
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 40ch;
+  }
+  .hero .meta {
+    display: flex; flex-wrap: wrap; gap: 10px 22px;
+    margin-top: 34px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  .hero .meta b { color: var(--green); font-weight: 600; }
+
+  /* ── section rhythm ────────────────────────────────────────────────── */
+  section { padding: 56px 0 8px; }
+  section > .lead { color: var(--muted); font-size: 17px; }
+
+  /* ── generic mock chrome ───────────────────────────────────────────── */
+  .mock {
+    border: 1px solid var(--line1);
+    border-radius: var(--r4);
+    background: var(--bg1);
+    overflow: hidden;
+    margin: 26px 0;
+    box-shadow: 0 20px 50px -30px rgba(0,0,0,.9);
+  }
+  .mock-bar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 18px; height: 50px;
+    border-bottom: 1px solid var(--line1);
+    background: var(--bg1);
+  }
+  .mock-bar .di { color: var(--green); font-size: 11px; }
+  .mock-camp { font-family: var(--serif); font-size: 20px; font-weight: 500; }
+  .mock-total { font-size: 11px; color: var(--faint); font-family: var(--mono); letter-spacing: .12em; }
+  .spacer { flex: 1; }
+  .seg { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line2); border-radius: 999px; }
+  .seg button, .seg span {
+    border: none; background: transparent; cursor: default;
+    border-radius: 999px; padding: 5px 14px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .seg .on { background: var(--fill-g14); color: var(--txt); }
+  .seg.gold span { color: var(--green); }
+  .seg.gold .on { background: var(--green); color: var(--ink); font-weight: 700; }
+  .pillbtn {
+    border: 1px solid var(--line2); background: transparent; color: var(--muted);
+    border-radius: 999px; padding: 5px 13px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  }
+  .mock-body { padding: 26px 30px; }
+
+  /* ── outline beat rows (PREP) ──────────────────────────────────────── */
+  .act { display: flex; align-items: center; gap: 14px; margin: 8px 0 12px; }
+  .act .lab { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--green); opacity: .85; }
+  .act .rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(111,208,160,.22), transparent); }
+
+  .beat { display: flex; align-items: baseline; gap: 13px; padding: 9px 12px; border-radius: 8px; }
+  .beat.sel { background: var(--fill-g14); }
+  .beat:hover { background: var(--fill-g08); }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid; flex: none; align-self: center;
+  }
+  .btitle { font-family: var(--serif); font-size: 22px; font-weight: 500; }
+  .btitle.planned { color: var(--muted); }
+  .tagpill {
+    font-size: 10.5px; color: var(--faint); border: 1px solid var(--line2); border-radius: 999px; padding: 1px 8px;
+    font-family: var(--mono); letter-spacing: .1em;
+  }
+  .nowtag { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--green); }
+  .cue { font-size: 12.5px; color: var(--faint); font-style: italic; }
+  .mins { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  .icobtn {
+    border: 1px solid var(--green-dim); color: var(--green); background: transparent;
+    border-radius: 6px; padding: 3px 9px; font-size: 12px; font-family: var(--mono);
+  }
+  .branchline { display: flex; align-items: baseline; gap: 10px; padding: 3px 0 3px 46px; }
+  .bglyph { width: 16px; text-align: center; flex: none; }
+  .bcond { font-size: 13px; color: var(--muted); }
+  .btarget { font-family: var(--serif); font-style: italic; font-size: 16px; }
+  .loop { font-family: var(--mono); font-size: 9.5px; color: var(--gold); opacity: .8; letter-spacing: .1em; margin-left: 6px; }
+
+  /* callout numbers over the anatomy diagram */
+  .anno { display: grid; grid-template-columns: 30px 1fr; gap: 10px 14px; margin: 22px 0 8px; }
+  .anno .n {
+    width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--green-dim);
+    color: var(--green); font-family: var(--mono); font-size: 12px; font-weight: 600;
+    display: grid; place-items: center; font-variant-numeric: tabular-nums;
+  }
+  .anno .d { align-self: center; font-size: 14.5px; color: var(--muted); }
+  .anno .d b { color: var(--txt); }
+  code {
+    font-family: var(--mono); font-size: 0.86em;
+    background: var(--bg2); border: 1px solid var(--line1); border-radius: 5px;
+    padding: 1px 6px; color: var(--green);
+  }
+
+  /* ── type + status legend grids ────────────────────────────────────── */
+  .grid { display: grid; gap: 12px; margin: 22px 0; }
+  .grid.types { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .typecard {
+    border: 1px solid var(--line1); border-left: 3px solid var(--tc); border-radius: var(--r3);
+    padding: 12px 14px; background: var(--fill-g08);
+  }
+  .typecard .tn { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--tc); font-weight: 600; }
+  .typecard .td { font-size: 13px; color: var(--muted); margin-top: 5px; }
+
+  .statuses { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }
+  .statuses .s { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+  .statuses .sd { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--green); flex: none; }
+
+  /* ── thread rail ───────────────────────────────────────────────────── */
+  .threads { border: 1px solid var(--line1); border-radius: var(--r3); padding: 14px 16px; background: var(--bg2); }
+  .threadhd {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--faint); display: flex; justify-content: space-between; margin-bottom: 10px;
+  }
+  .thread { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; }
+  .thdot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--green); flex: none; align-self: center; }
+  .thdot.res { background: var(--green); }
+  .thtext { font-size: 14px; color: var(--muted); }
+  .thtext.res { color: var(--faint); text-decoration: line-through; }
+  .thmeta { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--faint); margin-left: auto; }
+
+  /* ── steps ─────────────────────────────────────────────────────────── */
+  .steps { counter-reset: step; margin: 24px 0; display: flex; flex-direction: column; gap: 2px; }
+  .step { display: grid; grid-template-columns: 42px 1fr; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line1); }
+  .step:first-child { border-top: none; }
+  .step::before {
+    counter-increment: step; content: counter(step, decimal-leading-zero);
+    font-family: var(--mono); font-size: 13px; color: var(--green); font-weight: 600;
+    font-variant-numeric: tabular-nums; padding-top: 3px;
+  }
+  .step h3, .step p { grid-column: 2; min-width: 0; }
+  .step h3 { font-size: 20px; margin-bottom: 3px; }
+  .step p { font-size: 14.5px; color: var(--muted); margin: 0; max-width: none; }
+
+  /* ── LIVE run cockpit ──────────────────────────────────────────────── */
+  .cockpit {
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--fill-g08), transparent 70%), var(--bg1);
+  }
+  .cockpit .mock-body { padding: 28px 30px 24px; }
+  .rh { display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap; }
+  .rh .now { font-family: var(--mono); font-size: 10.5px; letter-spacing: .28em; color: var(--green); }
+  .rh .rtype { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+  .rh .ract { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--faint); }
+  .rh .rclock { margin-left: auto; font-family: var(--mono); font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .rh .rclock.over { color: var(--red); }
+  .rh .rclock .of { color: var(--faint); }
+  .rtitle { font-family: var(--serif); font-size: clamp(34px, 6vw, 50px); font-weight: 600; line-height: 1.04; margin: 14px 0 0; }
+  .runbox { padding: 16px 20px; border: 1px solid var(--line1); border-radius: var(--r4); background: var(--fill-g08); margin: 18px 0; }
+  .runread { font-family: var(--serif); font-style: italic; font-size: clamp(18px, 3vw, 23px); line-height: 1.5; color: var(--green); }
+  .runbcast { display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+  .bcastbtn {
+    border: 1px solid var(--green-dim); background: transparent; color: var(--green); cursor: pointer;
+    border-radius: 999px; padding: 7px 16px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  }
+  .bcastbtn:hover { background: var(--fill-g14); }
+  .bcastbtn .key { opacity: .55; }
+  .livelbl { font-size: 12px; color: var(--gold); font-family: var(--mono); letter-spacing: .1em; opacity: 0; transition: opacity .2s; }
+  .livelbl.on { opacity: 1; }
+  .runcue { font-size: 15px; font-style: italic; color: var(--gold); opacity: .88; margin: 4px 0; }
+  .runnotes { font-size: 14px; line-height: 1.55; color: var(--muted); white-space: pre-wrap; margin: 8px 0 4px; }
+
+  .choices { display: flex; flex-direction: column; gap: 11px; margin: 20px 0 8px; }
+  .choice {
+    display: flex; align-items: center; gap: 18px; text-align: left; width: 100%;
+    min-height: 72px; padding: 16px 20px;
+    border: 1px solid var(--line2); border-radius: var(--r4); background: var(--fill-g08);
+    cursor: pointer; color: var(--txt); font: inherit; transition: transform .14s, background .14s, border-color .14s;
+  }
+  .choice:hover { border-color: var(--line3); background: var(--fill-g14); transform: translateY(-1px); }
+  .choicenum {
+    width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line2);
+    display: grid; place-items: center; font-family: var(--mono); font-size: 14px; color: var(--muted); flex: none;
+  }
+  .choicebody { display: flex; flex-direction: column; gap: 3px; }
+  .choicecond { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .choicetarget { font-family: var(--serif); font-size: 24px; font-weight: 500; display: flex; align-items: baseline; gap: 10px; }
+  .choice.term .choicetarget { color: var(--gold); }
+
+  .terminal {
+    display: flex; align-items: center; gap: 14px; padding: 15px 20px; margin: 18px 0;
+    border: 1px solid var(--edge-gold); border-radius: var(--r4); background: var(--fill-gold);
+  }
+  .terminal .td { color: var(--gold); font-size: 16px; }
+  .terminal .tnote { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--gold); flex: 1; }
+  .terminal button {
+    border: 1px solid var(--edge-gold); background: transparent; color: var(--gold); cursor: pointer;
+    border-radius: var(--r2); padding: 7px 15px; font: inherit; font-size: 13px;
+  }
+
+  .runbottom { display: flex; align-items: center; gap: 18px; padding: 16px 0 4px; margin-top: 8px; border-top: 1px solid var(--line1); }
+  .backbtn { border: none; background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 14px; padding: 9px 12px; border-radius: 6px; }
+  .backbtn:hover:not(:disabled) { color: var(--txt); }
+  .backbtn:disabled { opacity: .35; cursor: default; }
+  .nextpeek { flex: 1; text-align: center; font-size: 12.5px; color: var(--faint); font-family: var(--mono); letter-spacing: .06em; }
+  .nextpeek .nt { font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--muted); letter-spacing: 0; }
+  .advance {
+    border: 1px solid var(--line3); background: var(--fill-g08); color: var(--green); cursor: pointer;
+    border-radius: var(--r3); padding: 11px 24px; font: inherit; font-size: 15px; letter-spacing: .05em;
+  }
+  .advance:hover { background: var(--fill-g14); }
+  .runkeys { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--faint); padding-top: 12px; letter-spacing: .06em; }
+
+  /* broadcast preview (parchment) */
+  .bcastprev {
+    margin: 14px 0 0; border-radius: var(--r3); overflow: hidden; border: 1px solid var(--edge-gold);
+    max-height: 0; opacity: 0; transition: max-height .4s ease, opacity .3s ease, margin .3s;
+  }
+  .bcastprev.on { max-height: 320px; opacity: 1; margin-top: 16px; }
+  .parch {
+    background:
+      radial-gradient(120% 100% at 50% 0%, #efe3c4, #e7d7ad);
+    color: #2a2213; padding: 26px 30px; font-family: var(--serif);
+  }
+  .parch .plab { font-family: var(--mono); font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: #7a6636; margin-bottom: 10px; }
+  .parch .ptitle { font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+  .parch .pbody { font-size: 18px; font-style: italic; line-height: 1.5; }
+
+  .hint { font-size: 13px; color: var(--faint); font-style: italic; font-family: var(--serif); }
+
+  /* keys cheatsheet */
+  .keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 22px 0; }
+  .keyrow { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line1); border-radius: var(--r2); padding: 10px 14px; background: var(--bg1); }
+  kbd {
+    font-family: var(--mono); font-size: 12px; min-width: 30px; text-align: center;
+    border: 1px solid var(--line2); border-bottom-width: 2px; border-radius: 5px; padding: 3px 8px;
+    color: var(--txt); background: var(--bg2);
+  }
+  .keyrow .kd { font-size: 13.5px; color: var(--muted); }
+
+  .callout {
+    border: 1px solid var(--line2); border-left: 3px solid var(--gold); border-radius: var(--r3);
+    background: var(--fill-gold); padding: 16px 20px; margin: 22px 0;
+  }
+  .callout .ch { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 6px; }
+  .callout p { margin: 0; font-size: 14.5px; color: var(--muted); }
+
+  footer { margin-top: 70px; padding-top: 26px; border-top: 1px solid var(--line1); color: var(--faint); font-size: 13px; font-family: var(--mono); letter-spacing: .1em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+  @media (max-width: 560px) {
+    .page { padding: 0 15px 90px; }
+    .mock-body { padding: 20px 16px; }
+    .beat, .branchline { padding-left: 8px; }
+    .branchline { padding-left: 28px; }
+    .rh .rclock { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+<div class="wrap">
+
+  <!-- ══ HERO ══ -->
+  <header class="hero">
+    <div class="kicker"><span class="lamp"></span> Planer Sesji · Poradnik MG</div>
+    <h1>Zaplanuj i poprowadź całą sesję z jednego ekranu.</h1>
+    <p class="lede">Od rozpisania scen po prowadzenie na żywo — na przykładzie gotowego scenariusza <em>Hollowmere, Sesja 3</em>.</p>
+    <div class="meta">
+      <span>Kampania · <b>Hollowmere</b></span>
+      <span>Scen · <b>8</b></span>
+      <span>Czas planowany · <b>1h 45m</b></span>
+      <span>Wątki otwarte · <b>4</b></span>
+    </div>
+  </header>
+
+  <!-- ══ CZYM JEST ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> O co chodzi</p>
+    <h2>Dwa tryby, jeden plan</h2>
+    <p class="lead">Planer ma dwa tryby, przełączane jednym przełącznikiem w prawym górnym rogu:</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:20px">
+      <div class="typecard" style="--tc:var(--green)">
+        <div class="tn">Przygot. — PREP</div>
+        <div class="td">Budujesz sesję: sceny, ich kolejność, rozgałęzienia „jeśli gracze…”, tekst do przeczytania, notatki MG i wątki fabularne. Praca przed sesją.</div>
+      </div>
+      <div class="typecard" style="--tc:var(--gold)">
+        <div class="tn">Gra — RUN</div>
+        <div class="td">Kokpit na żywo. Duża scena „TERAZ”, przyciski wyborów graczy, zegar sceny, transmisja tekstu na ekran graczy. To oglądasz przy stole.</div>
+      </div>
+    </div>
+    <p style="margin-top:18px">Plan jest ten sam w obu trybach i zapisuje się sam (IndexedDB) — zamykasz zakładkę, wracasz, wszystko jest. Kursor gry (gdzie „jesteś”) też się zapamiętuje.</p>
+  </section>
+
+  <!-- ══ TRYB PREP ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">A ·</span> Tryb Przygotowania</p>
+    <h2>Zarys — kręgosłup sesji</h2>
+    <p class="lead">W trybie <strong>Przygot.</strong> masz dwa widoki: <strong>Zarys</strong> (lista scen, tu edytujesz) i <strong>Mapa</strong> (te same sceny jako graf rozgałęzień). Oto Zarys z naszym scenariuszem:</p>
+
+    <div class="mock">
+      <div class="mock-bar">
+        <span class="di">◆</span>
+        <span class="mock-camp">Hollowmere</span>
+        <span class="mock-total">1h 45m · plan</span>
+        <span class="spacer"></span>
+        <span class="seg"><span class="on">A · ZARYS</span><span>B · MAPA</span></span>
+        <span class="pillbtn">Wątki · 4</span>
+        <span class="seg gold"><span class="on">PRZYGOT.</span><span>GRA</span></span>
+      </div>
+      <div class="mock-body">
+        <div class="act"><span class="lab">Akt I · Przybycie</span><span class="rule"></span></div>
+
+        <div class="beat">
+          <span class="dot" style="border-color:var(--t-intro);background:var(--t-intro)"></span>
+          <span class="btitle">Zimne otwarcie — Nadciąga mgła</span>
+          <span class="spacer"></span>
+          <span class="mins">10m</span>
+        </div>
+        <div class="beat sel">
+          <span class="dot" style="border-color:var(--t-scene);background:var(--t-scene)"></span>
+          <span class="btitle">Zatopiona kaplica</span>
+          <span class="spacer"></span>
+          <span class="cue">Rejestr w nawie wymienia sygnatariuszy Paktu.</span>
+          <span class="mins">10m</span>
+          <span class="icobtn">⑃</span>
+          <span class="icobtn">▶</span>
+        </div>
+        <div class="branchline">
+          <span class="bglyph" style="color:var(--green)">→</span>
+          <span class="bcond">jeśli odczytają zatopiony rejestr</span>
+          <span class="btarget" style="color:var(--t-social)">Rozmowa z Przewoźnikiem</span>
+        </div>
+        <div class="branchline">
+          <span class="bglyph" style="color:var(--green)">→</span>
+          <span class="bcond">jeśli pójdą za bagiennym światłem</span>
+          <span class="btarget" style="color:var(--t-social)">Ogień Pustelnicy</span>
+        </div>
+
+        <div class="beat">
+          <span class="dot" style="border-color:var(--t-social);background:color-mix(in oklab,var(--t-social) 40%,transparent)"></span>
+          <span class="btitle planned">Ogień Pustelnicy</span>
+          <span class="tagpill">pomijalna</span>
+          <span class="spacer"></span>
+          <span class="mins">10m</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:36px">Anatomia sceny</h3>
+    <p class="lead">Każdy wiersz to jedna scena. Klik rozwija edytor pod spodem. Co jest w wierszu:</p>
+    <div class="anno">
+      <span class="n">1</span><span class="d"><b>Kropka statusu</b> — kolor = typ sceny, wypełnienie = status. Klik cyklicznie zmienia status (planowana → szkic → ukończona).</span>
+      <span class="n">2</span><span class="d"><b>Tytuł</b> — szary gdy „planowana”, jasny gdy w toku. To jedyne wymagane pole sceny.</span>
+      <span class="n">3</span><span class="d"><b>Znacznik „pomijalna”</b> — scena poboczna, opcjonalna. W mapie rysowana przerywaną linią.</span>
+      <span class="n">4</span><span class="d"><b>Wskazówka</b> (cue) — jedna linijka „na rzut oka”, pojawia się w kokpicie gry.</span>
+      <span class="n">5</span><span class="d"><b>Minuty</b> — budżet czasu sceny. Sumują się do „1h 45m · plan” w pasku.</span>
+      <span class="n">6</span><span class="d"><b>⑃ Rozgałęzienie</b> — tworzy nową scenę-odnogę jednym kliknięciem.</span>
+      <span class="n">7</span><span class="d"><b>▶ Graj od tąd</b> — wskakuje w tryb Gra od tej właśnie sceny.</span>
+    </div>
+
+    <h3 style="margin-top:36px">Dodawanie sceny</h3>
+    <p class="lead">Na dole listy jest pole <code>+ Nowa scena — wpisz tytuł i naciśnij Enter</code>. Wpisujesz tytuł, Enter — scena gotowa. Reszta pól (typ, akt, tekst, rozgałęzienia) dochodzi w edytorze. <span class="hint">Każde pole jest opcjonalne — scena wymaga tylko tytułu.</span></p>
+  </section>
+
+  <!-- ══ TYPY SCEN ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Pole: Typ sceny</p>
+    <h2>Pięć typów — kolor mówi, co się dzieje</h2>
+    <p class="lead">Typ nadaje scenie kolor w całej aplikacji (kropka, mapa, akcent kokpitu). Wybierasz go w edytorze sceny.</p>
+    <div class="grid types">
+      <div class="typecard" style="--tc:var(--t-intro)"><div class="tn">intro</div><div class="td">Otwarcie, wprowadzenie, „zimne otwarcie”.</div></div>
+      <div class="typecard" style="--tc:var(--t-scene)"><div class="tn">scena</div><div class="td">Eksploracja, opis miejsca, ogólna scena.</div></div>
+      <div class="typecard" style="--tc:var(--t-social)"><div class="tn">rozmowa</div><div class="td">NPC, negocjacje, przesłuchanie, intryga.</div></div>
+      <div class="typecard" style="--tc:var(--t-combat)"><div class="tn">walka</div><div class="td">Starcie, pościg, scena z inicjatywą.</div></div>
+      <div class="typecard" style="--tc:var(--t-reveal)"><div class="tn">odsłona</div><div class="td">Zwrot akcji, objawienie, wielka prawda.</div></div>
+    </div>
+  </section>
+
+  <!-- ══ STATUSY ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Pole: Status</p>
+    <h2>Trzy statusy — dokąd doszła praca</h2>
+    <div class="statuses">
+      <span class="s"><span class="sd" style="background:transparent"></span> <b style="color:var(--txt)">planowana</b> — szkielet, tylko tytuł</span>
+      <span class="s"><span class="sd" style="background:color-mix(in oklab,var(--green) 40%,transparent)"></span> <b style="color:var(--txt)">szkic</b> — częściowo rozpisana</span>
+      <span class="s"><span class="sd" style="background:var(--green)"></span> <b style="color:var(--txt)">ukończona</b> — gotowa do gry</span>
+    </div>
+    <p>Klik w kropkę przy scenie przełącza status cyklicznie — nie musisz otwierać edytora. To Twój pasek postępu przygotowań.</p>
+  </section>
+
+  <!-- ══ ROZGAŁĘZIENIA ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Serce Planera</p>
+    <h2>Rozgałęzienia „jeśli gracze…”</h2>
+    <p class="lead">Gracze nigdy nie idą prosto. Do każdej sceny dopinasz odnogi: <b>warunek</b> („jeśli gracze zrobią X”) + <b>cel</b> (dokąd wtedy skaczesz). W edytorze sceny wygląda to tak:</p>
+
+    <div class="mock"><div class="mock-body" style="padding:22px 26px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+        <span class="bglyph" style="color:var(--green)">→</span>
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)">jeśli</span>
+        <span style="flex:1;border-bottom:1px solid var(--line2);padding-bottom:4px;color:var(--muted)">zapłacą myto — prawdziwe imię</span>
+        <span style="color:var(--faint)">→</span>
+        <span class="pillbtn" style="color:var(--txt)">Zatopiony skarbiec ▾</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+        <span class="bglyph" style="color:var(--green)">→</span>
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)">jeśli</span>
+        <span style="flex:1;border-bottom:1px solid var(--line2);padding-bottom:4px;color:var(--muted)">wymienią imię Mireille</span>
+        <span style="color:var(--faint)">→</span>
+        <span class="pillbtn" style="color:var(--txt)">Co zatrzymała woda ▾</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="bglyph" style="color:var(--gold)">◆</span>
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)">jeśli</span>
+        <span style="flex:1;border-bottom:1px solid var(--line2);padding-bottom:4px;color:var(--muted)">odmówią lub dobędą broni</span>
+        <span style="color:var(--faint)">→</span>
+        <span class="pillbtn" style="border-color:var(--edge-gold);color:var(--gold)">◆ zakończenie ▾</span>
+      </div>
+      <div style="margin-top:16px"><span class="icobtn" style="border-style:dashed">+ jeśli gracze…</span></div>
+    </div></div>
+
+    <div class="anno">
+      <span class="n" style="border-color:var(--green-dim)">→</span><span class="d"><b>Odnoga do sceny</b> (zielona strzałka) — prowadzi do innej, istniejącej sceny. W grze staje się klikalnym przyciskiem-skokiem.</span>
+      <span class="n" style="border-color:var(--edge-gold);color:var(--gold)">◆</span><span class="d"><b>Zakończenie</b> (złoty romb) — wolny tekst, bez celu („ucieka”, „nierozwiązane”). Odnotujesz to i wracasz na kręgosłup.</span>
+      <span class="n" style="border-color:var(--edge-gold);color:var(--gold)">↩</span><span class="d"><b>Pętla</b> — odnoga wskazująca scenę <em>wcześniejszą</em>. Oznaczana „PĘTLA” — gracze wrócili tam, gdzie już byli.</span>
+    </div>
+    <div class="callout">
+      <div class="ch">◆ Skrót przy tworzeniu</div>
+      <p>Przycisk <b>⑃</b> przy scenie od razu tworzy nową scenę-odnogę i otwiera ją do wypełnienia. A jeśli w polu celu wpiszesz tytuł nieistniejącej sceny — Planer pokaże ją jako „zakończenie”, które później jednym kliknięciem awansujesz na pełną scenę.</p>
+    </div>
+  </section>
+
+  <!-- ══ TEKST + NOTATKI ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Pola treści</p>
+    <h2>Do przeczytania, notatki MG, wskazówka</h2>
+    <p class="lead">Edytor sceny ma trzy pola treści — każde trafia gdzie indziej podczas gry:</p>
+    <div class="steps">
+      <div class="step"><h3>Do przeczytania</h3><p>Zielony kursywny tekst dla graczy — to, co czytasz na głos. Tylko ten tekst da się <b>transmitować na ekran graczy</b> (jako pergamin). Reszta zostaje u MG.</p></div>
+      <div class="step"><h3>Notatki MG</h3><p>Tylko dla Ciebie. Obsługują <code>@bn</code> (NPC), <code>#tag</code> i <code>[[wiedza]]</code> — linki do innych modułów, podświetlane na złoto.</p></div>
+      <div class="step"><h3>Wskazówka (cue)</h3><p>Jedna linijka „na rzut oka” — sedno sceny bez czytania całych notatek. W kokpicie gry świeci na złoto ze znakiem ☞.</p></div>
+    </div>
+  </section>
+
+  <!-- ══ WĄTKI ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Prawy panel / przycisk Wątki</p>
+    <h2>Wątki fabularne</h2>
+    <p class="lead">Otwarte pytania kampanii, śledzone niezależnie od scen. Widoczne i w Przygotowaniu (prawy panel), i w Grze. Klik odhacza wątek jako rozwiązany.</p>
+    <div class="threads">
+      <div class="threadhd"><span>Otwarte wątki</span><span>3 otwarte / 1 rozwiązany</span></div>
+      <div class="thread"><span class="thdot"></span><span class="thtext">Kto podpisał Pakt z Hollowmere?</span><span class="thmeta">S1</span></div>
+      <div class="thread"><span class="thdot"></span><span class="thtext">Zaginiona siostra Mireille</span><span class="thmeta">S2</span></div>
+      <div class="thread"><span class="thdot"></span><span class="thtext">Czemu woda podnosi się o zmierzchu?</span><span class="thmeta">S2</span></div>
+      <div class="thread"><span class="thdot res"></span><span class="thtext res">Prawdziwe imię Przewoźnika</span><span class="thmeta">S3</span></div>
+    </div>
+    <p style="margin-top:14px">Dodajesz wątek w polu <code>+ otwarte pytanie…</code>. Znacznik z prawej (S1/S2/S3) mówi, w której sesji został „zasiany”.</p>
+  </section>
+
+  <!-- ══ TRYB RUN — LIVE ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">B ·</span> Tryb Gry — kokpit na żywo</p>
+    <h2>Poprowadź sesję</h2>
+    <p class="lead">To jest interaktywne. <strong>Kliknij wybory graczy, „Dalej →”, „Transmituj”, albo użyj klawiszy</strong> — kokpit reaguje dokładnie jak w aplikacji. Zacznij od „Rozmowy z Przewoźnikiem”:</p>
+
+    <div class="mock cockpit" id="cockpit" tabindex="0" role="group" aria-label="Kokpit gry — kliknij lub użyj klawiszy">
+      <div class="mock-bar">
+        <span class="di">◆</span>
+        <span class="mock-camp">Hollowmere</span>
+        <span class="spacer"></span>
+        <span class="pillbtn" id="threadsBtn">Wątki · <span id="openN">3</span></span>
+        <span class="seg gold"><span>PRZYGOT.</span><span class="on">GRA</span></span>
+      </div>
+      <div class="mock-body">
+        <div class="rh">
+          <span class="now">● TERAZ</span>
+          <span class="rtype" id="rtype"></span>
+          <span class="ract" id="ract"></span>
+          <span class="rclock" id="rclock"></span>
+        </div>
+        <h3 class="rtitle" id="rtitle"></h3>
+
+        <div class="runbox" id="runbox">
+          <div class="runread" id="runread"></div>
+          <div class="runbcast">
+            <button class="bcastbtn" id="bcastbtn">⇡ Transmituj graczom <span class="key">· B</span></button>
+            <span class="livelbl" id="livelbl">● na ekranie graczy</span>
+          </div>
+        </div>
+
+        <div class="runcue" id="runcue"></div>
+        <div class="runnotes" id="runnotes"></div>
+
+        <div class="bcastprev" id="bcastprev">
+          <div class="parch">
+            <div class="plab">Ekran graczy · na żywo</div>
+            <div class="ptitle" id="parchTitle"></div>
+            <div class="pbody" id="parchBody"></div>
+          </div>
+        </div>
+
+        <div class="terminal" id="terminal" style="display:none">
+          <span class="td">◆</span>
+          <span class="tnote" id="tnote"></span>
+          <button id="continueBtn">Kontynuuj kręgosłup →</button>
+        </div>
+
+        <div class="choices" id="choices"></div>
+
+        <div class="runbottom">
+          <button class="backbtn" id="backbtn">← Wstecz</button>
+          <span class="nextpeek">następne w kręgosłupie · <span class="nt" id="nextpeek"></span></span>
+          <button class="advance" id="advanceBtn">Dalej →</button>
+        </div>
+        <div class="runkeys" id="runkeys"></div>
+      </div>
+    </div>
+    <p class="hint" style="text-align:center">Kliknij w kokpit, potem: Spacja / → dalej · ← wstecz · 1–9 wybór · B transmisja</p>
+  </section>
+
+  <!-- ══ ANATOMIA KOKPITU ══ -->
+  <section>
+    <h2>Co widzisz w kokpicie</h2>
+    <div class="anno">
+      <span class="n">1</span><span class="d"><b>Nagłówek</b> — ● TERAZ, typ sceny, akt i <b>zegar sceny</b>. Zegar robi się czerwony, gdy przekroczysz budżet minut.</span>
+      <span class="n">2</span><span class="d"><b>Tekst do przeczytania</b> — wielki, zielony, kursywny. Pod nim przycisk <b>Transmituj graczom</b>.</span>
+      <span class="n">3</span><span class="d"><b>☞ Wskazówka</b> (złota) i <b>notatki MG</b> — Twoja ściągawka, niewidoczna dla graczy.</span>
+      <span class="n">4</span><span class="d"><b>Wybory graczy</b> — numerowane przyciski (1–9). Klik = skok do tej sceny. Złoty romb = zakończenie bez celu.</span>
+      <span class="n">5</span><span class="d"><b>Pasek dołu</b> — ← Wstecz (cofa po śladzie), podgląd następnej sceny, Dalej → (idzie kręgosłupem).</span>
+    </div>
+    <div class="callout">
+      <div class="ch">◆ Kręgosłup vs. odnogi</div>
+      <p><b>Dalej →</b> idzie „kręgosłupem” — sceny po kolei, jak je ułożyłeś. <b>Wybory graczy</b> to skoki na boki, gdy stół pójdzie własną drogą. <b>Wstecz</b> cofa dokładnie po Twoim śladzie, więc zawsze wiesz, skąd przyszedłeś. Na końcu kręgosłupa Planer mówi: „sesja należy do Ciebie”.</p>
+    </div>
+  </section>
+
+  <!-- ══ TRANSMISJA ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Most do graczy</p>
+    <h2>Transmisja na ekran graczy</h2>
+    <p class="lead">Przycisk <b>Transmituj graczom</b> (lub klawisz <kbd>B</kbd>) wysyła tekst „do przeczytania” bieżącej sceny na współdzielone okno transmisji — jako pergamin. To jedyne okno, które udostępniasz przez ekran; reszta zostaje tylko u Ciebie. Po wysłaniu przy scenie zapala się złoty znacznik <b>● na ekranie graczy</b>. <span class="hint">Wypróbuj przycisk B w kokpicie wyżej — zobaczysz podgląd pergaminu.</span></p>
+  </section>
+
+  <!-- ══ SKRÓTY ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Ściągawka</p>
+    <h2>Skróty klawiszowe (tryb Gra)</h2>
+    <div class="keys">
+      <div class="keyrow"><kbd>Spacja</kbd><span class="kd">Dalej — następna scena</span></div>
+      <div class="keyrow"><kbd>→</kbd><span class="kd">Dalej — jak Spacja</span></div>
+      <div class="keyrow"><kbd>←</kbd><span class="kd">Wstecz — cofnij po śladzie</span></div>
+      <div class="keyrow"><kbd>1</kbd>–<kbd>9</kbd><span class="kd">Wybór graczy / skok do sceny</span></div>
+      <div class="keyrow"><kbd>B</kbd><span class="kd">Transmituj tekst graczom</span></div>
+      <div class="keyrow"><kbd>Esc</kbd><span class="kd">Wróć do Przygotowania</span></div>
+    </div>
+  </section>
+
+  <!-- ══ PRZEPIS ══ -->
+  <section>
+    <p class="eyebrow"><span class="di">◆</span> Od zera do gry</p>
+    <h2>Przepis: przygotuj sesję w 7 krokach</h2>
+    <div class="steps">
+      <div class="step"><h3>Nazwij kampanię</h3><p>Klik w tytuł na pasku (np. „Hollowmere”). Ustaw też sesję.</p></div>
+      <div class="step"><h3>Wrzuć sceny</h3><p>Pole na dole listy — wpisuj tytuły i Enter. Najpierw sam szkielet.</p></div>
+      <div class="step"><h3>Nadaj typy i akty</h3><p>Otwórz każdą scenę, ustaw typ (kolor) i pole „Akt…”, by pogrupować listę.</p></div>
+      <div class="step"><h3>Rozpisz treść</h3><p>Tekst do przeczytania, notatki MG (<code>@bn</code>, <code>[[wiedza]]</code>), wskazówkę i minuty.</p></div>
+      <div class="step"><h3>Dopnij rozgałęzienia</h3><p>„+ jeśli gracze…” — warunek plus cel. Sprawdź logikę w widoku Mapa.</p></div>
+      <div class="step"><h3>Dodaj wątki</h3><p>Otwarte pytania kampanii w panelu Wątki. Oznacz sesję zasiania.</p></div>
+      <div class="step"><h3>Graj</h3><p>Przełącz na GRA (lub ▶ na scenie). Prowadź Spacją, wyborami i klawiszem B.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    Planer Sesji · GM Assistant · scenariusz przykładowy „Hollowmere” &nbsp;—&nbsp; wszystkie etykiety zgodne z polską wersją aplikacji.
+  </footer>
+
+</div>
+</div>
+
+<script>
+(function () {
+  // ── scenariusz Hollowmere (odwzorowanie SEED_BEATS, po polsku) ──────────────
+  const T = {
+    intro:'#6fae86', scene:'#7fb0c9', social:'#b58fc0', combat:'#c86a60', reveal:'#6cc0a8'
+  };
+  const TYPE_PL = { intro:'intro', scene:'scena', social:'rozmowa', combat:'walka', reveal:'odsłona' };
+
+  const beats = [
+    { id:'open', title:'Zimne otwarcie — Nadciąga mgła', type:'intro', act:'Akt I · Przybycie', mins:10,
+      boxed:'Poczta-łódź wtacza się w ścianę szarości. Gdzieś przed dziobem bije dzwon, powolny i mokry, a brzeg Hollowmere wyłania się z mgły.',
+      cue:'', notes:'Zbuduj grozę. Drużynę wezwała @Mireille w sprawie [[Paktu z Hollowmere]].',
+      branches:[{cond:'', to:'chapel'}] },
+    { id:'chapel', title:'Zatopiona kaplica', type:'scene', act:'Akt I · Przybycie', mins:10,
+      boxed:'', cue:'Rejestr w nawie wymienia sygnatariuszy Paktu.',
+      notes:'Eksploracja zalanej nawy. #trop: rejestr wymienia sygnatariuszy [[Paktu z Hollowmere]].',
+      branches:[{cond:'odczytają zatopiony rejestr', to:'parley'},{cond:'pójdą za bagiennym światłem', to:'hermit'}] },
+    { id:'hermit', title:'Ogień Pustelnicy', type:'social', act:'Akt I · Przybycie', mins:10, optional:true,
+      boxed:'', cue:'Sella zna cenę Przewoźnika — i to, czego żąda zmierzch.',
+      notes:'Opcjonalna. Stara @Sella wymienia ostrzeżenie za opowieść. #plotka',
+      branches:[{cond:'wskaże im przeprawę', to:'parley'}] },
+    { id:'parley', title:'Rozmowa z Przewoźnikiem', type:'social', act:'Akt II · Przeprawa', mins:15,
+      boxed:'Przy linii trzcin czeka skif, a w nim postać z mokrego, szarego sukna. Nie podnosi wzroku. „Dwoje na drugi brzeg”, mówi, „a myto to nie moneta.”',
+      cue:'Chce imienia winnego jezioru, nie monety. Imię Mireille łagodzi myto.',
+      notes:'@Przewoźnik chce imienia należnego jezioru — naciskaj drużynę o [[Pakt z Hollowmere]]. Pilnuj #myto: zmierzch podnosi wodę.',
+      branches:[{cond:'zapłacą myto — prawdziwe imię', to:'vault'},{cond:'wymienią imię Mireille', to:'kept'},{cond:'odmówią lub dobędą broni', to:'__Gniew Przewoźnika'}] },
+    { id:'vault', title:'Zatopiony skarbiec', type:'combat', act:'Akt II · Przeprawa', mins:25,
+      boxed:'', cue:'Strażnicy budzą się; woda podnosi się o stopę na rundę.',
+      notes:'Strażnicy z zatopionego kamienia ruszają. Teren: woda podnosi się co rundę.',
+      branches:[{cond:'zdobędą prawdziwe imię', to:'kept'},{cond:'woda zamknie się nad nimi', to:'__Wciągnięci pod wodę'}] },
+    { id:'kept', title:'Co zatrzymała woda', type:'reveal', act:'Akt II · Przeprawa', mins:10,
+      boxed:'', cue:'',
+      notes:'Skarbiec wydaje prawdziwe imię — i portret @Mireille o sto lat za stary.',
+      branches:[{cond:'', to:'bargain'}] },
+    { id:'bargain', title:'Targ', type:'social', act:'Akt III · Targ', mins:15,
+      boxed:'', cue:'Jezioro nazywa swą cenę ustami Mireille. Co oddadzą?',
+      notes:'Samo jezioro targuje się przez @Mireille. Co drużyna odda, by wyjść?',
+      branches:[{cond:'oddadzą wspomnienie jezioru', to:'ashes'},{cond:'złamią pakt i uciekną', to:'parley'}] },
+    { id:'ashes', title:'Popiół na fali', type:'scene', act:'Akt III · Targ', mins:10,
+      boxed:'', cue:'', notes:'Konsekwencje i odejście. Które wątki zostawili otwarte?',
+      branches:[] },
+  ];
+  const byId = Object.fromEntries(beats.map((b,i)=>[b.id,i]));
+  const titleToId = Object.fromEntries(beats.map(b=>[b.title,b.id]));
+
+  // resolve a branch target: id, or null (terminal — encoded as "__free text")
+  function resolve(to){
+    if(to.startsWith('__')) return null;
+    return to;
+  }
+  function termText(to){ return to.slice(2); }
+
+  // ── state ───────────────────────────────────────────────────────────────────
+  let cur = 'parley';
+  let trail = [];
+  let beatSec = 0;
+  let sessionSec = 0;
+  let terminalNote = null;
+  const aired = {};
+
+  const $ = id => document.getElementById(id);
+  const idxOf = id => byId[id];
+
+  function nextOnSpine(){
+    const i = idxOf(cur);
+    return (i+1 < beats.length) ? beats[i+1] : null;
+  }
+
+  function render(){
+    const b = beats[idxOf(cur)];
+    $('rtype').textContent = TYPE_PL[b.type];
+    $('rtype').style.color = T[b.type];
+    $('ract').textContent = b.act || '';
+    // clock
+    const over = beatSec > (b.mins||0)*60;
+    $('rclock').className = 'rclock' + (over?' over':'');
+    $('rclock').innerHTML = fmt(beatSec) + ' <span class="of">z ' + (b.mins||0) + 'm</span>';
+    $('rtitle').textContent = b.title;
+
+    // read-aloud box
+    if(b.boxed && b.boxed.trim()){
+      $('runbox').style.display = '';
+      $('runread').textContent = b.boxed;
+      $('livelbl').className = 'livelbl' + (aired[b.id]?' on':'');
+    } else {
+      $('runbox').style.display = 'none';
+    }
+    // parchment preview follows aired state of current beat
+    const pv = $('bcastprev');
+    if(aired[b.id] && b.boxed && b.boxed.trim()){
+      pv.classList.add('on');
+      $('parchTitle').textContent = b.title;
+      $('parchBody').textContent = b.boxed;
+    } else {
+      pv.classList.remove('on');
+    }
+
+    // cue / notes
+    $('runcue').textContent = b.cue ? '☞ ' + b.cue : '';
+    $('runcue').style.display = b.cue ? '' : 'none';
+    $('runnotes').textContent = b.notes || '';
+    $('runnotes').style.display = b.notes ? '' : 'none';
+
+    // terminal note
+    const term = $('terminal');
+    if(terminalNote){ term.style.display=''; $('tnote').textContent = terminalNote + ' — zapisano.'; }
+    else term.style.display='none';
+
+    // choices
+    const cbox = $('choices'); cbox.innerHTML='';
+    b.branches.forEach((br,j)=>{
+      const tid = resolve(br.to);
+      const isTerm = tid===null;
+      const btn = document.createElement('button');
+      btn.className = 'choice' + (isTerm?' term':'');
+      const tgtTitle = isTerm ? termText(br.to) : beats[idxOf(tid)].title;
+      const tgtColor = isTerm ? 'var(--gold)' : T[beats[idxOf(tid)].type];
+      const isLoop = !isTerm && idxOf(tid) < idxOf(cur);
+      btn.innerHTML =
+        '<span class="choicenum">'+(j+1)+'</span>'+
+        '<span class="choicebody">'+
+          '<span class="choicecond">jeśli '+(br.cond||'—')+'</span>'+
+          '<span class="choicetarget" style="color:'+tgtColor+'">'+(isTerm?'◆':(isLoop?'↩':'→'))+' '+tgtTitle+
+            (isLoop?'<span class="loop">PĘTLA</span>':'')+'</span>'+
+        '</span>';
+      btn.onclick = ()=> takeBranch(br);
+      cbox.appendChild(btn);
+    });
+
+    // bottom
+    $('backbtn').disabled = trail.length===0;
+    const nx = nextOnSpine();
+    $('nextpeek').textContent = nx ? nx.title : 'koniec kręgosłupa';
+
+    // keys hint
+    const n = b.branches.length || 1;
+    $('runkeys').textContent = 'Spacja dalej · ← wstecz · 1–'+n+' wybór · B transmisja  ·  sesja '+fmt(sessionSec);
+  }
+
+  function fmt(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+
+  function moveCursor(id){
+    if(id===cur) return;
+    trail.push(cur);
+    cur = id; beatSec=0; terminalNote=null;
+  }
+  function advance(){
+    const nx = nextOnSpine();
+    if(nx){ moveCursor(nx.id); }
+    else { terminalNote = 'Koniec kręgosłupa — sesja należy do Ciebie'; }
+    render();
+  }
+  function takeBranch(br){
+    const tid = resolve(br.to);
+    if(tid){ moveCursor(tid); }
+    else { terminalNote = termText(br.to); }
+    render();
+  }
+  function back(){
+    if(!trail.length) return;
+    cur = trail.pop(); beatSec=0; terminalNote=null; render();
+  }
+  function broadcast(){
+    const b = beats[idxOf(cur)];
+    if(!b.boxed || !b.boxed.trim()) return;
+    aired[b.id] = true;
+    render();
+  }
+
+  $('advanceBtn').onclick = advance;
+  $('backbtn').onclick = back;
+  $('bcastbtn').onclick = broadcast;
+  $('continueBtn').onclick = advance;
+  $('threadsBtn').onclick = ()=>{}; // decorative here
+
+  // keys — only when cockpit focused/hovered
+  const cockpit = $('cockpit');
+  cockpit.addEventListener('keydown', e=>{
+    const k=e.key;
+    if(k===' '||k==='ArrowRight'){ e.preventDefault(); advance(); }
+    else if(k==='ArrowLeft'){ e.preventDefault(); back(); }
+    else if(k==='b'||k==='B'){ broadcast(); }
+    else if(/^[1-9]$/.test(k)){
+      const b=beats[idxOf(cur)]; const br=b.branches[+k-1];
+      if(br) takeBranch(br);
+    }
+  });
+
+  // beat clock ticks
+  setInterval(()=>{ beatSec++; sessionSec++;
+    const b=beats[idxOf(cur)];
+    const over = beatSec > (b.mins||0)*60;
+    $('rclock').className='rclock'+(over?' over':'');
+    $('rclock').innerHTML = fmt(beatSec)+' <span class="of">z '+(b.mins||0)+'m</span>';
+    $('runkeys').textContent = $('runkeys').textContent.replace(/sesja .*/,'sesja '+fmt(sessionSec));
+  },1000);
+
+  render();
+})();
+</script>
+</body>
+</html>
