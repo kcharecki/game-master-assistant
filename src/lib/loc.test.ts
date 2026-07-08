@@ -13,6 +13,12 @@ describe('loc', () => {
     expect(loc({ en: 'Only EN' }, 'pl')).toBe('Only EN');
     expect(loc(undefined, 'en')).toBe('');
   });
+  it('treats an explicitly-empty variant as an intentional clear, not a fallback', () => {
+    // Blanking the pl variant of a both-seeded value must render blank, not
+    // resurrect the en variant (the "can't delete New NPC" bug).
+    expect(loc({ en: 'New NPC', pl: '' }, 'pl')).toBe('');
+    expect(loc({ en: 'New NPC', pl: '' }, 'en')).toBe('New NPC');
+  });
 });
 
 describe('setLoc', () => {

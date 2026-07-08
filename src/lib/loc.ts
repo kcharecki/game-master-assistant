@@ -3,8 +3,9 @@ import type { Locale } from './stores/lang.svelte';
 /**
  * A user-facing string that may carry per-language variants. A plain string is
  * treated as the same text in every language (legacy + terse values); an object
- * holds explicit English/Polish variants. Resolving always falls back to the
- * other language so nothing renders blank.
+ * holds explicit English/Polish variants. Resolving falls back to the other
+ * language only when the requested variant is *absent* — an explicitly empty
+ * variant is an intentional clear and wins, so a field can be blanked.
  */
 export type LocalizedText = string | { en?: string; pl?: string };
 
@@ -12,7 +13,9 @@ export type LocalizedText = string | { en?: string; pl?: string };
 export function loc(v: LocalizedText | undefined | null, lang: Locale): string {
   if (v == null) return '';
   if (typeof v === 'string') return v;
-  return v[lang] || v.en || v.pl || '';
+  // An explicitly-set variant (even '') wins; only an absent one falls back.
+  if (v[lang] !== undefined) return v[lang] as string;
+  return v.en || v.pl || '';
 }
 
 /**

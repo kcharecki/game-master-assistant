@@ -97,6 +97,7 @@
         class="in name"
         value={g(npc.name)}
         oninput={(e) => npcs.update(npc.id, { name: sl(npc.name, e.currentTarget.value) })}
+        onfocus={(e) => e.currentTarget.select()}
         placeholder={t('npcs.namePlaceholder')}
       />
       <input
