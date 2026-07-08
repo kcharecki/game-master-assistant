@@ -36,6 +36,14 @@ Pure-web Svelte 5 + TS, three surfaces (desktop / editor tabs / broadcast), Inde
 `BroadcastChannel` single shared window. Green gate + commit per component: `npm run check` · `lint` ·
 `test` (Vitest, co-located `*.test.ts`) · `build`.
 
+**Test rule — every module with state ships tests.** A module that has `store.svelte.ts` MUST have a
+co-located `store.test.ts`; a module with `logic.ts` MUST have `logic.test.ts`. Mock `lib/db`
+(`kvGet`/`kvSet`) at the top so state is tested pure — no IndexedDB, no DOM (see
+`src/modules/timer/store.test.ts`). Cover every state transition and pure helper the store exports.
+When you touch a store or its logic, update the test in the same change — never ship or edit
+`store.svelte.ts`/`logic.ts` without its `*.test.ts` green. Current gaps to backfill: `calendar` and
+`handouts` (store, no store.test); `initiative` (has store.test, no `logic.ts`/logic tests).
+
 - **Architecture, module contract, how to add a module** → @ARCHITECTURE.md (read this first).
 - **Feature spec** → @gm-assistant-features.md. Note: not all 40 features are built — `src/lib/registry.ts`
   is the source of truth for what actually ships. Several feature ids (statblock, factions, clues,
