@@ -707,17 +707,6 @@ button {
   background: linear-gradient(180deg, #0e1815, #0a110e);
   border-bottom: 1px solid var(--line);
 }
-.topbar .brand {
-  font-size: 16px;
-  font-weight: 700;
-}
-.topbar .brand small {
-  display: block;
-  font-size: 9px;
-  letter-spacing: 0.28em;
-  color: var(--green);
-  font-weight: 700;
-}
 .topbar .spacer {
   flex: 1;
 }
@@ -896,11 +885,7 @@ a {
     text-shadow 0.12s ease;
 }
 
-/* ---- brand + panel headings in display serif ---- */
-.topbar .brand {
-  font-family: var(--serif);
-  letter-spacing: 0.01em;
-}
+/* ---- panel headings in display serif ---- */
 .keeper .kt {
   font-family: var(--serif);
 }

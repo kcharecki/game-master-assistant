@@ -110,6 +110,20 @@ describe('rollCardModel', () => {
     expect('hidden' in card).toBe(false);
   });
 
+  it('copies rolls/kept into fresh arrays (never the source reference)', () => {
+    // The Desktop passes a reactive ($state) RollResult whose arrays are proxies
+    // that can't be structured-cloned across the BroadcastChannel. The card must
+    // hold plain copies, or `air` throws DataCloneError and nothing airs.
+    const r: RollResult = { rolls: [4, 5], kept: [4], modifier: 0, total: 4, hidden: false };
+    const card = rollCardModel(r, '2d6');
+    expect(card.rolls).toEqual([4, 5]);
+    expect(card.kept).toEqual([4]);
+    expect(card.rolls).not.toBe(r.rolls);
+    expect(card.kept).not.toBe(r.kept);
+    // Structured-clone must succeed (mirrors what postMessage does).
+    expect(() => structuredClone(card)).not.toThrow();
+  });
+
   it('omits an empty label', () => {
     const r: RollResult = { rolls: [3], kept: [3], modifier: 0, total: 3, hidden: false };
     expect(rollCardModel(r, '1d20').label).toBeUndefined();

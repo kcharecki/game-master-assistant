@@ -110,8 +110,10 @@ export function rollCardModel(result: RollResult, expr: string, label?: string):
   const card: RollCard = {
     ...(label ? { label } : {}),
     expr,
-    rolls: result.rolls,
-    kept: result.kept,
+    // Copy to plain arrays: the caller's RollResult may be a reactive ($state)
+    // proxy, which can't be structured-cloned across the BroadcastChannel.
+    rolls: [...result.rolls],
+    kept: [...result.kept],
     modifier: result.modifier,
     total: result.total,
   };

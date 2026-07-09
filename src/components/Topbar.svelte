@@ -7,6 +7,7 @@
   import { lang, t } from '../lib/i18n';
   import { density } from '../lib/stores/density.svelte';
   import { onair } from '../lib/stores/onair.svelte';
+  import { session } from '../lib/stores/session.svelte';
   import Icon from '../lib/components/Icon.svelte';
 
   let { onOpenBroadcast }: { onOpenBroadcast: () => void } = $props();
@@ -17,7 +18,13 @@
   onMount(() => {
     void system.load().then(() => layouts.load());
     void onair.load();
+    void session.load();
   });
+
+  // Commit the session title on blur / Enter; blur on Enter to confirm.
+  function commitTitle(e: Event) {
+    session.set((e.currentTarget as HTMLInputElement).value.trim() || session.title);
+  }
 
   // Reload presets whenever the active system changes (presets are per-system).
   $effect(() => {
@@ -41,8 +48,16 @@
 </script>
 
 <header class="topbar">
-  <div class="brand">GM Assistant<small>CTHULHU EDITION</small></div>
-  <span class="pill">The Haunting of Blackwater Creek</span>
+  <input
+    class="titlein"
+    value={session.title}
+    aria-label={t('topbar.sessionTitle')}
+    title={t('topbar.sessionTitle')}
+    onblur={commitTitle}
+    onkeydown={(e) => {
+      if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur();
+    }}
+  />
 
   <div class="onair" class:live={onair.info.live}>
     <span class="lamp"><span class="dot"></span>{onair.info.live ? t('onair.live') : t('onair.off')}</span>
@@ -136,6 +151,28 @@
 </header>
 
 <style>
+  .titlein {
+    min-width: 0;
+    max-width: 320px;
+    flex-shrink: 1;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    border-radius: var(--r2);
+    background: transparent;
+    color: var(--txt);
+    font-family: var(--serif);
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    text-overflow: ellipsis;
+  }
+  .titlein:hover {
+    border-color: var(--line2);
+  }
+  .titlein:focus {
+    outline: none;
+    border-color: var(--green);
+    background: var(--bg1);
+  }
   .sysswitch {
     display: inline-flex;
     gap: 2px;
