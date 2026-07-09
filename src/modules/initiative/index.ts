@@ -4,7 +4,7 @@ import Desktop from './Desktop.svelte';
 const initiative: ModuleManifest = {
   id: 'initiative',
   title: 'Initiative Tracker',
-  size: { w: 300, h: 300 },
+  size: { w: 340, h: 440 },
   desktop: Desktop,
 };
 
