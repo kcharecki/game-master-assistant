@@ -5,8 +5,11 @@
   import Dock from '../components/Dock.svelte';
 
   onMount(async () => {
-    await wm.load();
-    if (wm.windows.length === 0) seed();
+    // Seed default windows only on true first boot (no layout ever persisted).
+    // A GM who closed every window keeps an empty desktop across surface
+    // switches and refreshes — we must not helpfully re-open them.
+    const hadLayout = await wm.load();
+    if (!hadLayout) seed();
   });
 
   function seed() {

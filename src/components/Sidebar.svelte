@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import KeeperEye from './KeeperEye.svelte';
   import Roller from '../modules/roller/Desktop.svelte';
   import { moduleList } from '../lib/registry';
@@ -10,8 +9,6 @@
     importCampaign,
     parseCampaign,
     campaignToJson,
-    estimateQuota,
-    type QuotaInfo,
   } from '../lib/backup';
 
   let {
@@ -27,15 +24,8 @@
   // Asset-setup rail = modules that expose an editor.
   const editable = moduleList.filter((m) => m.editor);
 
-  let quota = $state<QuotaInfo | null>(null);
   let status = $state('');
   let fileInput: HTMLInputElement | undefined = $state();
-
-  async function refreshQuota() {
-    quota = await estimateQuota();
-  }
-
-  onMount(refreshQuota);
 
   async function doExport() {
     const file = await exportCampaign();
@@ -60,16 +50,6 @@
       status = `${t('sidebar.importFailedPre')}${(err as Error).message}`;
     }
   }
-
-  function fmtBytes(n: number): string {
-    if (!n) return '—';
-    const mb = n / 1_048_576;
-    return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(n / 1024).toFixed(0)} KB`;
-  }
-
-  const storePct = $derived(
-    quota && quota.quota ? Math.min(100, Math.round((quota.usage / quota.quota) * 100)) : 0,
-  );
 
   // Silent, scaled-down mirror of the screen-shared broadcast page (?preview=1 →
   // visuals only, no audio), so the GM always sees exactly what players see.
@@ -147,18 +127,6 @@
       class="rk-hidden"
       onchange={onImportFile}
     />
-    <button class="rk-stor" onclick={refreshQuota} title={t('sidebar.checkStorage')}>
-      <div class="rk-storhead">
-        <span class="rk-storlabel">{t('sidebar.storage')}</span>
-        <span class="rk-stortext">
-          {#if quota}
-            {fmtBytes(quota.usage)}{t('sidebar.storageSep')}{fmtBytes(quota.quota)}
-          {:else}—{/if}
-        </span>
-      </div>
-      <div class="rk-bar"><div class="rk-fill" style="width:{storePct}%"></div></div>
-      {#if quota?.nearLimit}<span class="rk-warn">{t('sidebar.nearLimit')}</span>{/if}
-    </button>
     {#if status}<div class="rk-status">{status}</div>{/if}
   </div>
 
@@ -284,53 +252,6 @@
     display: none;
   }
 
-  .rk-stor {
-    display: block;
-    width: 100%;
-    margin-top: 10px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    font: inherit;
-    text-align: left;
-  }
-  .rk-storhead {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 4px;
-  }
-  .rk-storlabel {
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--faint);
-  }
-  .rk-stortext {
-    font-size: 10px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .rk-bar {
-    height: 3px;
-    border-radius: var(--r-pill);
-    background: rgba(111, 208, 160, 0.1);
-    overflow: hidden;
-  }
-  .rk-fill {
-    height: 100%;
-    min-width: 4px;
-    background: var(--green);
-    border-radius: var(--r-pill);
-    transition: width 0.4s;
-  }
-  .rk-warn {
-    display: inline-block;
-    margin-top: 4px;
-    color: var(--red);
-    font-size: 10px;
-  }
   .rk-status {
     margin-top: 4px;
     color: var(--green);

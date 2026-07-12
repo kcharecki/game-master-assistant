@@ -83,7 +83,6 @@ export const shell = {
     'sidebar.onair': 'On air',
     'sidebar.quickroll': 'Quick roll',
     'sidebar.playersSee': 'What players see right now',
-    'sidebar.storage': 'Storage',
     'sidebar.tagline': 'Cthulhu Edition',
     'sidebar.campaign': 'Campaign',
     'sidebar.export': 'Export',
@@ -91,10 +90,6 @@ export const shell = {
     'sidebar.exported': 'Exported.',
     'sidebar.imported': 'Imported — reload to see changes.',
     'sidebar.importFailedPre': 'Import failed: ',
-    'sidebar.storagePre': 'Storage: ',
-    'sidebar.storageSep': ' / ',
-    'sidebar.nearLimit': ' · near limit',
-    'sidebar.checkStorage': 'Check storage usage',
 
     // App-wide toast + palette verb hint.
     'toast.undo': 'Undo',
@@ -187,7 +182,6 @@ export const shell = {
     'sidebar.onair': 'Transmisja',
     'sidebar.quickroll': 'Szybki rzut',
     'sidebar.playersSee': 'Co gracze teraz widzą',
-    'sidebar.storage': 'Pamięć',
     'sidebar.tagline': 'Edycja Cthulhu',
     'sidebar.campaign': 'Kampania',
     'sidebar.export': 'Eksport',
@@ -195,10 +189,6 @@ export const shell = {
     'sidebar.exported': 'Wyeksportowano.',
     'sidebar.imported': 'Zaimportowano — odśwież, aby zobaczyć zmiany.',
     'sidebar.importFailedPre': 'Import nieudany: ',
-    'sidebar.storagePre': 'Pamięć: ',
-    'sidebar.storageSep': ' / ',
-    'sidebar.nearLimit': ' · blisko limitu',
-    'sidebar.checkStorage': 'Sprawdź użycie pamięci',
 
     // App-wide toast + palette verb hint.
     'toast.undo': 'Cofnij',

@@ -168,7 +168,12 @@ class WindowManager {
     void kvSet('windows', $state.snapshot(this.windows));
   }
 
-  async load(): Promise<void> {
+  /**
+   * Load persisted state. Returns whether a window layout was ever persisted —
+   * so the caller can seed default windows on true first boot only, and NOT
+   * re-seed a desktop the GM deliberately emptied (persisted as `[]`).
+   */
+  async load(): Promise<boolean> {
     const sizes = await kvGet<SizeMap>(SIZES_KEY);
     if (sizes) {
       this.#sizes = sizes;
@@ -190,6 +195,8 @@ class WindowManager {
       this.windows = live.map((w) => ({ ...w, collapsed: w.collapsed ?? false }));
       this.#z = Math.max(...live.map((w) => w.z), 10);
     }
+    // `undefined` = key absent (never persisted); `[]` = GM closed everything.
+    return saved !== undefined;
   }
 }
 
