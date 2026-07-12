@@ -54,6 +54,8 @@ export const shell = {
 
     // Dock chrome.
     'dock.widgets': 'Widgets',
+    'dock.collapse': 'Hide widget bar',
+    'dock.expand': 'Show widget bar',
 
     // Window frame chrome.
     'win.feedback': 'Feedback',
@@ -156,6 +158,8 @@ export const shell = {
 
     // Dock chrome.
     'dock.widgets': 'Widżety',
+    'dock.collapse': 'Ukryj pasek widżetów',
+    'dock.expand': 'Pokaż pasek widżetów',
 
     // Window frame chrome.
     'win.feedback': 'Uwagi',
