@@ -68,7 +68,7 @@
     role="group"
     aria-label={title}
     tabindex="-1"
-    style="left:0;top:0;transform:translate3d({win.x}px,{win.y}px,0);width:{win.w}px;height:{win.collapsed
+    style="left:{win.x}px;top:{win.y}px;width:{win.w}px;height:{win.collapsed
       ? 'auto'
       : win.h + 'px'};z-index:{win.z}"
     onpointerdown={() => wm.focus(win.id)}
