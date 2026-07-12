@@ -7,6 +7,14 @@ vi.mock('../../lib/db', () => ({
 
 import { npcs } from './store.svelte';
 import { loc } from '../../lib/loc';
+import { toast } from '../../lib/stores/toast.svelte';
+
+/** Capture the undo closure of the toast currently shown by the last remove(). */
+const lastUndo = (): (() => void) => {
+  const fn = toast.current?.undoFn;
+  if (!fn) throw new Error('expected an undoable toast to be active');
+  return fn;
+};
 
 describe('NpcStore', () => {
   beforeEach(() => {
@@ -32,6 +40,45 @@ describe('NpcStore', () => {
     const n = npcs.add('Throwaway');
     npcs.remove(n.id);
     expect(npcs.list).toHaveLength(0);
+  });
+
+  it('undo immediately after remove (no intervening edits) restores the NPC at its original index', () => {
+    const a = npcs.add('A');
+    const b = npcs.add('B');
+    const c = npcs.add('C');
+    npcs.remove(b.id);
+    const undoB = lastUndo();
+    expect(npcs.list.map((x) => x.id)).toEqual([a.id, c.id]);
+    undoB();
+    expect(npcs.list.map((x) => x.id)).toEqual([a.id, b.id, c.id]);
+  });
+
+  it('undo after an intervening add restores the NPC before its original neighbor, not at a stale index', () => {
+    const a = npcs.add('A');
+    const b = npcs.add('B');
+    const c = npcs.add('C');
+    npcs.remove(b.id); // list: [a, c]; b's neighbor-after was c
+    const undoB = lastUndo();
+
+    const d = npcs.add('D'); // intervening mutation: list: [a, c, d]
+    expect(() => undoB()).not.toThrow();
+
+    // Restored relative to its original neighbor (before c), not spliced at the
+    // stale numeric index 1 (which would have landed it between c and d).
+    expect(npcs.list.map((x) => x.id)).toEqual([a.id, b.id, c.id, d.id]);
+  });
+
+  it('undo after the original neighbor was also removed falls back to appending, staying in-bounds', () => {
+    const a = npcs.add('A');
+    const b = npcs.add('B');
+    const c = npcs.add('C');
+    npcs.remove(b.id); // neighbor-after was c
+    const undoB = lastUndo();
+
+    npcs.remove(c.id); // intervening mutation removes that neighbor too: list: [a]
+    expect(() => undoB()).not.toThrow();
+
+    expect(npcs.list.map((x) => x.id)).toEqual([a.id, b.id]);
   });
 
   it('adds a generated NPC (deterministic via injected rng)', () => {

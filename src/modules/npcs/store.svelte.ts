@@ -112,11 +112,15 @@ class NpcStore {
     const i = this.list.findIndex((n) => n.id === id);
     if (i < 0) return;
     const removed = $state.snapshot(this.list[i]) as Npc;
+    // Remember the neighbor that followed the removed NPC so undo can restore
+    // its relative position even if the roster changed in the meantime.
+    const nextId = this.list[i + 1]?.id;
     this.list = this.list.filter((n) => n.id !== id);
     this.persist();
     toast.undoable(t('toast.npcDeleted'), () => {
       const back = this.list.slice();
-      back.splice(i, 0, removed);
+      const insertAt = nextId ? back.findIndex((n) => n.id === nextId) : -1;
+      back.splice(insertAt >= 0 ? insertAt : back.length, 0, removed);
       this.list = back;
       this.persist();
     });

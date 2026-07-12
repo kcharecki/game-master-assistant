@@ -66,13 +66,17 @@ class LoreStore {
     const i = this.pages.findIndex((p) => p.id === id);
     if (i < 0) return;
     const removed = $state.snapshot(this.pages[i]) as Page;
+    // Remember the neighbor that followed the removed page so undo can restore
+    // its relative position even if the array changed in the meantime.
+    const nextId = this.pages[i + 1]?.id;
     const prevSelected = this.selectedId;
     this.pages = this.pages.filter((p) => p.id !== id);
     if (this.selectedId === id) this.selectedId = this.pages[0]?.id ?? '';
     this.persist();
     toast.undoable(t('toast.loreDeleted'), () => {
       const back = this.pages.slice();
-      back.splice(i, 0, removed);
+      const insertAt = nextId ? back.findIndex((p) => p.id === nextId) : -1;
+      back.splice(insertAt >= 0 ? insertAt : back.length, 0, removed);
       this.pages = back;
       this.selectedId = prevSelected;
       this.persist();

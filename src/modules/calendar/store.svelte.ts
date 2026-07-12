@@ -1,7 +1,8 @@
 import { kvSet, kvGet } from '../../lib/db';
 import {
   advanceTime,
-  moonPhase,
+  moonFraction,
+  moonPhaseName,
   upcomingTimes,
   eventsForDay,
   formatDate,
@@ -55,8 +56,13 @@ class CalendarStore {
   get calendarName(): string {
     return CALENDARS[this.calId].name;
   }
+  /**
+   * Moon phase name, derived from the same calId-aware `moonFraction` the
+   * Desktop widget uses for its header/grid moons — keeps the GM widget and
+   * the broadcast "date" tile in agreement for the same in-world date.
+   */
   get moon(): MoonPhase {
-    return moonPhase(this.current, this.config);
+    return moonPhaseName(moonFraction(this.current, this.calId));
   }
   /** Date only, e.g. "15 October, 1920". */
   get label(): string {
@@ -103,7 +109,7 @@ class CalendarStore {
     this.touch();
   }
   setYear(year: number): void {
-    this.setDate({ year: Math.floor(year) || this.current.year });
+    this.setDate({ year: Number.isFinite(year) ? Math.floor(year) : this.current.year });
   }
 
   // --- calendar preset -----------------------------------------------------
