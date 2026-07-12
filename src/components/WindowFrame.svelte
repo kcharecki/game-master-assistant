@@ -26,8 +26,8 @@
 
   const SNAP_THRESHOLD = 9;
 
-  // Snap a dragged position to screen/other-window edges with a little magnetism.
-  function moveSnapped(x: number, y: number): void {
+  // Snap a raw dragged position to screen/other-window edges (no state write).
+  function snap(x: number, y: number): { x: number; y: number } {
     const desk = document.getElementById('desktop');
     const others = wm.windows
       .filter((w) => w.id !== win.id && !w.minimized)
@@ -35,8 +35,7 @@
     const vw = desk?.clientWidth ?? window.innerWidth;
     const vh = desk?.clientHeight ?? window.innerHeight;
     const guides = collectGuides(vw, vh, others);
-    const snapped = snapRect({ x, y, w: win.w, h: win.h }, guides, SNAP_THRESHOLD);
-    wm.move(win.id, snapped.x, snapped.y);
+    return snapRect({ x, y, w: win.w, h: win.h }, guides, SNAP_THRESHOLD);
   }
 
   // Per-component feedback popover.
@@ -69,12 +68,12 @@
     role="group"
     aria-label={title}
     tabindex="-1"
-    style="left:{win.x}px;top:{win.y}px;width:{win.w}px;height:{win.collapsed
+    style="left:0;top:0;transform:translate3d({win.x}px,{win.y}px,0);width:{win.w}px;height:{win.collapsed
       ? 'auto'
       : win.h + 'px'};z-index:{win.z}"
     onpointerdown={() => wm.focus(win.id)}
   >
-    <div class="bar" use:dragHandle={(x, y) => moveSnapped(x, y)}>
+    <div class="bar" use:dragHandle={{ snap, commit: (x, y) => wm.move(win.id, x, y) }}>
       <span class="sigil" aria-hidden="true"><ModuleIcon id={win.kind} size={14} /></span>
       <span class="t">{title}</span>
       <span class="ctrl">

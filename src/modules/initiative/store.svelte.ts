@@ -212,12 +212,19 @@ export class InitiativeStore {
     this.persist();
   }
 
+  #saveTimer: ReturnType<typeof setTimeout> | null = null;
+
   persist(): void {
-    void kvSet('initiative', {
+    const snapshot = {
       order: $state.snapshot(this.order),
       activeId: this.activeId,
       round: this.round,
-    });
+    };
+    if (this.#saveTimer) clearTimeout(this.#saveTimer);
+    this.#saveTimer = setTimeout(() => {
+      this.#saveTimer = null;
+      void kvSet('initiative', snapshot);
+    }, 200);
   }
 
   async load(): Promise<void> {
