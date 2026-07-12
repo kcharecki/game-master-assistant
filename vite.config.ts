@@ -8,6 +8,9 @@ export default defineConfig({
   // root-domain hosts (Cloudflare/Netlify) stay at '/'.
   base: process.env.GITHUB_PAGES === 'true' ? '/game-master-assistant/' : '/',
   plugins: [svelte()],
+  // Fixed, unlikely-used port so the boot-time auto-start server is stable.
+  // strictPort: fail loudly instead of wandering to another port.
+  server: { port: 42710, strictPort: true },
   build: {
     rollupOptions: {
       input: {
