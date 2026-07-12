@@ -105,13 +105,18 @@
       return;
     }
     let url = '';
+    let cancelled = false;
     void assetUrl(id).then((u) => {
-      if (u) {
-        url = u;
-        bgUrl = u;
+      if (!u) return;
+      if (cancelled) {
+        URL.revokeObjectURL(u);
+        return;
       }
+      url = u;
+      bgUrl = u;
     });
     return () => {
+      cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
   });

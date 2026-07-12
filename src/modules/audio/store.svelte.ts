@@ -89,6 +89,10 @@ class AudioStore {
 
   /** GM-tab-only audition element (local preview; never routed to the bus). */
   private auditionEl: HTMLAudioElement | null = null;
+  private auditionUrl: string | null = null;
+  /** Cancellation token: bumped on every audition()/stopAudition() so a stale
+   *  assetUrl() resolve (from a superseded audition) can detect it lost the race. */
+  private auditionGen = 0;
 
   // Reactive ambient transport state, fed by the broadcast tab's audioStatus
   // reports over the reverse bus channel (see subscribeStatus).
@@ -559,21 +563,42 @@ class AudioStore {
   audition(assetId?: string): void {
     this.stopAudition();
     if (!assetId || typeof Audio === 'undefined') return;
+    // Capture the cancellation token *after* stopAudition() has bumped it, so a
+    // still-in-flight assetUrl() from a previous audition() call resolves into
+    // a generation that no longer matches and bails out below.
+    const gen = ++this.auditionGen;
     void assetUrl(assetId).then((url) => {
       if (!url) return;
+      if (gen !== this.auditionGen) {
+        // Superseded by a newer audition()/stopAudition() while this was loading.
+        URL.revokeObjectURL(url);
+        return;
+      }
       const el = new Audio(url);
       el.volume = perceptual(this.sfxVol);
-      el.onended = () => URL.revokeObjectURL(url);
+      el.onended = () => {
+        URL.revokeObjectURL(url);
+        if (this.auditionUrl === url) this.auditionUrl = null;
+      };
       this.auditionEl = el;
-      void el.play().catch(() => URL.revokeObjectURL(url));
+      this.auditionUrl = url;
+      void el.play().catch(() => {
+        URL.revokeObjectURL(url);
+        if (this.auditionUrl === url) this.auditionUrl = null;
+      });
     });
   }
 
-  /** Stop the current GM-tab audition, if any. */
+  /** Stop the current GM-tab audition, if any, revoking its blob url. */
   stopAudition(): void {
+    this.auditionGen++;
     if (this.auditionEl) {
       this.auditionEl.pause();
       this.auditionEl = null;
+    }
+    if (this.auditionUrl) {
+      URL.revokeObjectURL(this.auditionUrl);
+      this.auditionUrl = null;
     }
   }
 
@@ -582,6 +607,11 @@ class AudioStore {
   /** Local monitor: hear the ambient bed in the GM tab (even with broadcast closed). */
   monitor = $state(false);
   private monitorEl: HTMLAudioElement | null = null;
+  private monitorUrl: string | null = null;
+  /** Cancellation token: bumped on every stopMonitor() so a stale assetUrl()
+   *  resolve (from a track that changed again mid-load) can detect it lost the
+   *  race and bail out instead of clobbering the newer monitor element. */
+  private monitorGen = 0;
 
   /** Toggle the GM-local monitor on/off. */
   setMonitor(on: boolean): void {
@@ -605,24 +635,42 @@ class AudioStore {
     }
     const assetId = cur.assetId;
     this.stopMonitor();
+    // Capture the token *after* stopMonitor() bumped it, so a resolve that
+    // arrives once the track has changed again (another syncMonitor/stopMonitor
+    // call bumped the gen in the meantime) is recognised as stale below.
+    const gen = ++this.monitorGen;
     void assetUrl(assetId).then((url) => {
-      if (!url || !this.monitor) {
-        if (url) URL.revokeObjectURL(url);
+      if (!url) return;
+      if (gen !== this.monitorGen || !this.monitor) {
+        // Stale: superseded by a newer track/stop while this load was in flight.
+        URL.revokeObjectURL(url);
         return;
       }
       const el = new Audio(url);
       el.loop = this.loopTrack;
       el.volume = this.ambientGainFor();
-      el.onended = () => URL.revokeObjectURL(url);
+      el.onended = () => {
+        URL.revokeObjectURL(url);
+        if (this.monitorUrl === url) this.monitorUrl = null;
+      };
       this.monitorEl = el;
-      void el.play().catch(() => URL.revokeObjectURL(url));
+      this.monitorUrl = url;
+      void el.play().catch(() => {
+        URL.revokeObjectURL(url);
+        if (this.monitorUrl === url) this.monitorUrl = null;
+      });
     });
   }
 
   private stopMonitor(): void {
+    this.monitorGen++;
     if (this.monitorEl) {
       this.monitorEl.pause();
       this.monitorEl = null;
+    }
+    if (this.monitorUrl) {
+      URL.revokeObjectURL(this.monitorUrl);
+      this.monitorUrl = null;
     }
   }
 

@@ -427,6 +427,22 @@ class MapStore {
 
   // ---- map library (save/switch whole battle maps) --------------------------
 
+  /**
+   * Serializes read-modify-write access to the `mapLibrary` kv entry. Without
+   * this, two overlapping saveMap()/deleteMap() calls can both `kvGet` the same
+   * snapshot before either `kvSet`s, and the second write silently clobbers the
+   * first (lost update). Every mutation is chained onto this queue so they run
+   * strictly one after another.
+   */
+  private writeQ: Promise<unknown> = Promise.resolve();
+  private queueLibraryWrite<T>(fn: () => Promise<T>): Promise<T> {
+    const run = this.writeQ.then(fn, fn);
+    // Swallow so a failed write doesn't poison the queue for later callers;
+    // the rejection still propagates to this call's own returned promise.
+    this.writeQ = run.catch(() => undefined);
+    return run;
+  }
+
   /** List saved maps (metadata + payload), newest first. */
   async listMaps(): Promise<SavedMap[]> {
     const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
@@ -435,18 +451,23 @@ class MapStore {
 
   /** Save the current battle map (fog + tokens + bg + framing) under a name. */
   async saveMap(name: string): Promise<void> {
-    const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
-    lib.push({
+    // Snapshot synchronously — before the write is queued — so the saved state
+    // reflects the map as it was at call time, not whenever the queue drains.
+    const entry: SavedMap = {
       id: crypto.randomUUID(),
-      name: name.trim() || `Map ${lib.length + 1}`,
+      name: name.trim(),
       at: Date.now(),
       tokens: $state.snapshot(this.tokens),
       fog: $state.snapshot(this.fog),
       bg: this.bg ? $state.snapshot(this.bg) : null,
       view: this.view ? { ...this.view } : null,
       grid: this.gridMode,
+    };
+    await this.queueLibraryWrite(async () => {
+      const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
+      entry.name = entry.name || `Map ${lib.length + 1}`;
+      await kvSet('mapLibrary', [...lib, entry]);
     });
-    await kvSet('mapLibrary', lib);
   }
 
   /** Load a saved map into the live state (does not auto-broadcast). */
@@ -468,8 +489,10 @@ class MapStore {
 
   /** Delete a saved map from the library. */
   async deleteMap(id: string): Promise<void> {
-    const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
-    await kvSet('mapLibrary', lib.filter((x) => x.id !== id));
+    await this.queueLibraryWrite(async () => {
+      const lib = (await kvGet<SavedMap[]>('mapLibrary')) ?? [];
+      await kvSet('mapLibrary', lib.filter((x) => x.id !== id));
+    });
   }
 
   persist(): void {

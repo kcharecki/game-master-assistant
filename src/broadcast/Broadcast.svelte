@@ -157,13 +157,18 @@
     }
     if (p.assetId) {
       let url = '';
+      let cancelled = false;
       void assetUrl(p.assetId).then((u) => {
-        if (u) {
-          url = u;
-          imgSrc = u;
+        if (!u) return;
+        if (cancelled) {
+          URL.revokeObjectURL(u);
+          return;
         }
+        url = u;
+        imgSrc = u;
       });
       return () => {
+        cancelled = true;
         if (url) URL.revokeObjectURL(url);
       };
     }
@@ -185,13 +190,18 @@
     }
     if (p.assetId) {
       let url = '';
+      let cancelled = false;
       void assetUrl(p.assetId).then((u) => {
-        if (u) {
-          url = u;
-          mapSrc = u;
+        if (!u) return;
+        if (cancelled) {
+          URL.revokeObjectURL(u);
+          return;
         }
+        url = u;
+        mapSrc = u;
       });
       return () => {
+        cancelled = true;
         if (url) URL.revokeObjectURL(url);
       };
     }
@@ -543,26 +553,37 @@
     ambientEls = [ambientA, ambientB];
     sfxPool = isPreview ? [] : Array.from({ length: 6 }, () => new Audio());
     // Rehydrate last shared state + display mode, then listen for live GM pushes.
+    // A live push can arrive (and resolve) before these kvGet reads do; guard
+    // each rehydration with a "did a live value already land?" flag so the
+    // slower IndexedDB read never clobbers a fresher live value.
+    let gotLivePayload = false;
+    let gotLiveMode = false;
+    let gotLiveMood = false;
     void kvGet<BroadcastPayload>('broadcastState').then((saved) => {
-      if (saved) payload = saved;
+      if (saved && !gotLivePayload) payload = saved;
     });
     void kvGet<unknown>(DISPLAY_MODE_KEY).then((saved) => {
-      mode = normalizeMode(saved);
+      if (!gotLiveMode) mode = normalizeMode(saved);
     });
     void kvGet<unknown>(MOOD_KEY).then((saved) => {
-      mood = normalizeMood(saved);
+      if (!gotLiveMood) mood = normalizeMood(saved);
     });
     const bus = createBus();
     statusBus = bus; // reuse for the reverse audioStatus channel
     const off = bus.on((m) => {
       if (m.type === 'audioStatus') return; // our own reverse reports; ignore
-      if (m.type === 'display') mode = m.mode;
-      else if (m.type === 'mood') mood = moodById(m.moodId);
-      else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
+      if (m.type === 'display') {
+        gotLiveMode = true;
+        mode = m.mode;
+      } else if (m.type === 'mood') {
+        gotLiveMood = true;
+        mood = moodById(m.moodId);
+      } else if (m.payload.kind === 'ping') flashPing(m.payload.x, m.payload.y);
       else if (m.payload.kind === 'laser')
         laser = m.payload.on ? { x: m.payload.x, y: m.payload.y } : null;
       else if (m.payload.kind === 'audio') handleAudio(m.payload);
       else {
+        gotLivePayload = true;
         payload = m.payload;
         sceneKey += 1; // retrigger the scene-in / crossfade animation
         ytVideoFg = false; // new on-air content takes the foreground from the video

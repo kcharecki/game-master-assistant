@@ -9,7 +9,7 @@ import { describeOnAir, type OnAirInfo } from '../onair';
  * bus every module publishes to — so it reflects reveal/map/stage/etc. changes
  * without coupling to any one module.
  */
-class OnAirStore {
+export class OnAirStore {
   payload = $state<BroadcastPayload | undefined>(undefined);
   #loaded = false;
 
@@ -20,7 +20,9 @@ class OnAirStore {
   async load() {
     if (this.#loaded) return;
     this.#loaded = true;
-    this.payload = await kvGet<BroadcastPayload>('broadcastState');
+    // Wire the bus BEFORE the async rehydrate so a push arriving during the
+    // kvGet await isn't missed — and don't let the stale kv snapshot clobber it.
+    let gotLive = false;
     // App-lifetime subscription (singleton store): never torn down.
     const bus = createBus();
     bus.on((msg) => {
@@ -28,8 +30,11 @@ class OnAirStore {
       const k = msg.payload.kind;
       // Transient overlays (ping/laser) and audio cues don't change on-air content.
       if (k === 'ping' || k === 'laser' || k === 'audio') return;
+      gotLive = true;
       this.payload = msg.payload;
     });
+    const saved = await kvGet<BroadcastPayload>('broadcastState');
+    if (!gotLive) this.payload = saved;
   }
 
   /** Panic: black-screen the broadcast and clear the mirrored state. */

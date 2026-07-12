@@ -20,11 +20,18 @@
       return;
     }
     let url: string | undefined;
+    let cancelled = false;
     void assetUrl(id).then((u) => {
+      if (!u) return;
+      if (cancelled) {
+        URL.revokeObjectURL(u);
+        return;
+      }
       url = u;
       imgUrl = u;
     });
     return () => {
+      cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
   });

@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+// In-memory kv backing the mocked db, so mapLibrary read-modify-write behaviour
+// (and its serialization) can be exercised for real instead of always reading
+// back `undefined`.
+const kv = new Map<string, unknown>();
 vi.mock('../../lib/db', () => ({
-  kvGet: vi.fn().mockResolvedValue(undefined),
-  kvSet: vi.fn().mockResolvedValue(undefined),
+  kvGet: vi.fn(async (key: string) => kv.get(key)),
+  kvSet: vi.fn(async (key: string, value: unknown) => void kv.set(key, value)),
 }));
 
 import {
@@ -271,6 +275,41 @@ describe('broadcast frame (view)', () => {
     map.clearBg();
     map.fog = makeFog(5, 3, true);
     expect(map.broadcastView()).toEqual({ x: 0, y: 0, w: 5 * GRID_SIZE, h: 3 * GRID_SIZE });
+  });
+});
+
+describe('map library (save/delete) write serialization', () => {
+  beforeEach(() => kv.clear());
+
+  it('serializes overlapping saveMap calls so neither write is lost', async () => {
+    // Both calls read the (empty) library before either can plausibly write —
+    // without a write queue, the second kvSet would clobber the first.
+    const p1 = map.saveMap('Alpha');
+    const p2 = map.saveMap('Beta');
+    await Promise.all([p1, p2]);
+    const lib = await map.listMaps();
+    expect(lib.map((m) => m.name).sort()).toEqual(['Alpha', 'Beta']);
+  });
+
+  it('serializes a save racing a delete without losing either write', async () => {
+    await map.saveMap('Keep');
+    const keepId = (await map.listMaps())[0]?.id;
+    expect(keepId).toBeDefined();
+
+    const pDel = map.deleteMap(keepId!);
+    const pSave = map.saveMap('New');
+    await Promise.all([pDel, pSave]);
+
+    const lib = await map.listMaps();
+    expect(lib.map((m) => m.name)).toEqual(['New']);
+  });
+
+  it('falls back to an auto name only when the queued write actually runs', async () => {
+    const p1 = map.saveMap('');
+    const p2 = map.saveMap('');
+    await Promise.all([p1, p2]);
+    const names = (await map.listMaps()).map((m) => m.name).sort();
+    expect(names).toEqual(['Map 1', 'Map 2']);
   });
 });
 
