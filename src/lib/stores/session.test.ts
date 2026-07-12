@@ -41,4 +41,26 @@ describe('SessionStore', () => {
     await s.load();
     expect(s.title).toBe(DEFAULT_SESSION_TITLE);
   });
+
+  it('sets startedAt on construction', () => {
+    expect(typeof s.startedAt).toBe('number');
+    expect(s.startedAt).toBeGreaterThan(0);
+  });
+
+  it('load persists startedAt when nothing is saved yet', async () => {
+    kvGet.mockResolvedValue(undefined);
+    const before = s.startedAt;
+    await s.load();
+    expect(s.startedAt).toBe(before);
+    expect(kvSet).toHaveBeenCalledWith('sessionStartedAt', before);
+  });
+
+  it('load keeps a persisted startedAt across reload', async () => {
+    kvGet.mockImplementation((key: string) =>
+      Promise.resolve(key === 'sessionStartedAt' ? 12345 : undefined)
+    );
+    await s.load();
+    expect(s.startedAt).toBe(12345);
+    expect(kvSet).not.toHaveBeenCalledWith('sessionStartedAt', expect.anything());
+  });
 });

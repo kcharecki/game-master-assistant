@@ -14,12 +14,28 @@
 
   let menuOpen = $state(false);
   let newName = $state('');
+  let now = $state(Date.now());
 
   onMount(() => {
     void system.load().then(() => layouts.load());
     void onair.load();
     void session.load();
+
+    const timer = setInterval(() => {
+      now = Date.now();
+    }, 1000);
+    return () => clearInterval(timer);
   });
+
+  // Format elapsed session time as H:MM:SS.
+  function elapsed(startedAt: number, at: number): string {
+    const totalSeconds = Math.max(0, Math.floor((at - startedAt) / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${hours}:${pad(minutes)}:${pad(seconds)}`;
+  }
 
   // Commit the session title on blur / Enter; blur on Enter to confirm.
   function commitTitle(e: Event) {
@@ -113,7 +129,7 @@
     disabled={wm.windows.length === 0}
     onclick={() => wm.clear()}><Icon name="close" /> {t('topbar.closeAll')}</button
   >
-  <span class="pill">Session 02:34:17</span>
+  <span class="pill">Session {elapsed(session.startedAt, now)}</span>
   <div class="layouts">
     <button
       class="btn"
