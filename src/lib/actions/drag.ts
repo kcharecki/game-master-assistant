@@ -3,14 +3,17 @@ import type { Action } from 'svelte/action';
 export interface DragOpts {
   /** Map a raw desktop-space x/y to a (possibly snapped) x/y. No state write. */
   snap: (x: number, y: number) => { x: number; y: number };
-  /** Commit the final position to state — called once, on release. */
+  /** Per-frame position update — reactive, must NOT persist. */
+  move: (x: number, y: number) => void;
+  /** Final position — called once on release; persists. */
   commit: (x: number, y: number) => void;
 }
 
 /**
- * Window title-bar drag. During the drag it writes `transform` straight to the
- * dragged [data-win] element (rAF-throttled, no reactivity), then commits the
- * final snapped position to the store once on pointerup.
+ * Window title-bar drag. Position flows through ONE source of truth — the
+ * reactive store (via `move`), updated at most once per animation frame — so
+ * there's no imperative `transform` fighting Svelte's reactive `style` binding.
+ * Persist happens once on release (`commit`), never per frame.
  */
 export const dragHandle: Action<HTMLElement, DragOpts> = (bar, opts) => {
   let o = opts;
@@ -40,7 +43,7 @@ export const dragHandle: Action<HTMLElement, DragOpts> = (bar, opts) => {
       const rawY = Math.max(0, Math.min(pending.cy - dr.top - oy, desk!.clientHeight - win!.offsetHeight));
       const s = o.snap(rawX, rawY);
       last = s;
-      win!.style.transform = `translate3d(${s.x}px,${s.y}px,0)`;
+      o.move(s.x, s.y);
     }
 
     function onPointerMove(ev: PointerEvent) {

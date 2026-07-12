@@ -73,7 +73,17 @@
       : win.h + 'px'};z-index:{win.z}"
     onpointerdown={() => wm.focus(win.id)}
   >
-    <div class="bar" use:dragHandle={{ snap, commit: (x, y) => wm.move(win.id, x, y) }}>
+    <div
+      class="bar"
+      use:dragHandle={{
+        snap,
+        move: (x, y) => wm.move(win.id, x, y),
+        commit: (x, y) => {
+          wm.move(win.id, x, y);
+          wm.persist();
+        },
+      }}
+    >
       <span class="sigil" aria-hidden="true"><ModuleIcon id={win.kind} size={14} /></span>
       <span class="t">{title}</span>
       <span class="ctrl">
