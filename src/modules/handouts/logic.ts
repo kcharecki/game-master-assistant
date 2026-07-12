@@ -12,13 +12,14 @@ export interface Handout {
 }
 
 /**
- * Build the broadcast payload for a handout: an image payload when a resolved
- * image url is supplied, otherwise a text payload (carrying any chosen theme
- * skin). Pure — unit-tested, no DOM.
+ * Build the broadcast payload for a handout: an image payload (by asset id —
+ * the broadcast tab resolves its own tab-local blob, since a GM-tab `blob:`
+ * url never resolves there) when the handout has an uploaded image, otherwise
+ * a text payload (carrying any chosen theme skin). Pure — unit-tested, no DOM.
  */
-export function handoutPayload(handout: Handout, imageUrl?: string): BroadcastPayload {
-  if (handout.assetId && imageUrl) {
-    return { kind: 'image', src: imageUrl, caption: handout.title || undefined };
+export function handoutPayload(handout: Handout): BroadcastPayload {
+  if (handout.assetId) {
+    return { kind: 'image', assetId: handout.assetId, caption: handout.title || undefined };
   }
   return {
     kind: 'text',

@@ -13,16 +13,12 @@ describe('handoutPayload', () => {
     });
   });
 
-  it('builds an image payload when an asset + url are present', () => {
-    expect(handoutPayload(image, 'blob:xyz')).toEqual({
+  it('builds an image payload (by asset id) when the handout has an image', () => {
+    expect(handoutPayload(image)).toEqual({
       kind: 'image',
-      src: 'blob:xyz',
+      assetId: 'a1',
       caption: 'Map Fragment',
     });
-  });
-
-  it('falls back to text when an image handout has no resolved url', () => {
-    expect(handoutPayload(image).kind).toBe('text');
   });
 
   it('omits an empty title', () => {
@@ -39,7 +35,7 @@ describe('handoutPayload', () => {
   });
 
   it('does not theme an image handout (image has no theme field)', () => {
-    const p = handoutPayload({ id: 'y', title: 'M', body: '', assetId: 'a1', theme: 'letter' }, 'blob:z');
-    expect(p).toEqual({ kind: 'image', src: 'blob:z', caption: 'M' });
+    const p = handoutPayload({ id: 'y', title: 'M', body: '', assetId: 'a1', theme: 'letter' });
+    expect(p).toEqual({ kind: 'image', assetId: 'a1', caption: 'M' });
   });
 });

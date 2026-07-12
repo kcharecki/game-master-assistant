@@ -145,11 +145,31 @@ class StageStore {
 
   duplicateBeat(id?: string): Beat {
     const src = this.state.beats.find((b) => b.id === (id ?? this.state.cursorId)) ?? this.active;
+    const snap = structuredClone($state.snapshot(src)) as Beat;
+    // Base tiles get fresh ids; variants reference base tiles by id (patches keyed
+    // by id, removed as an id list), so those refs must be remapped through the
+    // same old->new table or they silently stop matching anything on the copy.
+    const idMap = new Map(snap.tiles.map((t) => [t.id, uid()]));
     const copy: Beat = {
-      ...structuredClone($state.snapshot(src)),
+      ...snap,
       id: uid(),
       name: `${src.name} copy`,
-      tiles: src.tiles.map((t) => ({ ...$state.snapshot(t), id: uid() })),
+      tiles: snap.tiles.map((t) => ({ ...t, id: idMap.get(t.id)! })),
+      variants: snap.variants.map((v) => ({
+        ...v,
+        patches: Object.fromEntries(
+          Object.entries(v.patches).flatMap(([oldId, patch]) => {
+            const newId = idMap.get(oldId);
+            return newId ? [[newId, patch] as const] : [];
+          }),
+        ),
+        removed: v.removed
+          .map((oldId) => idMap.get(oldId))
+          .filter((x): x is string => x !== undefined),
+        // Added tiles only ever exist within this variant, but still need fresh
+        // ids so they can't collide with the same tiles in the source beat.
+        added: v.added.map((t) => ({ ...t, id: uid() })),
+      })),
     };
     const i = this.state.beats.findIndex((b) => b.id === src.id);
     const next = this.state.beats.slice();

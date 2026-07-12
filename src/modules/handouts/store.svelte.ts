@@ -1,4 +1,4 @@
-import { kvGet, kvSet, assetPut, assetUrl } from '../../lib/db';
+import { kvGet, kvSet, assetPut } from '../../lib/db';
 import { putOnAir } from '../reveal/bus-actions';
 import { handoutPayload, type Handout } from './logic';
 import { toast } from '../../lib/stores/toast.svelte';
@@ -61,11 +61,10 @@ class HandoutStore {
   }
 
   /** Push a handout to the broadcast reveal (text, or image if it has one). */
-  async send(id: string): Promise<void> {
+  send(id: string): void {
     const h = this.list.find((x) => x.id === id);
     if (!h) return;
-    const url = h.assetId ? await assetUrl(h.assetId) : undefined;
-    putOnAir(handoutPayload($state.snapshot(h), url));
+    putOnAir(handoutPayload($state.snapshot(h)));
   }
 
   persist(): void {

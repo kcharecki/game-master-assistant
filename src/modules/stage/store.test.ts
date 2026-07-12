@@ -10,7 +10,7 @@ vi.mock('../../lib/stores/toast.svelte', () => ({
 }));
 
 import { stage } from './store.svelte';
-import { newBeat } from './board';
+import { newBeat, resolveTiles } from './board';
 
 beforeEach(() => {
   stage.onAir = null;
@@ -60,6 +60,47 @@ describe('variant-aware tile ops', () => {
     expect(stage.state.beats[0].variants[0].removed).toContain(base.id);
     expect(stage.state.beats[0].tiles).toHaveLength(1); // base intact
     expect(stage.tiles.find((t) => t.id === base.id)).toBeUndefined();
+  });
+});
+
+describe('duplicateBeat', () => {
+  it('remaps variant patches/removed to the copy\'s new tile ids', () => {
+    const kept = stage.addTile('text', { title: 'Kept' });
+    const droppedFromVariant = stage.addTile('text', { title: 'Dropped' });
+    stage.addVariant('Night');
+    stage.patchTile(kept.id, { title: 'Kept — Night' });
+    stage.removeTile(droppedFromVariant.id);
+    stage.setActiveVariant(null);
+
+    const srcVariantId = stage.state.beats[0].variants[0].id;
+    const copy = stage.duplicateBeat(stage.state.beats[0].id);
+
+    // Copy's base tiles are fresh ids, distinct from the source's.
+    const srcTileIds = new Set(stage.beatById(stage.state.beats[0].id)!.tiles.map((t) => t.id));
+    for (const t of copy.tiles) expect(srcTileIds.has(t.id)).toBe(false);
+
+    const copyKept = copy.tiles.find((t) => t.title === 'Kept')!;
+    const copyVariant = copy.variants[0];
+
+    // Patch key was remapped to the copy's tile id, not the old (stale) one.
+    expect(copyVariant.patches[copyKept.id]?.title).toBe('Kept — Night');
+    expect(copyVariant.patches[kept.id]).toBeUndefined();
+
+    // Removed entry was remapped too — resolving the variant drops the copy's
+    // corresponding tile, not silently keeping it (or matching nothing).
+    expect(copyVariant.removed).not.toContain(droppedFromVariant.id);
+    expect(copyVariant.removed).toHaveLength(1);
+
+    // End-to-end: resolving the copy's variant reflects both the patch and the
+    // removal on the *copy's* tiles.
+    const resolved = resolveTiles(copy, copyVariant.id);
+    expect(resolved.find((t) => t.title === 'Kept — Night')).toBeDefined();
+    expect(resolved.some((t) => t.title === 'Dropped')).toBe(false);
+
+    // Sanity: the source beat's own variant is untouched (still keyed by original ids).
+    const srcVariant = stage.beatById(stage.state.beats[0].id)!.variants[0];
+    expect(srcVariant.id).toBe(srcVariantId);
+    expect(srcVariant.patches[kept.id]?.title).toBe('Kept — Night');
   });
 });
 
