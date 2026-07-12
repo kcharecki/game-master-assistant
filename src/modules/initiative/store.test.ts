@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 vi.mock('../../lib/db', () => ({
   kvGet: vi.fn().mockResolvedValue(undefined),
@@ -6,6 +6,7 @@ vi.mock('../../lib/db', () => ({
 }));
 
 import { InitiativeStore, isBloodied, vagueStatus, type Combatant } from './store.svelte';
+import { kvSet } from '../../lib/db';
 
 const make = (over: Partial<Combatant> = {}): Combatant => ({
   id: 'x',
@@ -183,6 +184,46 @@ describe('InitiativeStore', () => {
     const foe = s.order.find((x) => x.id === c.id)!.foe;
     s.toggleFoe(c.id);
     expect(s.order.find((x) => x.id === c.id)!.foe).toBe(!foe);
+  });
+});
+
+describe('persist / flush (debounced IndexedDB write)', () => {
+  let s: InitiativeStore;
+  beforeEach(() => {
+    vi.useFakeTimers();
+    s = new InitiativeStore();
+    vi.mocked(kvSet).mockClear();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('debounces: no write until the interval elapses', () => {
+    s.add('A', 10);
+    expect(vi.mocked(kvSet)).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(200);
+    expect(vi.mocked(kvSet)).toHaveBeenCalledTimes(1);
+  });
+
+  it('flush() forces the pending write immediately', () => {
+    s.add('A', 10);
+    expect(vi.mocked(kvSet)).not.toHaveBeenCalled();
+    s.flush();
+    expect(vi.mocked(kvSet)).toHaveBeenCalledWith(
+      'initiative',
+      expect.objectContaining({ round: 1 }),
+    );
+  });
+
+  it('coalesces rapid edits into a single write', () => {
+    s.add('A', 10);
+    s.add('B', 12);
+    s.add('C', 8);
+    vi.advanceTimersByTime(200);
+    expect(vi.mocked(kvSet)).toHaveBeenCalledTimes(1);
+  });
+
+  it('flush() is a no-op when nothing is pending', () => {
+    s.flush();
+    expect(vi.mocked(kvSet)).not.toHaveBeenCalled();
   });
 });
 

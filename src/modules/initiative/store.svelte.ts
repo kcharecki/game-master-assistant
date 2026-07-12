@@ -213,18 +213,39 @@ export class InitiativeStore {
   }
 
   #saveTimer: ReturnType<typeof setTimeout> | null = null;
+  #pending: { order: Combatant[]; activeId: string | null; round: number } | null = null;
+
+  constructor() {
+    // Flush any debounced write before the tab goes away, so an edit made in the
+    // last <200ms isn't lost on reload/close. Guarded for non-DOM (test) envs.
+    if (typeof document !== 'undefined') {
+      const flush = () => this.flush();
+      window.addEventListener('pagehide', flush);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flush();
+      });
+    }
+  }
 
   persist(): void {
-    const snapshot = {
+    this.#pending = {
       order: $state.snapshot(this.order),
       activeId: this.activeId,
       round: this.round,
     };
     if (this.#saveTimer) clearTimeout(this.#saveTimer);
-    this.#saveTimer = setTimeout(() => {
+    this.#saveTimer = setTimeout(() => this.flush(), 200);
+  }
+
+  /** Write any pending debounced snapshot immediately (also called on tab unload). */
+  flush(): void {
+    if (this.#saveTimer) {
+      clearTimeout(this.#saveTimer);
       this.#saveTimer = null;
-      void kvSet('initiative', snapshot);
-    }, 200);
+    }
+    if (!this.#pending) return;
+    void kvSet('initiative', this.#pending);
+    this.#pending = null;
   }
 
   async load(): Promise<void> {
