@@ -27,6 +27,7 @@ export const dragHandle: Action<HTMLElement, DragOpts> = (bar, opts) => {
     const oy = e.clientY - wr.top;
     bar.setPointerCapture(e.pointerId);
     win.classList.add('dragging');
+    document.body.classList.add('dragging-window');
 
     let raf = 0;
     let last = { x: wr.left - dr.left, y: wr.top - dr.top };
@@ -52,6 +53,7 @@ export const dragHandle: Action<HTMLElement, DragOpts> = (bar, opts) => {
       bar.removeEventListener('pointermove', onPointerMove);
       bar.removeEventListener('pointerup', up);
       win!.classList.remove('dragging');
+      document.body.classList.remove('dragging-window');
       o.commit(last.x, last.y);
     }
     bar.addEventListener('pointermove', onPointerMove);

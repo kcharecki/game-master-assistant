@@ -319,10 +319,23 @@ button {
     0 0 0 1px rgba(79, 163, 123, 0.35),
     0 0 26px rgba(79, 163, 123, 0.22);
 }
-/* While dragging: no transitions fighting the transform, promote to its own layer. */
+/* While dragging: collapse the window to a cheap flat rectangle on its own
+   compositor layer — no shadow to re-raster, content skipped — so the GPU only
+   has to translate a solid box. Full fidelity is restored on release. */
 .win.dragging {
   transition: none;
   will-change: transform;
+  box-shadow: none;
+  opacity: 1;
+}
+.win.dragging .content,
+.win.dragging .grip {
+  visibility: hidden;
+}
+/* Cursor sweeping across the desktop mid-drag must not trigger :hover/focus
+   transitions on other windows/dock/buttons — each would force a repaint. */
+body.dragging-window * {
+  transition: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
   .win {
