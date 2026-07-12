@@ -106,6 +106,13 @@
   <button class="btn" aria-label={t('topbar.tile')} title={t('topbar.tile')} onclick={tileWindows}
     ><Icon name="tile" /> {t('topbar.tile')}</button
   >
+  <button
+    class="btn"
+    aria-label={t('topbar.closeAll')}
+    title={t('topbar.closeAll')}
+    disabled={wm.windows.length === 0}
+    onclick={() => wm.clear()}><Icon name="close" /> {t('topbar.closeAll')}</button
+  >
   <span class="pill">Session 02:34:17</span>
   <div class="layouts">
     <button
