@@ -6,7 +6,7 @@ vi.mock('../../src/lib/db', () => ({
   kvSet: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { kvSet } from '../../src/lib/db';
+import { kvGet, kvSet } from '../../src/lib/db';
 import { wm } from '../../src/lib/stores/windows.svelte';
 
 describe('WindowManager', () => {
@@ -68,6 +68,30 @@ describe('WindowManager', () => {
     wm.resize(w.id, 10, 10); // below minimums
     expect(got().w).toBe(200);
     expect(got().h).toBe(120);
+  });
+
+  it('resize does not persist per call; commitResize persists once and remembers the size', () => {
+    const w = wm.add('roller');
+    vi.mocked(kvSet).mockClear();
+    wm.resize(w.id, 420, 320); // live drag frame — no write
+    expect(kvSet).not.toHaveBeenCalledWith('windowSizes', expect.anything());
+    wm.commitResize(w.id, 420, 320); // release — persists size + windows
+    const got = () => wm.windows.find((x) => x.id === w.id)!;
+    expect(got().w).toBe(420);
+    expect(got().h).toBe(320);
+    expect(kvSet).toHaveBeenCalledWith('windowSizes', expect.objectContaining({ roller: { w: 420, h: 320 } }));
+  });
+
+  it('load prunes remembered sizes for modules that no longer exist', async () => {
+    vi.mocked(kvGet).mockImplementation(async (key: string) =>
+      key === 'windowSizes'
+        ? ({ roller: { w: 300, h: 200 }, ghostmodule: { w: 1, h: 1 } } as unknown as undefined)
+        : undefined,
+    );
+    await wm.load();
+    // The orphaned 'ghostmodule' size is dropped and the pruned map re-saved.
+    expect(kvSet).toHaveBeenCalledWith('windowSizes', { roller: { w: 300, h: 200 } });
+    vi.mocked(kvGet).mockResolvedValue(undefined);
   });
 
   it('tile arranges visible windows into a non-overlapping grid within the viewport', () => {

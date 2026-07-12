@@ -69,12 +69,22 @@ class WindowManager {
     }
   }
 
-  /** Resize a window, clamping to sane minimums. Remembers the size per module. */
+  /**
+   * Resize a window, clamping to sane minimums. Does NOT persist — used during a
+   * live resize drag (call `commitResize` once on release to persist).
+   */
   resize(id: string, w: number, h: number): void {
     const win = this.windows.find((win) => win.id === id);
     if (!win) return;
     win.w = Math.max(WindowManager.MIN_W, Math.round(w));
     win.h = Math.max(WindowManager.MIN_H, Math.round(h));
+  }
+
+  /** Persist the final size once a resize drag ends (remembers it per module). */
+  commitResize(id: string, w: number, h: number): void {
+    this.resize(id, w, h);
+    const win = this.windows.find((win) => win.id === id);
+    if (!win) return;
     this.#sizes[win.kind] = { w: win.w, h: win.h };
     void kvSet(SIZES_KEY, this.#sizes);
     this.persist();
@@ -160,7 +170,19 @@ class WindowManager {
 
   async load(): Promise<void> {
     const sizes = await kvGet<SizeMap>(SIZES_KEY);
-    if (sizes) this.#sizes = sizes;
+    if (sizes) {
+      this.#sizes = sizes;
+      // Drop remembered sizes for modules that no longer exist, so a reused id
+      // can't silently inherit a removed feature's geometry.
+      let pruned = false;
+      for (const kind of Object.keys(this.#sizes) as WindowKind[]) {
+        if (!getModule(kind)) {
+          delete this.#sizes[kind];
+          pruned = true;
+        }
+      }
+      if (pruned) void kvSet(SIZES_KEY, this.#sizes);
+    }
     const saved = await kvGet<WindowState[]>('windows');
     if (saved?.length) {
       // Drop windows for removed modules; older saves predate `collapsed`.

@@ -43,6 +43,18 @@
   let fbText = $state('');
   const fbItems = $derived(feedback.forModule(win.kind));
 
+  // The feedback panel is anchored to the button but rendered position:fixed so
+  // it escapes the window's `overflow:hidden` clip (narrow windows would hide it).
+  let fbBtn = $state<HTMLButtonElement | undefined>();
+  let fbPos = $state<{ top: number; right: number }>({ top: 0, right: 0 });
+  function toggleFeedback() {
+    fbOpen = !fbOpen;
+    if (fbOpen && fbBtn) {
+      const r = fbBtn.getBoundingClientRect();
+      fbPos = { top: r.bottom + 4, right: Math.max(6, window.innerWidth - r.right) };
+    }
+  }
+
   function saveFeedback() {
     feedback.add(win.kind, win.title, fbText);
     fbText = '';
@@ -91,7 +103,8 @@
           class="b"
           class:has={fbItems.length > 0}
           data-no-drag
-          onclick={() => (fbOpen = !fbOpen)}
+          bind:this={fbBtn}
+          onclick={toggleFeedback}
           aria-label="Leave feedback for programmer"
           title="Leave feedback for programmer"
         >
@@ -117,7 +130,7 @@
     </div>
 
     {#if fbOpen}
-      <div class="fbpanel" data-no-drag>
+      <div class="fbpanel" data-no-drag style="top:{fbPos.top}px;right:{fbPos.right}px">
         <div class="fbhead">
           <span>{t('win.feedbackFor')}{title}</span>
           <button class="fbexport" onclick={exportFeedback} title="Download all feedback (.md)"
@@ -163,7 +176,10 @@
         class="grip"
         data-no-drag
         aria-label="Resize"
-        use:resizeHandle={(w, h) => wm.resize(win.id, w, h)}
+        use:resizeHandle={{
+          resize: (w, h) => wm.resize(win.id, w, h),
+          commit: (w, h) => wm.commitResize(win.id, w, h),
+        }}
       ></span>
     {/if}
   </section>
@@ -190,9 +206,7 @@
     transform: rotate(-90deg);
   }
   .fbpanel {
-    position: absolute;
-    top: 30px;
-    right: 6px;
+    position: fixed;
     z-index: 9999;
     width: 240px;
     display: flex;
