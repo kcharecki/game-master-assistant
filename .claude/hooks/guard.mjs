@@ -45,14 +45,12 @@ if (!overridden) {
 const isCommit = /(?:^|[\n;&|(])\s*git\s+commit\b/.test(cmd) && !/\bNO_GATE\b/.test(cmd);
 if (isCommit) {
   const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  const gate = [
-    ['lint', ['run', 'lint']],
-    ['test', ['run', 'test']],
-    ['build', ['run', 'build']],
-  ];
-  for (const [label, args] of gate) {
-    const r = spawnSync(npm, args, { cwd: projectDir, encoding: 'utf8', shell: false });
+  // Run through a shell: on Windows `npm` is `npm.cmd`, which spawnSync cannot
+  // launch directly (shell:false → EINVAL). The label is a fixed literal below,
+  // so the interpolated command carries no untrusted input.
+  const gate = ['lint', 'test', 'build'];
+  for (const label of gate) {
+    const r = spawnSync(`npm run ${label}`, { cwd: projectDir, encoding: 'utf8', shell: true });
     if (r.status !== 0) {
       const tail = ((r.stdout || '') + (r.stderr || '')).split('\n').slice(-40).join('\n');
       block(
