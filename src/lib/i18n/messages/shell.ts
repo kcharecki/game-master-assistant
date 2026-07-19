@@ -17,7 +17,7 @@ export const shell = {
     'mod.planner.title': 'Session Planner',
     'mod.sanity.title': 'Sanity',
     'mod.palette.title': 'Command Palette',
-    'mod.rules.title': 'Rules Reference',
+    'mod.rules.title': 'Rules & Rulings',
     'mod.stage.title': 'Broadcast Stage',
     'mod.preview.title': 'Broadcast Preview',
 
@@ -116,7 +116,7 @@ export const shell = {
     'mod.planner.title': 'Planer sesji',
     'mod.sanity.title': 'Poczytalność',
     'mod.palette.title': 'Paleta poleceń',
-    'mod.rules.title': 'Odniesienie do zasad',
+    'mod.rules.title': 'Zasady i orzeczenia',
     'mod.stage.title': 'Scena transmisji',
     'mod.preview.title': 'Podgląd transmisji',
 

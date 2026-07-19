@@ -313,14 +313,6 @@ export function tilesToPayload(
   return { kind: 'grid', cols, rows, cells };
 }
 
-/** Compose a beat's base layout into a broadcast grid payload (or null). */
-export function beatToPayload(
-  beat: Beat,
-  npcLookup: (id: string) => PublicNpc | undefined,
-): Extract<BroadcastPayload, { kind: 'grid' }> | null {
-  return tilesToPayload(beat.cols, beat.rows, beat.tiles, npcLookup);
-}
-
 /** Derive a content-free template from a beat's current layout. */
 export function templateFromBeat(beat: Beat, name: string): Template {
   return {

@@ -4,7 +4,7 @@ import { npcs } from '../npcs/store.svelte';
 import { lore } from '../lore/store.svelte';
 import { notebook } from '../notebook/store.svelte';
 import { handouts } from '../handouts/store.svelte';
-import { rulesEntries } from '../rules/data';
+import { rules } from '../rules/store.svelte';
 import { forSystem } from '../rules/logic';
 import { system } from '../../lib/stores/system.svelte';
 import { loc } from '../../lib/loc';
@@ -47,9 +47,14 @@ export function collectSources(): PaletteItem[] {
   for (const h of handouts.list) {
     out.push({ id: `handout-${h.id}`, label: h.title, detail: 'Handout', module: 'handouts', kind: 'open' });
   }
-  // Rules reference (filtered to the active system)
-  for (const e of forSystem(rulesEntries, system.current)) {
+  // Rules reference (merged seed + custom, filtered to the active system)
+  for (const e of forSystem(rules.allRules, system.current)) {
     out.push({ id: `rule-${e.id}`, label: e.term, detail: 'Rule', module: 'rules', kind: 'open' });
+  }
+  // Rulings log (active, current system)
+  for (const r of rules.systemRulings) {
+    if (r.status !== 'active') continue;
+    out.push({ id: `ruling-${r.id}`, label: r.title, detail: 'Ruling', module: 'rules', kind: 'open' });
   }
   // "Spawn <module> window" actions — every module that has a desktop view.
   for (const m of moduleList) {

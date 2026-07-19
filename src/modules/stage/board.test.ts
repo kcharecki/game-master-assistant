@@ -5,7 +5,6 @@ import {
   firstFree,
   makeTile,
   tileToCell,
-  beatToPayload,
   resolveTiles,
   templateFromBeat,
   beatFromTemplate,
@@ -182,21 +181,6 @@ describe('formatCountdown', () => {
   });
   it('clamps negatives to zero', () => {
     expect(formatCountdown(-10)).toBe('0:00');
-  });
-});
-
-describe('beatToPayload', () => {
-  it('is null when nothing visible resolves', () => {
-    expect(beatToPayload(newBeat('e'), noNpc)).toBeNull();
-  });
-
-  it('emits a placed grid payload', () => {
-    const s = beatWith([{ col: 1, row: 1, cw: 6, rh: 4, kind: 'text', title: 'A' }]);
-    const p = beatToPayload(s, noNpc)!;
-    expect(p.kind).toBe('grid');
-    expect(p.cols).toBe(STAGE_COLS);
-    expect(p.rows).toBe(STAGE_ROWS);
-    expect(p.cells[0].area).toEqual({ col: 1, row: 1, cw: 6, rh: 4 });
   });
 });
 

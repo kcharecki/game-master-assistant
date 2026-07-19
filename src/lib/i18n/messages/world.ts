@@ -152,17 +152,6 @@ export const world = {
     'calendar.moon.waningGibbous': 'Waning Gibbous',
     'calendar.moon.lastQuarter': 'Last Quarter',
     'calendar.moon.waningCrescent': 'Waning Crescent',
-
-    // factions
-    'factions.web': 'Faction relationship web',
-    'factions.addFaction': '＋ Faction',
-    'factions.from': 'from…',
-    'factions.to': 'to…',
-    'factions.link': 'Link',
-    'factions.rel.hates': 'hates',
-    'factions.rel.owes': 'owes',
-    'factions.rel.serves': 'serves',
-    'factions.rel.allied': 'allied',
   },
   pl: {
     // npcs
@@ -317,16 +306,5 @@ export const world = {
     'calendar.moon.waningGibbous': 'Ubywający garb',
     'calendar.moon.lastQuarter': 'Ostatnia kwadra',
     'calendar.moon.waningCrescent': 'Ubywający sierp',
-
-    // factions
-    'factions.web': 'Sieć relacji frakcji',
-    'factions.addFaction': '＋ Frakcja',
-    'factions.from': 'od…',
-    'factions.to': 'do…',
-    'factions.link': 'Połącz',
-    'factions.rel.hates': 'nienawidzi',
-    'factions.rel.owes': 'jest winien',
-    'factions.rel.serves': 'służy',
-    'factions.rel.allied': 'sprzymierzony',
   },
 };

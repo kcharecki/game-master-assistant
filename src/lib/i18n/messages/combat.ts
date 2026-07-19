@@ -55,26 +55,6 @@ export const combat = {
     'timer.reset': 'Reset',
     'timer.sceneMin': 'Scene min',
     'timer.breakMin': 'Break min',
-
-    // statblock
-    'statblock.searchPlaceholder': 'Search monsters…',
-    'statblock.addToEncounter': 'Add to encounter',
-    'statblock.encounter': 'Encounter',
-    'statblock.clear': 'clear',
-    'statblock.pcs': 'PCs',
-    'statblock.partySize': 'Party size',
-    'statblock.lvl': 'Lvl',
-    'statblock.partyLevel': 'Party level',
-    'statblock.remove': 'Remove',
-    'statblock.adjXp': 'adj XP',
-    'statblock.raw': 'raw',
-
-    // reminders
-    'reminders.initiativeCount': 'Initiative count',
-    'reminders.dueNow': 'Due now',
-    'reminders.remove': 'Remove',
-    'reminders.empty': 'No reminders.',
-    'reminders.add': '＋ Add reminder',
   },
   pl: {
     // initiative
@@ -132,25 +112,5 @@ export const combat = {
     'timer.reset': 'Resetuj',
     'timer.sceneMin': 'Min sceny',
     'timer.breakMin': 'Min przerwy',
-
-    // statblock
-    'statblock.searchPlaceholder': 'Szukaj potworów…',
-    'statblock.addToEncounter': 'Dodaj do spotkania',
-    'statblock.encounter': 'Spotkanie',
-    'statblock.clear': 'wyczyść',
-    'statblock.pcs': 'BG-i',
-    'statblock.partySize': 'Liczebność drużyny',
-    'statblock.lvl': 'Poz',
-    'statblock.partyLevel': 'Poziom drużyny',
-    'statblock.remove': 'Usuń',
-    'statblock.adjXp': 'skor. PD',
-    'statblock.raw': 'surowe',
-
-    // reminders
-    'reminders.initiativeCount': 'Numer inicjatywy',
-    'reminders.dueNow': 'Teraz',
-    'reminders.remove': 'Usuń',
-    'reminders.empty': 'Brak przypomnień.',
-    'reminders.add': '＋ Dodaj przypomnienie',
   },
 };

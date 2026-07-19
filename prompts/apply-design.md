@@ -6,7 +6,7 @@ One design → one module → one session (keeps context light).
 ---
 
 Apply the **`DESIGN_NAME`** design to the **`MODULE_ID`** module and make it a faithful,
-fully-functional match. Read `CLAUDE.md` and `ARCHITECTURE.md` first.
+fully-functional match. Read `CLAUDE.md` first.
 
 **Design source** (pick the one that applies):
 - Local file: `@"PATH\TO\Design.html"` — usually a bundled/base64 page. Don't try to read it as

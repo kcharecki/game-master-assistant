@@ -1,15 +1,14 @@
 # GM Assistant
 
 GM-only virtual desktop for running online tabletop RPG sessions (D&D 5e / Call of Cthulhu).
-Design + plan: [PLAN.md](PLAN.md). Feature list: [gm-assistant-features.md](gm-assistant-features.md).
-Architecture: [ARCHITECTURE.md](ARCHITECTURE.md).
+Design, architecture, module contract, and working notes: [CLAUDE.md](CLAUDE.md).
 
 ## Stack
 Pure web · Svelte 5 + TypeScript · Vite · IndexedDB (`idb`) · Vitest + Playwright + ESLint.
 
 ## Architecture
 Three surfaces (desktop / editor tabs / broadcast) + self-contained modules. Full detail in
-[ARCHITECTURE.md](ARCHITECTURE.md).
+[CLAUDE.md](CLAUDE.md).
 - **GM app** (`index.html`): private desktop of draggable windows.
 - **Broadcast renderer** (`broadcast.html`): the shared page; screen-share only this.
 - GM → Broadcast over **BroadcastChannel** (`src/lib/bus.ts`); state mirrored to IndexedDB
@@ -53,7 +52,7 @@ src/
   surfaces/                   Desktop.svelte, EditorHost.svelte
   components/                 WindowFrame, Topbar, Sidebar, Dock, KeeperEye, Stub
   modules/<id>/               manifest + Desktop/Editor/store + co-located *.test.ts
-                              (18 shipped: initiative, npcs, lore, map, audio, planner, …)
+                              (17 shipped: initiative, npcs, lore, map, audio, planner, …)
   broadcast/                  broadcast renderer
 tests/
   unit/                       cross-cutting Vitest (bus, windows)

@@ -1,14 +1,39 @@
 <script lang="ts">
-  import { planner } from '../modules/planner/store.svelte';
-  import PlannerDesktop from '../modules/planner/Desktop.svelte';
-  import PlannerEditor from '../modules/planner/Editor.svelte';
+  import { rules } from '../modules/rules/store.svelte';
+  import { system } from '../lib/stores/system.svelte';
+  import RulesDesktop from '../modules/rules/Desktop.svelte';
+  import RulesEditor from '../modules/rules/Editor.svelte';
 
-  // Deterministic mock — mirrors the Session Planner redesign mock. The store
-  // already seeds the Hollowmere one-shot; just pin the run cursor + stop the
-  // IndexedDB load from clobbering it.
-  planner.currentId = 'b-parley';
-  planner.selectedId = 'b-parley';
-  planner.load = async () => {};
+  // Deterministic mock: don't let the IndexedDB load clobber the seed, show a
+  // couple of rulings (incl. one linked to a builtin) so related-rulings + the
+  // rulings tab have content, and pin one entry to demo the pin overlay.
+  rules.load = async () => {};
+  system.current = 'dnd5e';
+  rules.rulings = [
+    {
+      id: 'demo-1',
+      title: 'Called shots do +2, never crit',
+      body: 'Aiming at a limb adds 2 damage but can never critical.',
+      system: 'dnd5e',
+      ruleId: 'crit',
+      tags: ['house'],
+      createdAt: '2026-07-12T20:00:00.000Z',
+      sessionLabel: 'Session 4',
+      status: 'active',
+    },
+    {
+      id: 'demo-2',
+      title: 'Inspiration can be gifted to another PC',
+      body: 'A player may hand their Inspiration to a teammate before a roll.',
+      system: 'dnd5e',
+      ruleId: 'inspiration',
+      tags: ['house'],
+      createdAt: '2026-07-05T19:30:00.000Z',
+      sessionLabel: 'Round 3',
+      status: 'active',
+    },
+  ];
+  rules.pinned = ['death-saves'];
 
   const params = new URLSearchParams(location.search);
   const which = params.get('c') ?? 'all';
@@ -17,10 +42,10 @@
 <div class="ph-root">
   {#if which === 'widget' || which === 'all'}
     <section class="ph-block">
-      <div class="ph-label">widget · Desktop.svelte (run cockpit · 320×320)</div>
+      <div class="ph-label">widget · Desktop.svelte (360×380)</div>
       <div class="ph-window">
-        <div class="ph-winbar"><span class="ph-t">Session Planner</span></div>
-        <div class="ph-wincontent"><PlannerDesktop /></div>
+        <div class="ph-winbar"><span class="ph-t">Rules &amp; Rulings</span></div>
+        <div class="ph-wincontent"><RulesDesktop /></div>
       </div>
     </section>
   {/if}
@@ -28,7 +53,7 @@
   {#if which === 'editor' || which === 'all'}
     <section class="ph-block ph-grow">
       <div class="ph-label">editor · Editor.svelte</div>
-      <div class="ph-editor"><PlannerEditor /></div>
+      <div class="ph-editor"><RulesEditor /></div>
     </section>
   {/if}
 </div>
@@ -63,8 +88,8 @@
     color: var(--faint);
   }
   .ph-window {
-    width: 340px;
-    height: 560px;
+    width: 360px;
+    height: 460px;
     display: flex;
     flex-direction: column;
     border-radius: 10px;
@@ -80,25 +105,20 @@
     border-bottom: 1px solid var(--line);
   }
   .ph-t {
-    font-family: var(--serif);
-    font-size: 13px;
-    color: var(--green);
+    font-size: 12px;
+    color: var(--txt);
   }
   .ph-wincontent {
     flex: 1;
     min-height: 0;
-    overflow: auto;
-    padding: 10px 12px;
-  }
-  .ph-editor {
-    height: 720px;
-    display: flex;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--panel);
+    padding: 9px;
     overflow: hidden;
   }
-  .ph-editor :global(.pe) {
-    flex: 1;
+  .ph-editor {
+    height: 620px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--green-dim);
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
   }
 </style>

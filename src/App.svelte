@@ -14,6 +14,8 @@
   import { locStrings } from './lib/loc';
   import { lore } from './modules/lore/store.svelte';
   import { npcs } from './modules/npcs/store.svelte';
+  import { rules } from './modules/rules/store.svelte';
+  import { initiative } from './modules/initiative/store.svelte';
   import { toast } from './lib/stores/toast.svelte';
   import { makeSnapshot } from './lib/backup';
 
@@ -31,6 +33,10 @@
     // Load the NPC roster at boot so it survives a refresh regardless of which
     // surface opens first (previously only the Stage window triggered the load).
     void npcs.load();
+    // Rules & rulings library; stamp new rulings with the live combat round.
+    void rules.load();
+    rules.contextLabel = () =>
+      initiative.order.length > 0 && initiative.round >= 1 ? `Round ${initiative.round}` : undefined;
 
     // Resolve notebook [[wikilinks]] to a lore page or NPC and jump there.
     function onWikilink(e: Event) {
