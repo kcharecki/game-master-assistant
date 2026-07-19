@@ -1,4 +1,6 @@
 import { kvGet, kvSet } from '../../lib/db';
+import { loc } from '../../lib/loc';
+import { lang } from '../../lib/stores/lang.svelte';
 import { system } from '../../lib/stores/system.svelte';
 import { toast } from '../../lib/stores/toast.svelte';
 import { putOnAir } from '../reveal/bus-actions';
@@ -190,11 +192,21 @@ export class RulesStore {
 
   // ── Broadcast ─────────────────────────────────────────────────────────
   airRule(entry: Pick<RuleEntry, 'term' | 'body'>): void {
-    putOnAir({ kind: 'text', title: entry.term, body: entry.body, theme: 'parchment' });
+    putOnAir({
+      kind: 'text',
+      title: loc(entry.term, lang.current),
+      body: loc(entry.body, lang.current),
+      theme: 'parchment',
+    });
   }
 
   airRuling(ruling: Pick<Ruling, 'title' | 'body'>): void {
-    putOnAir({ kind: 'text', title: ruling.title, body: ruling.body, theme: 'parchment' });
+    putOnAir({
+      kind: 'text',
+      title: loc(ruling.title, lang.current),
+      body: loc(ruling.body, lang.current),
+      theme: 'parchment',
+    });
   }
 
   // ── Import / export ───────────────────────────────────────────────────

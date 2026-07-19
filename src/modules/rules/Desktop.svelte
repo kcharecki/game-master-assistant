@@ -5,6 +5,8 @@
   import { systemConfig } from '../../lib/system';
   import { forSystem } from './logic';
   import { t } from '../../lib/i18n';
+  import { loc } from '../../lib/loc';
+  import { lang } from '../../lib/stores/lang.svelte';
 
   let searchEl = $state<HTMLInputElement | null>(null);
   let sel = $state(0);
@@ -110,7 +112,7 @@
       {@const rl = rules.rulingsForRule(r.id)}
       <li class="rl-row" class:sel={i === sel}>
         <div class="rl-head">
-          <span class="rl-term">{r.term}</span>
+          <span class="rl-term">{loc(r.term, lang.current)}</span>
           {#if r.system === 'both'}<span class="rl-badge">{t('rules.core')}</span>{/if}
           {#if !r.builtin}<span class="rl-badge alt">{t('rules.custom')}</span>{/if}
           <span class="rl-sp"></span>
@@ -122,12 +124,14 @@
           >
           <button class="rl-ico" title={t('rules.air')} onclick={() => rules.airRule(r)}>◎</button>
         </div>
-        <p class="rl-body">{r.body}</p>
+        <p class="rl-body">{loc(r.body, lang.current)}</p>
         {#if r.source?.book}
           <div class="rl-src">{r.source.book}{r.source.page ? ` p.${r.source.page}` : ''}</div>
         {/if}
         {#each rl as one (one.id)}
-          <div class="rl-ruling">⚖ {one.title}{one.body ? ` — ${one.body}` : ''}</div>
+          {@const rt = loc(one.title, lang.current)}
+          {@const rb = loc(one.body, lang.current)}
+          <div class="rl-ruling">⚖ {rt}{rb ? ` — ${rb}` : ''}</div>
         {/each}
       </li>
     {:else}
@@ -137,13 +141,14 @@
     {#if matchingRulings.length}
       <li class="rl-secLabel">{t('rules.rulings')}</li>
       {#each matchingRulings as one (one.id)}
+        {@const rb = loc(one.body, lang.current)}
         <li class="rl-row rl-rulingRow">
           <div class="rl-head">
-            <span class="rl-term">⚖ {one.title}</span>
+            <span class="rl-term">⚖ {loc(one.title, lang.current)}</span>
             <span class="rl-sp"></span>
             <button class="rl-ico" title={t('rules.air')} onclick={() => rules.airRuling(one)}>◎</button>
           </div>
-          {#if one.body}<p class="rl-body">{one.body}</p>{/if}
+          {#if rb}<p class="rl-body">{rb}</p>{/if}
         </li>
       {/each}
     {/if}
@@ -157,13 +162,13 @@
       <select class="rl-in" bind:value={draftRuleId}>
         <option value="">{t('rules.noLink')}</option>
         {#each results as r (r.id)}
-          <option value={r.id}>{r.term}</option>
+          <option value={r.id}>{loc(r.term, lang.current)}</option>
         {/each}
       </select>
       {#if conflicts.length}
         <div class="rl-conflict">
           ⚠ {t('rules.conflictWarn')}
-          {#each conflicts as c (c.id)}<span class="rl-cf">{c.title}</span>{/each}
+          {#each conflicts as c (c.id)}<span class="rl-cf">{loc(c.title, lang.current)}</span>{/each}
         </div>
       {/if}
       <div class="rl-logBtns">

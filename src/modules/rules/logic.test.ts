@@ -80,6 +80,15 @@ describe('searchRules', () => {
   it('returns [] when nothing matches', () => {
     expect(searchRules('xyzzy', entries)).toEqual([]);
   });
+
+  it('matches across language variants (EN or PL query find the same entry)', () => {
+    const bi = [
+      rule({ id: 'cov', term: { en: 'Cover', pl: 'Osłona' }, body: { en: 'blocks sight', pl: 'zasłania wzrok' } }),
+    ];
+    expect(searchRules('cover', bi).map((e) => e.id)).toEqual(['cov']);
+    expect(searchRules('osłona', bi).map((e) => e.id)).toEqual(['cov']);
+    expect(searchRules('zasłania', bi).map((e) => e.id)).toEqual(['cov']); // pl body
+  });
 });
 
 describe('searchAll', () => {

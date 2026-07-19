@@ -4,6 +4,9 @@
   import { systemConfig, type GameSystem } from '../../lib/system';
   import { toast } from '../../lib/stores/toast.svelte';
   import { t } from '../../lib/i18n';
+  import { loc, setLoc } from '../../lib/loc';
+  import { lang } from '../../lib/stores/lang.svelte';
+  import type { Locale } from '../../lib/stores/lang.svelte';
 
   type Sys = GameSystem | 'both';
   const SYS_OPTS: Sys[] = ['dnd5e', 'coc7e', 'both'];
@@ -20,6 +23,9 @@
       .filter(Boolean);
 
   let tab = $state<'ref' | 'rulings'>('ref');
+  // Which language the authoring forms edit; the other language is preserved.
+  let editLang = $state<Locale>(lang.current);
+  const LOCALES: Locale[] = ['en', 'pl'];
 
   // ── Reference editing ────────────────────────────────────────────────
   let q = $state('');
@@ -44,15 +50,19 @@
     const ql = q.trim().toLowerCase();
     return rules.allRules
       .filter((e) => (catFilter ? e.category === catFilter : true))
-      .filter((e) => (ql ? e.term.toLowerCase().includes(ql) : true))
-      .sort((a, b) => a.category.localeCompare(b.category) || a.term.localeCompare(b.term));
+      .filter((e) => (ql ? loc(e.term, editLang).toLowerCase().includes(ql) : true))
+      .sort(
+        (a, b) =>
+          a.category.localeCompare(b.category) ||
+          loc(a.term, editLang).localeCompare(loc(b.term, editLang)),
+      );
   });
 
   function pickRule(e: RuleEntry) {
     selRuleId = e.id;
     ruleDraft = {
-      term: e.term,
-      body: e.body,
+      term: loc(e.term, editLang),
+      body: loc(e.body, editLang),
       system: e.system,
       category: e.category,
       aliases: e.aliases.join(', '),
@@ -62,6 +72,15 @@
     };
   }
 
+  // Re-seed the open draft(s) from the stored entry when the edit language flips.
+  function switchLang(l: Locale) {
+    editLang = l;
+    const e = selRuleId ? rules.allRules.find((x) => x.id === selRuleId) : null;
+    if (e && ruleDraft) pickRule(e);
+    const r = selRulingId ? rules.rulings.find((x) => x.id === selRulingId) : null;
+    if (r && rulingDraft) pickRuling(r);
+  }
+
   function newRule() {
     const e = rules.addRule({ term: t('rules.newRule') });
     pickRule(e);
@@ -69,10 +88,11 @@
 
   function saveRule() {
     if (!selRuleId || !ruleDraft) return;
+    const cur = rules.allRules.find((e) => e.id === selRuleId);
     const source = ruleDraft.book || ruleDraft.page ? { book: ruleDraft.book, page: ruleDraft.page } : undefined;
     rules.updateRule(selRuleId, {
-      term: ruleDraft.term,
-      body: ruleDraft.body,
+      term: setLoc(cur?.term, editLang, ruleDraft.term),
+      body: setLoc(cur?.body, editLang, ruleDraft.body),
       system: ruleDraft.system,
       category: ruleDraft.category,
       aliases: csv(ruleDraft.aliases),
@@ -121,7 +141,7 @@
     const ql = rq.trim().toLowerCase();
     return rules.rulings
       .filter((r) => (statusFilter === 'all' ? true : r.status === statusFilter))
-      .filter((r) => (ql ? r.title.toLowerCase().includes(ql) : true));
+      .filter((r) => (ql ? loc(r.title, editLang).toLowerCase().includes(ql) : true));
   });
   const selRuling = $derived(rules.rulings.find((r) => r.id === selRulingId) ?? null);
   const rulingConflicts = $derived(
@@ -131,8 +151,8 @@
   function pickRuling(r: Ruling) {
     selRulingId = r.id;
     rulingDraft = {
-      title: r.title,
-      body: r.body,
+      title: loc(r.title, editLang),
+      body: loc(r.body, editLang),
       system: r.system,
       ruleId: r.ruleId ?? '',
       tags: r.tags.join(', '),
@@ -144,9 +164,10 @@
   }
   function saveRuling() {
     if (!selRulingId || !rulingDraft) return;
+    const cur = rules.rulings.find((r) => r.id === selRulingId);
     rules.updateRuling(selRulingId, {
-      title: rulingDraft.title,
-      body: rulingDraft.body,
+      title: setLoc(cur?.title, editLang, rulingDraft.title),
+      body: setLoc(cur?.body, editLang, rulingDraft.body),
       system: rulingDraft.system,
       ruleId: rulingDraft.ruleId || undefined,
       tags: csv(rulingDraft.tags),
@@ -172,6 +193,14 @@
     <button class="rle-tab" class:on={tab === 'rulings'} onclick={() => (tab = 'rulings')}
       >{t('rules.rulings')}</button
     >
+    <span class="rle-sp"></span>
+    <div class="rle-langs" title="Editing language">
+      {#each LOCALES as l (l)}
+        <button class="rle-lang" class:on={editLang === l} onclick={() => switchLang(l)}
+          >{l.toUpperCase()}</button
+        >
+      {/each}
+    </div>
   </div>
 
   {#if tab === 'ref'}
@@ -192,7 +221,7 @@
           {#each refList as e (e.id)}
             <li>
               <button class="rle-item" class:on={selRuleId === e.id} onclick={() => pickRule(e)}>
-                <span class="rle-itemTerm">{e.term}</span>
+                <span class="rle-itemTerm">{loc(e.term, editLang)}</span>
                 <span class="rle-itemCat">{catLabel(e.category)}</span>
               </button>
             </li>
@@ -272,7 +301,9 @@
           {#each rulingList as r (r.id)}
             <li>
               <button class="rle-item" class:on={selRulingId === r.id} onclick={() => pickRuling(r)}>
-                <span class="rle-itemTerm" class:retired={r.status === 'retired'}>⚖ {r.title}</span>
+                <span class="rle-itemTerm" class:retired={r.status === 'retired'}
+                  >⚖ {loc(r.title, editLang)}</span
+                >
                 <span class="rle-itemCat">{fmtDate(r.createdAt)}</span>
               </button>
             </li>
@@ -293,7 +324,8 @@
               <span class="rle-lbl">{t('rules.linkedRule')}</span>
               <select class="rle-in" bind:value={rulingDraft.ruleId}>
                 <option value="">{t('rules.noLink')}</option>
-                {#each rules.allRules as e (e.id)}<option value={e.id}>{e.term}</option>{/each}
+                {#each rules.allRules as e (e.id)}<option value={e.id}>{loc(e.term, editLang)}</option
+                  >{/each}
               </select>
             </div>
             <div>
@@ -308,7 +340,8 @@
           {#if rulingConflicts.length}
             <div class="rle-conflict">
               ⚠ {t('rules.conflictWarn')}
-              {#each rulingConflicts as c (c.id)}<span class="rle-cf">{c.title}</span>{/each}
+              {#each rulingConflicts as c (c.id)}<span class="rle-cf">{loc(c.title, editLang)}</span
+                >{/each}
             </div>
           {/if}
           <div class="rle-meta">
@@ -363,6 +396,26 @@
     font-size: 12px;
   }
   .rle-tab.on {
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .rle-langs {
+    display: flex;
+    gap: 2px;
+  }
+  .rle-lang {
+    padding: 4px 9px;
+    border-radius: var(--r1);
+    border: 1px solid var(--line1);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+  .rle-lang.on {
     border-color: var(--green);
     color: var(--green);
   }

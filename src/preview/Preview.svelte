@@ -1,6 +1,7 @@
 <script lang="ts">
   import { rules } from '../modules/rules/store.svelte';
   import { system } from '../lib/stores/system.svelte';
+  import { lang } from '../lib/stores/lang.svelte';
   import RulesDesktop from '../modules/rules/Desktop.svelte';
   import RulesEditor from '../modules/rules/Editor.svelte';
 
@@ -37,6 +38,7 @@
 
   const params = new URLSearchParams(location.search);
   const which = params.get('c') ?? 'all';
+  if (params.get('lang') === 'pl') lang.current = 'pl';
 </script>
 
 <div class="ph-root">

@@ -49,12 +49,12 @@ export function collectSources(): PaletteItem[] {
   }
   // Rules reference (merged seed + custom, filtered to the active system)
   for (const e of forSystem(rules.allRules, system.current)) {
-    out.push({ id: `rule-${e.id}`, label: e.term, detail: 'Rule', module: 'rules', kind: 'open' });
+    out.push({ id: `rule-${e.id}`, label: loc(e.term, lang.current), detail: 'Rule', module: 'rules', kind: 'open' });
   }
   // Rulings log (active, current system)
   for (const r of rules.systemRulings) {
     if (r.status !== 'active') continue;
-    out.push({ id: `ruling-${r.id}`, label: r.title, detail: 'Ruling', module: 'rules', kind: 'open' });
+    out.push({ id: `ruling-${r.id}`, label: loc(r.title, lang.current), detail: 'Ruling', module: 'rules', kind: 'open' });
   }
   // "Spawn <module> window" actions — every module that has a desktop view.
   for (const m of moduleList) {

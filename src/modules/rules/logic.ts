@@ -1,7 +1,18 @@
 import type { GameSystem } from '../../lib/system';
+import { loc, locStrings } from '../../lib/loc';
 import type { RuleCategory, RuleEntry, Ruling } from './data';
 
 export type { RuleCategory, RuleEntry, Ruling } from './data';
+
+/** Lowercased variants of a localized field, for cross-language matching. */
+function variants(v: Parameters<typeof locStrings>[0]): string[] {
+  return locStrings(v).map((s) => s.toLowerCase());
+}
+
+/** Canonical English text of a localized field, for stable sorting. */
+function canonical(v: Parameters<typeof loc>[0]): string {
+  return loc(v, 'en');
+}
 
 /** Entries relevant to a system: system-specific ones plus the shared 'both'. */
 export function forSystem<T extends { system: GameSystem | 'both' }>(
@@ -21,12 +32,12 @@ export function byCategory(entries: RuleEntry[], category: RuleCategory | null):
  * Ranks term > aliases > tags > body, with a start-of-term bonus.
  */
 function scoreRule(e: RuleEntry, q: string): number {
-  const term = e.term.toLowerCase();
-  if (term.startsWith(q)) return 5;
-  if (term.includes(q)) return 4;
+  const terms = variants(e.term);
+  if (terms.some((t) => t.startsWith(q))) return 5;
+  if (terms.some((t) => t.includes(q))) return 4;
   if (e.aliases.some((a) => a.toLowerCase().includes(q))) return 3;
   if (e.tags.some((tg) => tg.toLowerCase().includes(q))) return 2;
-  if (e.body.toLowerCase().includes(q)) return 1;
+  if (variants(e.body).some((b) => b.includes(q))) return 1;
   return 0;
 }
 
@@ -38,7 +49,7 @@ function scoreRule(e: RuleEntry, q: string): number {
 export function searchRules(query: string, entries: RuleEntry[]): RuleEntry[] {
   const q = query.trim().toLowerCase();
   const byPinThenTerm = (a: RuleEntry, b: RuleEntry) =>
-    Number(!!b.pinned) - Number(!!a.pinned) || a.term.localeCompare(b.term);
+    Number(!!b.pinned) - Number(!!a.pinned) || canonical(a.term).localeCompare(canonical(b.term));
   if (!q) return [...entries].sort(byPinThenTerm);
   return entries
     .map((e) => ({ e, score: scoreRule(e, q) }))
@@ -53,11 +64,11 @@ export type SearchHit =
   | { type: 'ruling'; ruling: Ruling };
 
 function scoreRuling(rl: Ruling, q: string): number {
-  const title = rl.title.toLowerCase();
-  if (title.startsWith(q)) return 5;
-  if (title.includes(q)) return 4;
+  const titles = variants(rl.title);
+  if (titles.some((t) => t.startsWith(q))) return 5;
+  if (titles.some((t) => t.includes(q))) return 4;
   if (rl.tags.some((tg) => tg.toLowerCase().includes(q))) return 2;
-  if (rl.body.toLowerCase().includes(q)) return 1;
+  if (variants(rl.body).some((b) => b.includes(q))) return 1;
   return 0;
 }
 
