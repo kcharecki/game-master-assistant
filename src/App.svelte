@@ -11,6 +11,7 @@
   import { density } from './lib/stores/density.svelte';
   import Toast from './components/Toast.svelte';
   import { resolveWikilink } from './lib/wikilink';
+  import { OPEN_REF_EVENT } from './lib/xref';
   import { locStrings } from './lib/loc';
   import { lore } from './modules/lore/store.svelte';
   import { npcs } from './modules/npcs/store.svelte';
@@ -38,13 +39,14 @@
     rules.contextLabel = () =>
       initiative.order.length > 0 && initiative.round >= 1 ? `Round ${initiative.round}` : undefined;
 
-    // Resolve notebook [[wikilinks]] to a lore page or NPC and jump there.
+    // Resolve a cross-module reference (notebook [[wikilink]], planner ref chip)
+    // to a lore page or NPC and jump there.
     function onWikilink(e: Event) {
       const name = (e as CustomEvent<{ name: string }>).detail?.name;
       if (!name) return;
       const hit = resolveWikilink(
         name,
-        lore.pages.map((p) => ({ id: p.id, name: p.title })),
+        lore.pages.flatMap((p) => [...locStrings(p.title), ...p.aliases].map((nm) => ({ id: p.id, name: nm }))),
         npcs.list.flatMap((n) => locStrings(n.name).map((nm) => ({ id: n.id, name: nm }))),
       );
       if (!hit) {
@@ -55,7 +57,7 @@
       if (hit.module === 'lore') lore.select(hit.id);
       else npcs.focus(hit.id);
     }
-    window.addEventListener('notebook:wikilink', onWikilink);
+    window.addEventListener(OPEN_REF_EVENT, onWikilink);
 
     // Auto-backup: snapshot campaign state when the tab is about to unload.
     function onUnload() {
@@ -64,7 +66,7 @@
     window.addEventListener('beforeunload', onUnload);
 
     return () => {
-      window.removeEventListener('notebook:wikilink', onWikilink);
+      window.removeEventListener(OPEN_REF_EVENT, onWikilink);
       window.removeEventListener('beforeunload', onUnload);
     };
   });

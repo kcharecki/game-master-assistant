@@ -213,6 +213,19 @@ describe('renderMarkdown', () => {
     expect(renderMarkdown('[[X]]')).toBe('<p>[[X]]</p>');
   });
 
+  it('renders piped wikilinks with target + label split', () => {
+    const out = renderMarkdown('see [[innsmouth|the town]]', { wikilink: true });
+    expect(out).toContain('data-wiki="innsmouth"');
+    expect(out).toContain('>the town</a>');
+    expect(out).not.toContain('>innsmouth</a>');
+  });
+
+  it('falls back to target as label when the pipe half is empty', () => {
+    const out = renderMarkdown('[[Mara|]]', { wikilink: true });
+    expect(out).toContain('data-wiki="Mara"');
+    expect(out).toContain('>Mara</a>');
+  });
+
   it('renders #tags as spans', () => {
     expect(renderMarkdown('a #tag')).toContain('<span class="md-tag">#tag</span>');
   });

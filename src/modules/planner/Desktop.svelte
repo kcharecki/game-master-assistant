@@ -4,6 +4,7 @@
   import { beatCue } from './logic';
   import { renderMarkdown } from '../notebook/logic';
   import { putOnAir } from '../reveal/bus-actions';
+  import { openRef } from '../../lib/xref';
   import { toast } from '../../lib/stores/toast.svelte';
   import { t } from '../../lib/i18n';
   import Empty from '../../lib/components/Empty.svelte';
@@ -56,6 +57,24 @@
     if (target) planner.jumpTo(target);
   }
 
+  // Delegated click on the cue's rendered refs: [[lore]] links carry data-wiki;
+  // @npc mentions are .md-npc spans whose text keeps the leading @. Either way,
+  // fire a cross-module open so App.svelte resolves it to a lore page or NPC.
+  function onCueClick(e: MouseEvent) {
+    const el = e.target as HTMLElement;
+    const wiki = el.closest('a[data-wiki]') as HTMLElement | null;
+    if (wiki) {
+      e.preventDefault();
+      openRef(wiki.dataset.wiki ?? '');
+      return;
+    }
+    const npc = el.closest('.md-npc') as HTMLElement | null;
+    if (npc) {
+      e.preventDefault();
+      openRef((npc.textContent ?? '').replace(/^@/, '').trim());
+    }
+  }
+
   function targetMins(to: string): number | undefined {
     const id = planner.branchTargetId(to);
     return id ? planner.beats.find((x) => x.id === id)?.mins : undefined;
@@ -99,8 +118,10 @@
       </div>
       <h3 class="pr-title">{beat.title}</h3>
       {#if cueHtml}
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- eslint-disable-next-line svelte/no-at-html-tags -- renderMarkdown escapes input; only our own spans are re-added -->
-        <p class="pr-cue">{@html cueHtml}</p>
+        <p class="pr-cue" onclick={onCueClick}>{@html cueHtml}</p>
       {/if}
       <div class="pr-nowact">
         <button class="pr-cast" disabled={!beat.boxed.trim()} onclick={broadcast}>
@@ -275,6 +296,7 @@
   }
   .pr-cue :global(.md-npc) {
     color: #c9a6d4;
+    cursor: pointer;
   }
   .pr-cue :global(.md-tag) {
     color: var(--green);
@@ -282,6 +304,7 @@
   .pr-cue :global(.md-wiki) {
     color: var(--gold);
     text-decoration: none;
+    cursor: pointer;
   }
   .pr-nowact {
     display: flex;

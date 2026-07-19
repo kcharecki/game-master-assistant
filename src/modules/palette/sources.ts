@@ -31,7 +31,7 @@ export function collectSources(): PaletteItem[] {
   }
   // Lore pages
   for (const p of lore.pages) {
-    out.push({ id: `lore-${p.id}`, label: p.title, detail: 'Lore page', module: 'lore', kind: 'editor' });
+    out.push({ id: `lore-${p.id}`, label: loc(p.title, lang.current), detail: 'Lore page', module: 'lore', kind: 'editor' });
   }
   // Notes
   for (const note of notebook.notes) {

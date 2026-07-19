@@ -3,6 +3,7 @@
   import { renderMarkdown, highlight, relativeShort } from './logic';
   import { assetPut, assetUrl } from '../../lib/db';
   import { t } from '../../lib/i18n';
+  import { openRef } from '../../lib/xref';
   import Icon from '../../lib/components/Icon.svelte';
 
   let { note, focused = false }: { note: Note; focused?: boolean } = $props();
@@ -90,9 +91,7 @@
     const wiki = el.closest('a[data-wiki]') as HTMLAnchorElement | null;
     if (wiki) {
       e.preventDefault();
-      window.dispatchEvent(
-        new CustomEvent('notebook:wikilink', { detail: { name: wiki.dataset.wiki } })
-      );
+      openRef(wiki.dataset.wiki ?? '');
     }
   }
 </script>

@@ -310,11 +310,15 @@ function inline(text: string, opts: RenderOptions): string {
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
   s = s.replace(/\b_([^_]+)_\b/g, '<em>$1</em>');
-  // wikilinks — content was escaped so brackets survive as literal chars
+  // wikilinks — content was escaped so brackets survive as literal chars.
+  // Supports `[[target|label]]`: data-wiki resolves the target, visible text is
+  // the label. Plain `[[X]]` keeps target and text both `X`.
   if (opts.wikilink) {
-    s = s.replace(/\[\[([^\][]+)\]\]/g, (_m, name: string) => {
-      const label = name.trim();
-      return `<a class="md-wiki" data-wiki="${escapeAttr(label)}" href="#">${label}</a>`;
+    s = s.replace(/\[\[([^\][]+)\]\]/g, (_m, inner: string) => {
+      const pipe = inner.indexOf('|');
+      const target = (pipe >= 0 ? inner.slice(0, pipe) : inner).trim();
+      const label = (pipe >= 0 ? inner.slice(pipe + 1).trim() : '') || target;
+      return `<a class="md-wiki" data-wiki="${escapeAttr(target)}" href="#">${label}</a>`;
     });
   }
   // @npc mentions
