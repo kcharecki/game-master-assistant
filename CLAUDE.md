@@ -36,7 +36,10 @@ Core rules: **gold means on-air only** (selection is green, armed is green-dashe
 
 Pure-web Svelte 5 + TS, three surfaces (desktop / editor tabs / broadcast), IndexedDB persistence,
 `BroadcastChannel` single shared window. Green gate + commit per component: `npm run check` · `lint` ·
-`test` (Vitest, co-located `*.test.ts`) · `build`.
+`test` (Vitest, co-located `*.test.ts`) · `build`. **The gate (lint · test · build) is auto-enforced
+before every `git commit`** by `.claude/hooks/guard.mjs` (a `PreToolUse` Bash hook, wired in
+`.claude/settings.json`); the same hook blocks destructive shell commands. Emergency bypass: add
+`NO_GATE` to the commit command; bypass the destructive guard with a `#allow` comment.
 
 **Test rule — every module with state ships tests.** A module that has `store.svelte.ts` MUST have a
 co-located `store.test.ts`; a module with `logic.ts` MUST have `logic.test.ts`. Mock `lib/db`
@@ -112,6 +115,8 @@ Desktop view ──"on air"────> bus.send(payload) ──BroadcastChanne
 - Keep the main thread for orchestration, integration, and the visual iterate loop (build → static →
   screenshot). Push discovery/bulk edits to workers; relay only what matters back.
 - A reusable "apply a design to a module" prompt for fresh sessions lives in `prompts/apply-design.md`.
+  New reusable workflows should be authored as **Skills** (`.claude/skills/<name>/SKILL.md`), not
+  `.claude/commands/*.md` — custom slash commands have merged into Skills (old command files still work).
 
 # Gotchas & tooling (learned the hard way)
 
